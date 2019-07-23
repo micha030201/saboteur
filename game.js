@@ -17,7 +17,13 @@ Array.prototype.any = function() {
 }
 
 class PathCard {
-    constructor(up, down, left, right) {
+    constructor(svg, up, down, left, right) {
+        this.elem = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        this.elem.setAttribute("width", 50);
+        this.elem.setAttribute("height", 75);
+        this.elem.setAttribute("fill", "black");
+        svg.appendChild(this.elem);
+
         this.reversed = false;
         this._up = up;
         this._down = down;
@@ -54,16 +60,15 @@ class PathCard {
     }
 }
 
-let TURNEDCARD = 123;
-
 class Field {
-    constructor(finishCard1, fiinshCard2, finishCard3) {
+    constructor(svg, finishCard1, finishCard2, finishCard3) {
+        this.x = 0;
+        this.y = 0;
         this.grid = new DefaultDict(function () { return {}; });
-        this.grid[0][0] = new PathCard("yes", "yes", "yes", "yes");
-        this.finishCards = [finishCard1, fiinshCard2, finishCard3];
-        this.grid[8][0] = TURNEDCARD;
-        this.grid[8][2] = TURNEDCARD;
-        this.grid[8][-2] = TURNEDCARD;
+        this.grid[0][0] = new PathCard(svg, "yes", "yes", "yes", "yes");
+        this.grid[8][0] = finishCard1;
+        this.grid[8][2] = finishCard2;
+        this.grid[8][-2] = finishCard3;
     }
 
     _reachableSpaces(_result, x, y) {
@@ -154,4 +159,35 @@ class Field {
 
     place(card, x, y) {
     }
+
+    draw() {
+        for (let [x, cardArray] of Object.entries(this.grid)) {
+            for (let [y, card] of Object.entries(cardArray)) {
+                console.log(card);
+                card.elem.setAttribute("x", 50*2 + this.x + x * 50);
+                card.elem.setAttribute("y", 75*3 + this.y + y * 75);
+            }
+        }
+    }
+}
+
+let svg, field;
+document.addEventListener('DOMContentLoaded', function(){
+    svg = document.getElementById("gamearea");
+
+    field = new Field(
+        svg,
+        new PathCard(svg, "yes", "yes", "yes", "yes"),
+        new PathCard(svg, "yes", "yes", "yes", "yes"),
+        new PathCard(svg, "yes", "yes", "yes", "yes"),
+    );
+
+    redraw();
+});
+
+function redraw() {
+    svg.setAttribute("width", window.innerWidth);
+    svg.setAttribute("height", window.innerHeight);
+
+    field.draw();
 }
