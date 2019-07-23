@@ -59,10 +59,11 @@ class PathCard {
 }
 
 class Field {
+    // height -- 7 cards
+    // width -- 13 cards
     constructor(svg, finishCard1, finishCard2, finishCard3) {
         this.x = 0;
         this.y = 0;
-        this.width = 0;
 
         this.grid = new DefaultDict(function () { return {}; });
         this.grid[0][0] = new PathCard(svg, "yes", "yes", "yes", "yes");
@@ -165,16 +166,13 @@ class Field {
     }
 
     draw() {
-        let cardWidth = this.width / 13;
-        let cardHeight = this.height / 7;
-
         for (let [x, cardArray] of Object.entries(this.grid)) {
             for (let [y, card] of Object.entries(cardArray)) {
                 card.elem.setAttribute("width", cardWidth);
-                card.elem.setAttribute("height", cardHeight);
+                card.elem.setAttribute("height", cardWidth * 1.5);
 
-                card.elem.setAttribute("x", cardWidth*2 + this.x + x * cardWidth);
-                card.elem.setAttribute("y", cardHeight*3 + this.y + y * cardHeight);
+                card.elem.setAttribute("x", cardWidth * 2 + this.x + x * cardWidth);
+                card.elem.setAttribute("y", cardWidth * 1.5 * 3 + this.y + y * cardWidth * 1.5);
             }
         }
     }
@@ -194,15 +192,31 @@ document.addEventListener('DOMContentLoaded', function(){
     redraw();
 });
 
+let cardWidth;
 function redraw() {
     svg.setAttribute("width", window.innerWidth);
     svg.setAttribute("height", window.innerHeight);
     svg.setAttribute("viewBox", "0 0 " + window.innerWidth + " " + window.innerHeight);
 
-    if (window.innerHeight <= window.innerWidth) {
-        field.width = window.innerWidth / 3;
-        field.x = window.innerWidth / 3;
+    let margin = Math.min(window.innerWidth, window.innerHeight) * 0.04;
+    let xOffset, yOffset;
+
+    if (window.innerHeight * 14 * 1.5 <= window.innerWidth * 13) {
+        cardWidth = (window.innerHeight - margin * 2) / 14 / 1.5;
+        xOffset = (window.innerWidth - cardWidth * 13) / 2;
+        yOffset = margin;
+    } else {
+        cardWidth = (window.innerWidth - margin * 2) / 13;
+        xOffset = margin;
+        yOffset = (window.innerHeight - cardWidth * 1.5 * 14) / 2;
     }
+
+    // TODO other players' hands
+
+    field.x = xOffset;
+    field.y = yOffset + cardWidth * 1.5 * 3;
+
+    // TODO our hand
 
     field.draw();
 }
