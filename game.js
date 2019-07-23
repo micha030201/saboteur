@@ -19,8 +19,6 @@ Array.prototype.any = function() {
 class PathCard {
     constructor(svg, up, down, left, right) {
         this.elem = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        this.elem.setAttribute("width", 50);
-        this.elem.setAttribute("height", 75);
         this.elem.setAttribute("fill", "black");
         svg.appendChild(this.elem);
 
@@ -64,11 +62,17 @@ class Field {
     constructor(svg, finishCard1, finishCard2, finishCard3) {
         this.x = 0;
         this.y = 0;
+        this.width = 0;
+
         this.grid = new DefaultDict(function () { return {}; });
         this.grid[0][0] = new PathCard(svg, "yes", "yes", "yes", "yes");
         this.grid[8][0] = finishCard1;
         this.grid[8][2] = finishCard2;
         this.grid[8][-2] = finishCard3;
+    }
+
+    get height() {
+        return this.width / 13 * 1.5 * 7;
     }
 
     _reachableSpaces(_result, x, y) {
@@ -161,11 +165,16 @@ class Field {
     }
 
     draw() {
+        let cardWidth = this.width / 13;
+        let cardHeight = this.height / 7;
+
         for (let [x, cardArray] of Object.entries(this.grid)) {
             for (let [y, card] of Object.entries(cardArray)) {
-                console.log(card);
-                card.elem.setAttribute("x", 50*2 + this.x + x * 50);
-                card.elem.setAttribute("y", 75*3 + this.y + y * 75);
+                card.elem.setAttribute("width", cardWidth);
+                card.elem.setAttribute("height", cardHeight);
+
+                card.elem.setAttribute("x", cardWidth*2 + this.x + x * cardWidth);
+                card.elem.setAttribute("y", cardHeight*3 + this.y + y * cardHeight);
             }
         }
     }
@@ -188,6 +197,12 @@ document.addEventListener('DOMContentLoaded', function(){
 function redraw() {
     svg.setAttribute("width", window.innerWidth);
     svg.setAttribute("height", window.innerHeight);
+    svg.setAttribute("viewBox", "0 0 " + window.innerWidth + " " + window.innerHeight);
+
+    if (window.innerHeight <= window.innerWidth) {
+        field.width = window.innerWidth / 3;
+        field.x = window.innerWidth / 3;
+    }
 
     field.draw();
 }
