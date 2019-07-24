@@ -17,16 +17,20 @@ Array.prototype.any = function() {
 }
 
 class PathCard {
-    constructor(svg, up, down, left, right) {
-        this.elem = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        this.elem.setAttribute("fill", "black");
-        svg.appendChild(this.elem);
-
+    constructor(up, down, left, right) {
         this.reversed = false;
         this._up = up;
         this._down = down;
         this._left = left;
         this._right = right;
+    }
+
+    visualize(svg) {
+        if (typeof this.elem === "undefined") {
+            this.elem = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            this.elem.setAttribute("fill", "black");
+            svg.appendChild(this.elem);
+        }
     }
 
     get up() {
@@ -56,24 +60,33 @@ class PathCard {
         }
         return this._right;
     }
+
+    draw() {
+        this.elem.setAttribute("width", cardWidth);
+        this.elem.setAttribute("height", cardWidth * 1.5);
+    }
 }
 
 class Field {
     // height -- 7 cards
     // width -- 13 cards
-    constructor(svg, finishCard1, finishCard2, finishCard3) {
+    constructor(finishCard1, finishCard2, finishCard3) {
         this.x = 0;
         this.y = 0;
 
         this.grid = new DefaultDict(function () { return {}; });
-        this.grid[0][0] = new PathCard(svg, "yes", "yes", "yes", "yes");
+        this.grid[0][0] = new PathCard("yes", "yes", "yes", "yes");
         this.grid[8][0] = finishCard1;
         this.grid[8][2] = finishCard2;
         this.grid[8][-2] = finishCard3;
     }
 
-    get height() {
-        return this.width / 13 * 1.5 * 7;
+    visualize(svg) {
+        for (let [x, cardArray] of Object.entries(this.grid)) {
+            for (let [y, card] of Object.entries(cardArray)) {
+                card.visualize(svg);
+            }
+        }
     }
 
     _reachableSpaces(_result, x, y) {
@@ -168,8 +181,7 @@ class Field {
     draw() {
         for (let [x, cardArray] of Object.entries(this.grid)) {
             for (let [y, card] of Object.entries(cardArray)) {
-                card.elem.setAttribute("width", cardWidth);
-                card.elem.setAttribute("height", cardWidth * 1.5);
+                card.draw();
 
                 card.elem.setAttribute("x", cardWidth * 2 + this.x + x * cardWidth);
                 card.elem.setAttribute("y", cardWidth * 1.5 * 3 + this.y + y * cardWidth * 1.5);
@@ -178,17 +190,17 @@ class Field {
     }
 }
 
-let svg, field;
+let svg;
+let field = new Field(
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+);
+
 document.addEventListener('DOMContentLoaded', function(){
     svg = document.getElementById("gamearea");
 
-    field = new Field(
-        svg,
-        new PathCard(svg, "yes", "yes", "yes", "yes"),
-        new PathCard(svg, "yes", "yes", "yes", "yes"),
-        new PathCard(svg, "yes", "yes", "yes", "yes"),
-    );
-
+    field.visualize(svg);
     redraw();
 });
 
