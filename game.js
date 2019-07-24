@@ -179,42 +179,49 @@ class Field {
         }
     }
 
-    _reachableSpaces(_result, x, y) {
+    _reachableSpaces(set, _result, x, y) {
         let card = this.grid[x][y];
         if (typeof card === "undefined") {
             _result.push([x, y]);
+            return;
         }
-        if (card.up === "yes") {
-            this._reachableSpaces(_result, x - 1, y);
+        if (card.up === "yes" && !set.has(x + " " + (y + 1))) {
+        	set.add(x + " " + (y + 1));
+            this._reachableSpaces(set, _result, x, y + 1);
+            
         }
-        if (card.down === "yes") {
-            this._reachableSpaces(_result, x + 1, y);
+        if (card.down === "yes" && !set.has(x + " "+ (y - 1))) {
+        	set.add(x + " "+(y - 1));
+            this._reachableSpaces(set, _result, x, y - 1);
         }
-        if (card.left === "yes") {
-            this._reachableSpaces(_result, x, y - 1);
+        if (card.left === "yes" && !set.has((x - 1) + " " + y)) {
+        	set.add((x - 1) + " " + y);
+            this._reachableSpaces(set, _result, x - 1, y);
         }
-        if (card.right === "yes") {
-            this._reachableSpaces(_result, x, y + 1);
+        if (card.right === "yes" && !set.has((x + 1) + " " + y)) {
+        	set.add((x + 1) + " " + y);
+            this._reachableSpaces(set, _result, x + 1, y);
         }
     }
 
     reachableSpaces() {
-        let result = [];
-        this._reachableSpaces(result, 0, 0);
+        let result = [ ];
+        let set = new Set (["0 0"]);
+        this._reachableSpaces(set, result, 0, 0);
         return result;
     }
 
     _canPlace(card, x, y) {
         if (
             typeof this.grid[x][y - 1] != "undefined"
-            && ((this.grid[x][y - 1].down != "no" && card.up === "no")
-                || (this.grid[x][y - 1].down === "no" && card.up != "no"))
+            && ((this.grid[x][y - 1].up != "no" && card.down === "no")
+                || (this.grid[x][y - 1].up === "no" && card.down != "no"))
         ) {
             return false;
         } else if (
             typeof this.grid[x][y + 1] != "undefined"
-            && ((this.grid[x][y + 1].up != "no" && card.down === "no")
-                || (this.grid[x][y + 1].up === "no" && card.down != "no"))
+            && ((this.grid[x][y + 1].down != "no" && card.up === "no")
+                || (this.grid[x][y + 1].down === "no" && card.up != "no"))
         ) {
             return false;
         } else if (
@@ -258,10 +265,10 @@ class Field {
         let result = [];
         let reachable = this.reachableSpaces();
         for (let [x, y] of reachable) {
-            if (canPlace(card, x, y).any) {
+            if (this.canPlace(card, x, y).any()) {
                 result.push([x, y]);
             }
-        }
+        }        
         return result;
     }
 
@@ -273,6 +280,8 @@ class Field {
     }
 
     place(card, x, y) {
+    	this.grid[x][y] = card;
+    	console.log("cardplaced :", x, y);
     }
 
     draw() {
