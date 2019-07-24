@@ -30,9 +30,73 @@ class PathCard {
         this.y = 0;
 
         if (typeof this.elem === "undefined") {
-            this.elem = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            this.elem.setAttribute("fill", "black");
-            this.elem.setAttribute("rx", 5);
+            this.elem = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+            let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect.setAttribute("fill", "black");
+            rect.setAttribute("rx", 1);
+            rect.setAttribute("width", 10);
+            rect.setAttribute("height", 15);
+            this.elem.appendChild(rect);
+
+            if (this._up != "no") {
+                let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                way.setAttribute("x", 4);
+                way.setAttribute("y", 0);
+                way.setAttribute("width", 2);
+                if (this._up === "yes") {
+                    way.setAttribute("height", 8.5);
+                } else {
+                    way.setAttribute("height", 2);
+                }
+                way.setAttribute("fill", "red");
+                this.elem.appendChild(way);
+            }
+
+            if (this._down != "no") {
+                let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                way.setAttribute("x", 4);
+                way.setAttribute("width", 2);
+                if (this._down === "yes") {
+                    way.setAttribute("height", 8.5);
+                    way.setAttribute("y", 6.5);
+                } else {
+                    way.setAttribute("height", 2);
+                    way.setAttribute("y", 13);
+                }
+                way.setAttribute("fill", "red");
+                this.elem.appendChild(way);
+            }
+
+            if (this._left != "no") {
+                let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                way.setAttribute("x", 0);
+                way.setAttribute("y", 6.5);
+                way.setAttribute("height", 2);
+                if (this._left === "yes") {
+                    way.setAttribute("width", 6);
+                } else {
+                    way.setAttribute("width", 2);
+                }
+                way.setAttribute("fill", "red");
+                this.elem.appendChild(way);
+            }
+
+            if (this._right != "no") {
+                let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                way.setAttribute("y", 6.5);
+                way.setAttribute("height", 2);
+                if (this._left === "yes") {
+                    way.setAttribute("width", 6);
+                    way.setAttribute("x", 4);
+                } else {
+                    way.setAttribute("width", 2);
+                    way.setAttribute("x", 8);
+                }
+                way.setAttribute("fill", "red");
+                this.elem.appendChild(way);
+            }
+
             svg.appendChild(this.elem);
         }
     }
@@ -66,11 +130,12 @@ class PathCard {
     }
 
     draw() {
-        this.elem.setAttribute("width", cardWidth);
-        this.elem.setAttribute("height", cardWidth * 1.5);
-
-        this.elem.setAttribute("x", this.x);
-        this.elem.setAttribute("y", this.y);
+        this.elem.setAttribute(
+            "transform",
+            "scale(1, " + (this.reversed ? -1 : 1) + ") "
+            + "translate(" + this.x + ", " + this.y + ") "
+            + "scale(" + cardWidth / 10 + ") "
+        );
     }
 }
 
@@ -241,7 +306,7 @@ let field = new Field(
 );
 let ourHand = new Hand(true);
 ourHand.cards = [
-    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "dead end", "yes", "no"),
     new PathCard("yes", "yes", "yes", "yes"),
     new PathCard("yes", "yes", "yes", "yes"),
 ]
