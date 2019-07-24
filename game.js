@@ -257,19 +257,22 @@ class Field {
         let prevReversed = card.reversed;
 
         let result = [];
+
+        card.reversed = false;
         if (this._canPlace(card, x, y)) {
             result.push(true);
         } else {
             result.push(false);
         }
 
-        card.reversed = !card.reversed;
+        card.reversed = true;
         if (this._canPlace(card, x, y)) {
             result.push(true);
         } else {
             result.push(false);
         }
-        card.reversed = !card.reversed;
+
+        card.reversed = prevReversed;
 
         return result;
     }
@@ -446,9 +449,9 @@ document.addEventListener('mousemove', function(e) {
     let y = e.clientY - cardWidth * 1.5 / 2;
     if (doesIncludeArray(field.availableSpaces(draggedCard), (field.positionInGrid(x, y)))) {
         [x, y] = field.positionInGrid(x, y);
-        [x, y] = field.coordinatesOfPosition(x, y);
         let [canNotReversed, canReversed] = field.canPlace(draggedCard, x, y);
-        draggedCard.reversed = canNotReversed;
+        draggedCard.reversed = canReversed;
+        [x, y] = field.coordinatesOfPosition(x, y);
     }
     draggedCard.x = x;
     draggedCard.y = y;
