@@ -19,6 +19,7 @@ Array.prototype.any = function() {
 class PathCard {
     constructor(up, down, left, right) {
         this.reversed = false;
+        this.faceHidden = false;
         this._up = up;
         this._down = down;
         this._left = left;
@@ -97,6 +98,13 @@ class PathCard {
                 this.elem.appendChild(way);
             }
 
+            this.hideFace = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            this.hideFace.setAttribute("fill", "black");
+            this.hideFace.setAttribute("rx", 1);
+            this.hideFace.setAttribute("width", 10);
+            this.hideFace.setAttribute("height", 15);
+            this.elem.appendChild(this.hideFace);
+
             svg.appendChild(this.elem);
         }
     }
@@ -136,6 +144,11 @@ class PathCard {
             + "translate(" + this.x + ", " + this.y + ") "
             + "scale(" + cardWidth / 10 + ") "
         );
+        if (this.faceHidden) {
+            this.hideFace.setAttribute("opacity", 1);
+        } else {
+            this.hideFace.setAttribute("opacity", 0);
+        }
     }
 }
 
@@ -145,6 +158,11 @@ class Field {
     constructor(finishCard1, finishCard2, finishCard3) {
         this.grid = new DefaultDict(function () { return {}; });
         this.grid[0][0] = new PathCard("yes", "yes", "yes", "yes");
+
+        finishCard1.faceHidden = true;
+        finishCard2.faceHidden = true;
+        finishCard3.faceHidden = true;
+
         this.grid[8][0] = finishCard1;
         this.grid[8][2] = finishCard2;
         this.grid[8][-2] = finishCard3;
@@ -247,6 +265,13 @@ class Field {
         return result;
     }
 
+    positionInGrid(x, y) {
+        return [
+            (-cardWidth * 2 - x) / cardWidth,
+            (-cardWidth * 1.5 * 2 - x) / (cardWidth * 1.5)
+        ];
+    }
+
     place(card, x, y) {
     }
 
@@ -283,6 +308,25 @@ class Hand {
         }
     }
 
+    pickCard(x, y) {
+        for (let card of this.cards) {
+            if (
+                    card.x < x
+                    && x < (card.x + cardWidth)
+                    && card.y < y
+                    && y < (card.y + cardWidth * 1.5)) {
+                return card;
+            }
+        }
+    }
+
+    removeCard(card) {
+        let index = this.cards.indexOf(card);
+        if (index > -1) {
+            this.cards.splice(index, 1);
+        }
+    }
+
     draw() {
         let x = this.x;
         for (let card of this.cards) {
@@ -311,7 +355,7 @@ ourHand.cards = [
     new PathCard("yes", "yes", "yes", "yes"),
 ]
 
-document.addEventListener('DOMContentLoaded', function(){
+document.addEventListener('DOMContentLoaded', function() {
     svg = document.getElementById("gamearea");
 
     ourHand.visualize(svg);
@@ -349,3 +393,29 @@ function redraw() {
     field.draw();
     ourHand.draw();
 }
+
+let draggedCard;
+document.addEventListener('mousedown', function(e) {
+    console.log(e);
+    let card = ourHand.pickCard(e.clientX, e.clientY);
+    if (typeof card === "undefined") {
+        return;
+    }
+    ourHand.removeCard(card);
+    draggedCard = card;
+
+    ourHand.draw();
+    draggedCard.x = e.clientX - cardWidth / 2;
+    draggedCard.y = e.clientY - cardWidth * 1.5 / 2;
+    draggedCard.draw();
+});
+
+
+document.addEventListener('mousemove', function(e) {
+    if (typeof draggedCard === "undefined") {
+        return;
+    }
+    draggedCard.x = e.clientX - cardWidth / 2;
+    draggedCard.y = e.clientY - cardWidth * 1.5 / 2;
+    draggedCard.draw();
+});
