@@ -26,9 +26,13 @@ class PathCard {
     }
 
     visualize(svg) {
+        this.x = 0;
+        this.y = 0;
+
         if (typeof this.elem === "undefined") {
             this.elem = document.createElementNS("http://www.w3.org/2000/svg", "rect");
             this.elem.setAttribute("fill", "black");
+            this.elem.setAttribute("rx", 5);
             svg.appendChild(this.elem);
         }
     }
@@ -64,6 +68,9 @@ class PathCard {
     draw() {
         this.elem.setAttribute("width", cardWidth);
         this.elem.setAttribute("height", cardWidth * 1.5);
+
+        this.elem.setAttribute("x", this.x);
+        this.elem.setAttribute("y", this.y);
     }
 }
 
@@ -71,9 +78,6 @@ class Field {
     // height -- 7 cards
     // width -- 13 cards
     constructor(finishCard1, finishCard2, finishCard3) {
-        this.x = 0;
-        this.y = 0;
-
         this.grid = new DefaultDict(function () { return {}; });
         this.grid[0][0] = new PathCard("yes", "yes", "yes", "yes");
         this.grid[8][0] = finishCard1;
@@ -82,6 +86,9 @@ class Field {
     }
 
     visualize(svg) {
+        this.x = 0;
+        this.y = 0;
+
         for (let [x, cardArray] of Object.entries(this.grid)) {
             for (let [y, card] of Object.entries(cardArray)) {
                 card.visualize(svg);
@@ -181,11 +188,47 @@ class Field {
     draw() {
         for (let [x, cardArray] of Object.entries(this.grid)) {
             for (let [y, card] of Object.entries(cardArray)) {
-                card.draw();
+                card.x = cardWidth * 2 + this.x + x * cardWidth;
+                card.y = cardWidth * 1.5 * 3 + this.y + y * cardWidth * 1.5;
 
-                card.elem.setAttribute("x", cardWidth * 2 + this.x + x * cardWidth);
-                card.elem.setAttribute("y", cardWidth * 1.5 * 3 + this.y + y * cardWidth * 1.5);
+                card.draw();
             }
+        }
+    }
+}
+
+class Hand {
+    // if ours:
+    //     width -- 10 cards
+    //     height -- 1 card
+    // otherwise:
+    //     width -- 3 cards
+    //     height -- 2 cards
+    constructor(is_ours) {
+        this.is_ours = is_ours;
+        this.cards = [];
+    }
+
+    visualize(svg) {
+        this.x = 0;
+        this.y = 0;
+
+        for (let card of this.cards) {
+            card.visualize(svg);
+        }
+    }
+
+    draw() {
+        let x = this.x;
+        for (let card of this.cards) {
+            card.y = this.y;
+            card.x = x;
+            if (this.is_ours) {
+                x += cardWidth;
+            } else {
+                x += 3 / (this.cards.length + 1);
+            }
+            card.draw();
         }
     }
 }
@@ -196,10 +239,17 @@ let field = new Field(
     new PathCard("yes", "yes", "yes", "yes"),
     new PathCard("yes", "yes", "yes", "yes"),
 );
+let ourHand = new Hand(true);
+ourHand.cards = [
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+]
 
 document.addEventListener('DOMContentLoaded', function(){
     svg = document.getElementById("gamearea");
 
+    ourHand.visualize(svg);
     field.visualize(svg);
     redraw();
 });
@@ -228,7 +278,9 @@ function redraw() {
     field.x = xOffset;
     field.y = yOffset + cardWidth * 1.5 * 3;
 
-    // TODO our hand
+    ourHand.x = xOffset + cardWidth;
+    ourHand.y = field.y + cardWidth * 1.5 * 8;
 
     field.draw();
+    ourHand.draw();
 }
