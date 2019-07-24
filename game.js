@@ -153,7 +153,7 @@ class PathCard {
     draw() {
         this.elem.setAttribute(
             "transform",
-            "scale(1, " + (this.reversed ? -1 : 1) + ") "
+            "rotate(" + (this.reversed ? 180 : 0) + " " + (this.x + cardWidth / 2) + " " + (this.y + cardWidth * 1.5 / 2) + ") "
             + "translate(" + this.x + ", " + this.y + ") "
             + "scale(" + cardWidth / 10 + ") "
         );
@@ -447,6 +447,8 @@ document.addEventListener('mousemove', function(e) {
     if (doesIncludeArray(field.availableSpaces(draggedCard), (field.positionInGrid(x, y)))) {
         [x, y] = field.positionInGrid(x, y);
         [x, y] = field.coordinatesOfPosition(x, y);
+        let [canNotReversed, canReversed] = field.canPlace(draggedCard, x, y);
+        draggedCard.reversed = canNotReversed;
     }
     draggedCard.x = x;
     draggedCard.y = y;
