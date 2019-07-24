@@ -1,5 +1,18 @@
 "use strict"
 
+function doesIncludeArray(haystack, needle){
+    let i, j, current;
+    for(i = 0; i < haystack.length; ++i){
+        if(needle.length === haystack[i].length){
+            current = haystack[i];
+            for(j = 0; j < needle.length && needle[j] === current[j]; ++j);
+            if(j === needle.length)
+                return true;
+        }
+    }
+    return false;
+}
+
 class DefaultDict {
     constructor(defaultInit) {
         return new Proxy({}, {
@@ -188,7 +201,7 @@ class Field {
         if (card.up === "yes" && !set.has(x + " " + (y + 1))) {
         	set.add(x + " " + (y + 1));
             this._reachableSpaces(set, _result, x, y + 1);
-            
+
         }
         if (card.down === "yes" && !set.has(x + " "+ (y - 1))) {
         	set.add(x + " "+(y - 1));
@@ -268,14 +281,21 @@ class Field {
             if (this.canPlace(card, x, y).any()) {
                 result.push([x, y]);
             }
-        }        
+        }
         return result;
     }
 
     positionInGrid(x, y) {
         return [
-            (-cardWidth * 2 - x) / cardWidth,
-            (-cardWidth * 1.5 * 2 - x) / (cardWidth * 1.5)
+            Math.round((x - cardWidth * 2 - this.x) / cardWidth),
+            Math.round((y - cardWidth * 1.5 * 3 - this.y) / (cardWidth * 1.5))
+        ];
+    }
+
+    coordinatesOfPosition(x, y) {
+        return [
+            cardWidth * 2 + this.x + x * cardWidth,
+            cardWidth * 1.5 * 3 + this.y + y * cardWidth * 1.5
         ];
     }
 
@@ -287,9 +307,7 @@ class Field {
     draw() {
         for (let [x, cardArray] of Object.entries(this.grid)) {
             for (let [y, card] of Object.entries(cardArray)) {
-                card.x = cardWidth * 2 + this.x + x * cardWidth;
-                card.y = cardWidth * 1.5 * 3 + this.y + y * cardWidth * 1.5;
-
+                [card.x, card.y] = this.coordinatesOfPosition(x, y);
                 card.draw();
             }
         }
@@ -360,7 +378,7 @@ let field = new Field(
 let ourHand = new Hand(true);
 ourHand.cards = [
     new PathCard("yes", "dead end", "yes", "no"),
-    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("no", "no", "yes", "yes"),
     new PathCard("yes", "yes", "yes", "yes"),
 ]
 
@@ -424,7 +442,13 @@ document.addEventListener('mousemove', function(e) {
     if (typeof draggedCard === "undefined") {
         return;
     }
-    draggedCard.x = e.clientX - cardWidth / 2;
-    draggedCard.y = e.clientY - cardWidth * 1.5 / 2;
+    let x = e.clientX - cardWidth / 2;
+    let y = e.clientY - cardWidth * 1.5 / 2;
+    if (doesIncludeArray(field.availableSpaces(draggedCard), (field.positionInGrid(x, y)))) {
+        [x, y] = field.positionInGrid(x, y);
+        [x, y] = field.coordinatesOfPosition(x, y);
+    }
+    draggedCard.x = x;
+    draggedCard.y = y;
     draggedCard.draw();
 });
