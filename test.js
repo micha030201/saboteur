@@ -1,4 +1,4 @@
-function line_path () {
+function TestLine () {
 
 	for (let i = 0;i<7;i++){
 		let card = new PathCard("no", "no", "yes","yes");
@@ -15,8 +15,8 @@ function line_path () {
 
 function TestAcsess(){
 
-	let card1 = new PathCard("no", "yes", "no", "no");
-	let card2 = new PathCard("yes", "no", "no", "no");
+	let card1 = new PathCard("yes", "no", "no", "no");
+	let card2 = new PathCard("no", "yes", "no", "no");
 	let card3 = new PathCard("no", "no", "yes", "no");
 	let card4= new PathCard("no", "no", "no", "yes");
 	field.place(card1, 0, -1);
@@ -86,17 +86,12 @@ function TestCanPlace(){
 				console.log("true");
 			}
 			else{
-				if (i == 1){
-					console.log("true")
-				}
-				else{
-					console.log("false");
-				}
+				console.log("false");
 			}			
 		}
 		else{
 			console.log("pipe", arr[i] ,"can be palced");
-			if (i % 2 === 1){
+			if (i % 2 === 1 || i == 2){
 				console.log("true");
 			}
 			else{
