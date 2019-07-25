@@ -53,7 +53,7 @@ class PathCard {
             rect.setAttribute("height", 15);
             this.elem.appendChild(rect);
 
-            if (this._up != "no") {
+            if (this._up !== "no") {
                 let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                 way.setAttribute("x", 4);
                 way.setAttribute("y", 0);
@@ -67,7 +67,7 @@ class PathCard {
                 this.elem.appendChild(way);
             }
 
-            if (this._down != "no") {
+            if (this._down !== "no") {
                 let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                 way.setAttribute("x", 4);
                 way.setAttribute("width", 2);
@@ -82,7 +82,7 @@ class PathCard {
                 this.elem.appendChild(way);
             }
 
-            if (this._left != "no") {
+            if (this._left !== "no") {
                 let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                 way.setAttribute("x", 0);
                 way.setAttribute("y", 6.5);
@@ -96,7 +96,7 @@ class PathCard {
                 this.elem.appendChild(way);
             }
 
-            if (this._right != "no") {
+            if (this._right !== "no") {
                 let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                 way.setAttribute("y", 6.5);
                 way.setAttribute("height", 2);
@@ -185,10 +185,10 @@ class Field {
         this.x = 0;
         this.y = 0;
 
-        for (let [x, cardArray] of Object.entries(this.grid)) {
-            for (let [y, card] of Object.entries(cardArray)) {
+        for (let [a, cardArray] of Object.entries(this.grid)) {
+            for (let [b, card] of Object.entries(cardArray)) {
                 card.visualize(svg);
-                [card.x, card.y] = this.coordinatesOfPosition(x, y);
+                [card.x, card.y] = this.ABtoXY(a, b);
             }
         }
     }
@@ -225,49 +225,49 @@ class Field {
         return result;
     }
 
-    _canPlace(card, x, y) {
+    _canPlaceInPosition(card, x, y) {
         if (
-            typeof this.grid[x][y - 1] != "undefined"
-            && ((this.grid[x][y - 1].up != "no" && card.down === "no")
-                || (this.grid[x][y - 1].up === "no" && card.down != "no"))
+            typeof this.grid[x][y - 1] !== "undefined"
+            && ((this.grid[x][y - 1].up !== "no" && card.down === "no")
+                || (this.grid[x][y - 1].up === "no" && card.down !== "no"))
         ) {
             return false;
         } else if (
-            typeof this.grid[x][y + 1] != "undefined"
-            && ((this.grid[x][y + 1].down != "no" && card.up === "no")
-                || (this.grid[x][y + 1].down === "no" && card.up != "no"))
+            typeof this.grid[x][y + 1] !== "undefined"
+            && ((this.grid[x][y + 1].down !== "no" && card.up === "no")
+                || (this.grid[x][y + 1].down === "no" && card.up !== "no"))
         ) {
             return false;
         } else if (
-            typeof this.grid[x - 1][y] != "undefined"
-            && ((this.grid[x - 1][y].right != "no" && card.left === "no")
-                || (this.grid[x - 1][y].right === "no" && card.left != "no"))
+            typeof this.grid[x - 1][y] !== "undefined"
+            && ((this.grid[x - 1][y].right !== "no" && card.left === "no")
+                || (this.grid[x - 1][y].right === "no" && card.left !== "no"))
         ) {
             return false;
         } else if (
-            typeof this.grid[x + 1][y] != "undefined"
-            && ((this.grid[x + 1][y].left != "no" && card.right === "no")
-                || (this.grid[x + 1][y].left === "no" && card.right != "no"))
+            typeof this.grid[x + 1][y] !== "undefined"
+            && ((this.grid[x + 1][y].left !== "no" && card.right === "no")
+                || (this.grid[x + 1][y].left === "no" && card.right !== "no"))
         ) {
             return false;
         }
         return true;
     }
 
-    canPlace(card, x, y) {
+    canPlaceInPosition(card, x, y) {
         let prevReversed = card.reversed;
 
         let result = [];
 
         card.reversed = false;
-        if (this._canPlace(card, x, y)) {
+        if (this._canPlaceInPosition(card, x, y)) {
             result.push(true);
         } else {
             result.push(false);
         }
 
         card.reversed = true;
-        if (this._canPlace(card, x, y)) {
+        if (this._canPlaceInPosition(card, x, y)) {
             result.push(true);
         } else {
             result.push(false);
@@ -282,24 +282,33 @@ class Field {
         let result = [];
         let reachable = this.reachableSpaces();
         for (let [x, y] of reachable) {
-            if (this.canPlace(card, x, y).any()) {
+            if (this.canPlaceInPosition(card, x, y).any()) {
                 result.push([x, y]);
             }
         }
         return result;
     }
 
-    positionInGrid(x, y) {
+    whereCanPlace(card) {
+        let [a, b] = this.XYtoAB(card.x, card.y);
+        if (doesIncludeArray(this.availableSpaces(card), [a, b])) {
+            let [canNotReversed, canReversed] = this.canPlaceInPosition(card, a, b);
+            return [a, b, canNotReversed, canReversed]
+        }
+        return [-1, -1, false, false];
+    }
+
+    XYtoAB(x, y) {
         return [
             Math.round((x - cardWidth * 2 - this.x) / cardWidth),
             Math.round((y - cardWidth * 1.5 * 3 - this.y) / (cardWidth * 1.5))
         ];
     }
 
-    coordinatesOfPosition(x, y) {
+    ABtoXY(a, b) {
         return [
-            cardWidth * 2 + this.x + x * cardWidth,
-            cardWidth * 1.5 * 3 + this.y + y * cardWidth * 1.5
+            cardWidth * 2 + this.x + a * cardWidth,
+            cardWidth * 1.5 * 3 + this.y + b * cardWidth * 1.5
         ];
     }
 
@@ -308,9 +317,9 @@ class Field {
     }
 
     draw() {
-        for (let [x, cardArray] of Object.entries(this.grid)) {
-            for (let [y, card] of Object.entries(cardArray)) {
-                [card.x, card.y] = this.coordinatesOfPosition(x, y);
+        for (let [a, cardArray] of Object.entries(this.grid)) {
+            for (let [b, card] of Object.entries(cardArray)) {
+                [card.x, card.y] = this.ABtoXY(a, b);
                 card.draw();
             }
         }
@@ -424,37 +433,51 @@ function redraw() {
     ourHand.draw();
 }
 
-let draggedCard;
+let draggedCard = null;
 document.addEventListener('mousedown', function(e) {
-    let card = ourHand.pickCard(e.clientX, e.clientY);
-    if (typeof card === "undefined") {
-        return;
-    }
-    ourHand.removeCard(card);
-    draggedCard = card;
+    if (draggedCard === null) {
+        draggedCard = ourHand.pickCard(e.clientX, e.clientY);
+        if (draggedCard === null) {
+            return;
+        }
+        ourHand.removeCard(draggedCard);
 
-    ourHand.draw();
-    draggedCard.x = e.clientX - cardWidth / 2;
-    draggedCard.y = e.clientY - cardWidth * 1.5 / 2;
-    draggedCard.draw();
+        ourHand.draw();
+        draggedCard.x = e.clientX - cardWidth / 2;
+        draggedCard.y = e.clientY - cardWidth * 1.5 / 2;
+        draggedCard.draw();
+    } else {
+        let [a, b, canNotReversed, canReversed] = field.whereCanPlace(draggedCard);
+        if (canNotReversed) {
+            draggedCard.reversed = false;
+        } else if (canReversed) {
+            draggedCard.reversed = true;
+        }
+        if (canNotReversed || canReversed) {
+            field.place(draggedCard, a, b);
+            draggedCard = null;
+            field.draw();
+        }
+    }
 });
 
 
 document.addEventListener('mousemove', function(e) {
-    if (typeof draggedCard === "undefined") {
+    if (draggedCard === null) {
         return;
     }
-    let x = e.clientX - cardWidth / 2;
-    let y = e.clientY - cardWidth * 1.5 / 2;
-    if (doesIncludeArray(field.availableSpaces(draggedCard), (field.positionInGrid(x, y)))) {
-        [x, y] = field.positionInGrid(x, y);
+    draggedCard.x = e.clientX - cardWidth / 2;
+    draggedCard.y = e.clientY - cardWidth * 1.5 / 2;
 
-        let [canNotReversed, canReversed] = field.canPlace(draggedCard, x, y);
-        draggedCard.reversed = canReversed;
-
-        [x, y] = field.coordinatesOfPosition(x, y);
+    let [a, b, canNotReversed, canReversed] = field.whereCanPlace(draggedCard);
+    let [x, y] = field.ABtoXY(a, b);
+    if (canNotReversed) {
+        draggedCard.x = x;
+        draggedCard.y = y;
+    } else if (canReversed) {
+        draggedCard.reversed = true;
+        draggedCard.x = x;
+        draggedCard.y = y;
     }
-    draggedCard.x = x;
-    draggedCard.y = y;
     draggedCard.draw();
 });
