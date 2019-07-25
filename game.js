@@ -199,14 +199,14 @@ class Field {
             _result.push([x, y]);
             return;
         }
-        if (card.up === "yes" && !set.has(x + " " + (y + 1))) {
-            set.add(x + " " + (y + 1));
-            this._reachableSpaces(set, _result, x, y + 1);
-
-        }
-        if (card.down === "yes" && !set.has(x + " "+ (y - 1))) {
+        if (card.up === "yes" && !set.has(x + " "+ (y - 1))) {
             set.add(x + " "+(y - 1));
             this._reachableSpaces(set, _result, x, y - 1);
+
+        }
+        if (card.down === "yes" && !set.has(x + " " + (y + 1))){
+            set.add(x + " " + (y + 1));
+            this._reachableSpaces(set, _result, x, y + 1);
         }
         if (card.left === "yes" && !set.has((x - 1) + " " + y)) {
             set.add((x - 1) + " " + y);
@@ -227,15 +227,15 @@ class Field {
 
     _canPlaceInPosition(card, x, y) {
         if (
-            typeof this.grid[x][y - 1] !== "undefined"
-            && ((this.grid[x][y - 1].up !== "no" && card.down === "no")
-                || (this.grid[x][y - 1].up === "no" && card.down !== "no"))
+            typeof this.grid[x][y + 1] !== "undefined"
+            && ((this.grid[x][y + 1].up !== "no" && card.down === "no")
+                || (this.grid[x][y + 1].up === "no" && card.down !== "no"))
         ) {
             return false;
         } else if (
-            typeof this.grid[x][y + 1] !== "undefined"
-            && ((this.grid[x][y + 1].down !== "no" && card.up === "no")
-                || (this.grid[x][y + 1].down === "no" && card.up !== "no"))
+            typeof this.grid[x][y - 1] !== "undefined"
+            && ((this.grid[x][y - 1].down !== "no" && card.up === "no")
+                || (this.grid[x][y - 1].down === "no" && card.up !== "no"))
         ) {
             return false;
         } else if (
