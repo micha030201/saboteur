@@ -193,35 +193,37 @@ class Field {
         }
     }
 
-    _reachableSpaces(set, _result, x, y) {
+    _reachableSpaces(visited, _result, x, y, direction) {
         let card = this.grid[x][y];
         if (typeof card === "undefined") {
             _result.push([x, y]);
             return;
         }
-        if (card.up === "yes" && !set.has(x + " "+ (y - 1))) {
-            set.add(x + " "+(y - 1));
-            this._reachableSpaces(set, _result, x, y - 1);
-
+        if (card[direction] !== "yes"){
+            return;
         }
-        if (card.down === "yes" && !set.has(x + " " + (y + 1))){
-            set.add(x + " " + (y + 1));
-            this._reachableSpaces(set, _result, x, y + 1);
+        if (card.up === "yes" && !visited.has(x + " "+ (y - 1))) {
+            visited.add(x + " "+(y - 1));
+            this._reachableSpaces(visited, _result, x, y - 1, "down");
         }
-        if (card.left === "yes" && !set.has((x - 1) + " " + y)) {
-            set.add((x - 1) + " " + y);
-            this._reachableSpaces(set, _result, x - 1, y);
+        if (card.down === "yes" && !visited.has(x + " " + (y + 1))){
+            visited.add(x + " " + (y + 1));
+            this._reachableSpaces(visited, _result, x, y + 1, "up");
         }
-        if (card.right === "yes" && !set.has((x + 1) + " " + y)) {
-            set.add((x + 1) + " " + y);
-            this._reachableSpaces(set, _result, x + 1, y);
+        if (card.left === "yes" && !visited.has((x - 1) + " " + y)) {
+            visited.add((x - 1) + " " + y);
+            this._reachableSpaces(visited, _result, x - 1, y, "right");
+        }
+        if (card.right === "yes" && !visited.has((x + 1) + " " + y)) {
+            visited.add((x + 1) + " " + y);
+            this._reachableSpaces(visited, _result, x + 1, y, "left");
         }
     }
 
     reachableSpaces() {
         let result = [ ];
-        let set = new Set (["0 0"]);
-        this._reachableSpaces(set, result, 0, 0);
+        let visited = new Set (["0 0"]);
+        this._reachableSpaces(visited, result, 0, 0, "up");
         return result;
     }
 
