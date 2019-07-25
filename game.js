@@ -434,6 +434,8 @@ function redraw() {
 }
 
 let draggedCard = null;
+let draggedCardFlipTimer = null;
+let draggedCardFlipLastPosition = [-99, -99];
 document.addEventListener('mousedown', function(e) {
     if (draggedCard === null) {
         draggedCard = ourHand.pickCard(e.clientX, e.clientY);
@@ -449,7 +451,9 @@ document.addEventListener('mousedown', function(e) {
         draggedCard.draw();
     } else {
         let [a, b, canNotReversed, canReversed] = field.whereCanPlace(draggedCard);
-        if (canNotReversed) {
+        if ((canNotReversed && !draggedCard.reversed) || (canReversed && draggedCard.reversed)) {
+            // card already in the correct orientation
+        } else if (canNotReversed) {
             draggedCard.reversed = false;
         } else if (canReversed) {
             draggedCard.reversed = true;
@@ -457,6 +461,7 @@ document.addEventListener('mousedown', function(e) {
         if (canNotReversed || canReversed) {
             field.place(draggedCard, a, b);
             draggedCard = null;
+            clearInterval(draggedCardFlipTimer);
             field.draw();
         }
     }
@@ -472,13 +477,26 @@ document.addEventListener('mousemove', function(e) {
 
     let [a, b, canNotReversed, canReversed] = field.whereCanPlace(draggedCard);
     let [x, y] = field.ABtoXY(a, b);
-    if (canNotReversed) {
-        draggedCard.x = x;
-        draggedCard.y = y;
+    if (canNotReversed && canReversed && draggedCardFlipLastPosition[0] === a && draggedCardFlipLastPosition[1] === b) {
+        if (draggedCardFlipTimer !== null) {
+            clearInterval(draggedCardFlipTimer);
+        }
+        draggedCardFlipTimer = setInterval(function () {
+            draggedCard.reversed = !draggedCard.reversed;
+            draggedCard.draw();
+        }, 1300);
+    } else if (canNotReversed) {
+        clearInterval(draggedCardFlipTimer);
+        draggedCard.reversed = false;
     } else if (canReversed) {
+        clearInterval(draggedCardFlipTimer);
         draggedCard.reversed = true;
+    }
+
+    if (canNotReversed || canReversed) {
         draggedCard.x = x;
         draggedCard.y = y;
     }
+    draggedCardFlipLastPosition = [a, b];
     draggedCard.draw();
 });
