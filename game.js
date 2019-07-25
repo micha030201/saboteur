@@ -100,7 +100,7 @@ class PathCard {
                 let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                 way.setAttribute("y", 6.5);
                 way.setAttribute("height", 2);
-                if (this._left === "yes") {
+                if (this._right === "yes") {
                     way.setAttribute("width", 6);
                     way.setAttribute("x", 4);
                 } else {
@@ -176,9 +176,10 @@ class Field {
         finishCard2.faceHidden = true;
         finishCard3.faceHidden = true;
 
-        this.grid[8][0] = finishCard1;
-        this.grid[8][2] = finishCard2;
-        this.grid[8][-2] = finishCard3;
+        this.finishCards = [];
+        this.finishCards[-2] = finishCard1;
+        this.finishCards[0] = finishCard2;
+        this.finishCards[2] = finishCard3
     }
 
     visualize(svg) {
@@ -188,8 +189,11 @@ class Field {
         for (let [a, cardArray] of Object.entries(this.grid)) {
             for (let [b, card] of Object.entries(cardArray)) {
                 card.visualize(svg);
-                [card.x, card.y] = this.ABtoXY(a, b);
             }
+        }
+
+        for (let card of Object.values(this.finishCards)) {
+            card.visualize(svg);
         }
     }
 
@@ -314,8 +318,19 @@ class Field {
         ];
     }
 
-    place(card, x, y) {
-        this.grid[x][y] = card;
+    place(card, a, b) {
+        this.grid[a][b] = card;
+        for ([a, b] of this.reachableSpaces()) {
+            if (a === 8 && (b === 0 || b === 2 || b === -2)) {
+                this.finishCards[b].faceHidden = false;
+                this.grid[a][b] = this.finishCards[b];
+                let [canNotReversed, canReversed] = this.canPlaceInPosition(this.grid[a][b], a, b);
+                if (!canNotReversed && canReversed) {
+                    this.grid[a][b].reversed = true;
+                }
+                this.grid[a][b].draw();
+            }
+        }
     }
 
     draw() {
@@ -325,6 +340,12 @@ class Field {
                 card.draw();
             }
         }
+        [this.finishCards[-2].x, this.finishCards[-2].y] = this.ABtoXY(8, -2);
+        [this.finishCards[0].x, this.finishCards[0].y] = this.ABtoXY(8, 0);
+        [this.finishCards[2].x, this.finishCards[2].y] = this.ABtoXY(8, 2);
+        this.finishCards[-2].draw();
+        this.finishCards[0].draw();
+        this.finishCards[2].draw();
     }
 }
 
@@ -385,14 +406,31 @@ class Hand {
 
 let svg;
 let field = new Field(
-    new PathCard("yes", "yes", "yes", "yes"),
-    new PathCard("yes", "yes", "yes", "yes"),
-    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "no", "no", "yes"),
+    new PathCard("yes", "no", "no", "yes"),
+    new PathCard("yes", "no", "no", "yes"),
 );
 let ourHand = new Hand(true);
 ourHand.cards = [
     new PathCard("yes", "dead end", "yes", "no"),
     new PathCard("no", "no", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
+    new PathCard("yes", "yes", "yes", "yes"),
     new PathCard("yes", "yes", "yes", "yes"),
 ]
 
