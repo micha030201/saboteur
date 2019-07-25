@@ -188,6 +188,7 @@ class Field {
         for (let [x, cardArray] of Object.entries(this.grid)) {
             for (let [y, card] of Object.entries(cardArray)) {
                 card.visualize(svg);
+                [card.x, card.y] = this.coordinatesOfPosition(x, y);
             }
         }
     }
@@ -199,20 +200,20 @@ class Field {
             return;
         }
         if (card.up === "yes" && !set.has(x + " " + (y + 1))) {
-        	set.add(x + " " + (y + 1));
+            set.add(x + " " + (y + 1));
             this._reachableSpaces(set, _result, x, y + 1);
 
         }
         if (card.down === "yes" && !set.has(x + " "+ (y - 1))) {
-        	set.add(x + " "+(y - 1));
+            set.add(x + " "+(y - 1));
             this._reachableSpaces(set, _result, x, y - 1);
         }
         if (card.left === "yes" && !set.has((x - 1) + " " + y)) {
-        	set.add((x - 1) + " " + y);
+            set.add((x - 1) + " " + y);
             this._reachableSpaces(set, _result, x - 1, y);
         }
         if (card.right === "yes" && !set.has((x + 1) + " " + y)) {
-        	set.add((x + 1) + " " + y);
+            set.add((x + 1) + " " + y);
             this._reachableSpaces(set, _result, x + 1, y);
         }
     }
@@ -303,8 +304,7 @@ class Field {
     }
 
     place(card, x, y) {
-    	this.grid[x][y] = card;
-    	console.log("cardplaced :", x, y);
+        this.grid[x][y] = card;
     }
 
     draw() {
@@ -426,7 +426,6 @@ function redraw() {
 
 let draggedCard;
 document.addEventListener('mousedown', function(e) {
-    console.log(e);
     let card = ourHand.pickCard(e.clientX, e.clientY);
     if (typeof card === "undefined") {
         return;
@@ -449,8 +448,10 @@ document.addEventListener('mousemove', function(e) {
     let y = e.clientY - cardWidth * 1.5 / 2;
     if (doesIncludeArray(field.availableSpaces(draggedCard), (field.positionInGrid(x, y)))) {
         [x, y] = field.positionInGrid(x, y);
+
         let [canNotReversed, canReversed] = field.canPlace(draggedCard, x, y);
         draggedCard.reversed = canReversed;
+
         [x, y] = field.coordinatesOfPosition(x, y);
     }
     draggedCard.x = x;
