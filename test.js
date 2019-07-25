@@ -70,6 +70,7 @@ function TestInfinity(){
 }
 
 function TestCanPlace(){
+
 	field.grid[0][0]._right = "no";
 	field.grid[0][0]._down = "no";
 	let card1 = new PathCard("yes", "no", "no", "yes");
@@ -100,3 +101,42 @@ function TestCanPlace(){
 		}
 	}
 }
+
+function TestGap(){
+
+	field.grid[0][0]._left = "no";
+	field.grid[0][0]._down = "no";
+	field.grid[0][0]._up = "no";
+	let card = new PathCard("no","no","yes","yes");
+	field.place(card, 2,0);
+	let arr = [new PathCard("no", "no", "yes", "yes"), new PathCard("yes", "no", "no", "yes"), new PathCard("yes", "yes", "no", "yes", )];
+	console.log (gap(arr));
+
+	field.grid[0][0]._left = "no";
+	field.grid[0][0]._down = "no";
+	field.grid[0][0]._up = "yes";
+	field.grid[0][0]._right = "no";
+	card = new PathCard ("yes","yes", "no", "no");
+	field.place(card, 0, 2);
+	arr = [new PathCard("yes", "yes", "no", "yes", ), new PathCard("yes", "no", "no", "yes"),new PathCard("no", "no", "yes", "yes") ];
+	console.log (gap(arr));
+
+}
+
+function gap(arr){
+
+	let result;
+	for (let i = 0; i<3;i++){
+		result = field.availableSpaces(arr[i]);
+		if (result.length == 0 && i == 0){
+				return false;
+			}
+		else{
+				if (result.length > 0 && i != 0){
+					return false;
+				}
+			}
+		}
+	return true;
+}
+
