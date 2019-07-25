@@ -232,32 +232,20 @@ class Field {
     }
 
     _canPlaceInPosition(card, x, y) {
-        if (
-            typeof this.grid[x][y + 1] !== "undefined"
-            && ((this.grid[x][y + 1].up !== "no" && card.down === "no")
-                || (this.grid[x][y + 1].up === "no" && card.down !== "no"))
-        ) {
-            return false;
-        } else if (
-            typeof this.grid[x][y - 1] !== "undefined"
-            && ((this.grid[x][y - 1].down !== "no" && card.up === "no")
-                || (this.grid[x][y - 1].down === "no" && card.up !== "no"))
-        ) {
-            return false;
-        } else if (
-            typeof this.grid[x - 1][y] !== "undefined"
-            && ((this.grid[x - 1][y].right !== "no" && card.left === "no")
-                || (this.grid[x - 1][y].right === "no" && card.left !== "no"))
-        ) {
-            return false;
-        } else if (
-            typeof this.grid[x + 1][y] !== "undefined"
-            && ((this.grid[x + 1][y].left !== "no" && card.right === "no")
-                || (this.grid[x + 1][y].left === "no" && card.right !== "no"))
-        ) {
-            return false;
-        }
-        return true;
+        let fit = function(neighbour, dir_n, card, dir_c) {
+            return (
+                typeof neighbour === "undefined"
+                || ((neighbour[dir_n] === "no" && card[dir_c] === "no")
+                    || (neighbour[dir_n] !== "no" && card[dir_c] !== "no"))
+            );
+        };
+
+        return (
+            fit(this.grid[x][y + 1], 'up', card, 'down')
+            && fit(this.grid[x][y - 1], 'down', card, 'up')
+            && fit(this.grid[x + 1][y], 'left', card, 'right')
+            && fit(this.grid[x - 1][y], 'right', card, 'left')
+        );
     }
 
     canPlaceInPosition(card, x, y) {
@@ -266,18 +254,10 @@ class Field {
         let result = [];
 
         card.reversed = false;
-        if (this._canPlaceInPosition(card, x, y)) {
-            result.push(true);
-        } else {
-            result.push(false);
-        }
+        result.push(this._canPlaceInPosition(card, x, y));
 
         card.reversed = true;
-        if (this._canPlaceInPosition(card, x, y)) {
-            result.push(true);
-        } else {
-            result.push(false);
-        }
+        result.push(this._canPlaceInPosition(card, x, y));
 
         card.reversed = prevReversed;
 
