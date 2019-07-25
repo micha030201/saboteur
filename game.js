@@ -437,7 +437,8 @@ let draggedCard = null;
 document.addEventListener('mousedown', function(e) {
     if (draggedCard === null) {
         draggedCard = ourHand.pickCard(e.clientX, e.clientY);
-        if (draggedCard === null) {
+        if (typeof draggedCard === "undefined") {
+            draggedCard = null;
             return;
         }
         ourHand.removeCard(draggedCard);
