@@ -52,9 +52,9 @@ function dirs(card) {
 	console.log(card);
     }
     return {
-	up: card < 0 ? c.down : c.up,
-	down: card < 0 ? c.up : c.down,
-	left: card < 0 ? c.right : c.left,
-	right: card < 0 ? c.left : c.right,
+        up: card < 0 ? c.down : c.up,
+        down: card < 0 ? c.up : c.down,
+        left: card < 0 ? c.right : c.left,
+        right: card < 0 ? c.left : c.right,
     }
 }

@@ -132,6 +132,8 @@ let drawCache = {
     width: 0,
     height: 0,
 
+    field: {},
+
     cardData: new DefaultDict(function () { return {}; }),
     cardStandInData: new DefaultDict(function () { return {}; }),
 };
@@ -164,6 +166,25 @@ function drawField(field, offsetX, offsetY) {
     fieldOffsetX = offsetX;
     fieldOffsetY = offsetY;
 
+    if (
+        drawCache.field.offsetX !== offsetX
+        || drawCache.field.offsetY !== offsetY
+        //|| cardWidth !== drawCache
+    ) {
+        if (typeof drawCache.field.elem === "undefined") {
+            drawCache.field.elem = makeElemForField();
+            svg.appendChild(drawCache.field.elem);
+        }
+        drawCache.field.elem.setAttribute("x", offsetX);
+        drawCache.field.elem.setAttribute("y", offsetY);
+
+        drawCache.field.elem.setAttribute("width", cardWidth * 13);
+        drawCache.field.elem.setAttribute("height", cardWidth * 1.5 * 7);
+
+        drawCache.field.offsetX = offsetX;
+        drawCache.field.offsetY = offsetY;
+    }
+
     let x, y;
     [x, y] = ABtoXY(8, -2);
     drawCardStandIn(0, x, y);
@@ -176,6 +197,14 @@ function drawField(field, offsetX, offsetY) {
         [x, y] = ABtoXY(a, b);
         drawCard(card, x, y);
     }
+}
+
+function makeElemForField() {
+    let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("fill", "gainsboro");
+    rect.setAttribute("rx", 5);
+
+    return rect;
 }
 
 function drawCard(card, x, y) {

@@ -156,7 +156,11 @@ class Field {
         let result = [];
         let reachable = this.reachableSpaces();
         for (let [a, b] of reachable) {
-            if (this.canPlaceInPosition(card, a, b).any()) {
+            if (
+                (-3 < a && a < 11)
+                && (-4 < b && b < 4)
+                && this.canPlaceInPosition(card, a, b).any()
+            ) {
                 result.push([a, b]);
             }
         }
