@@ -6,21 +6,12 @@ class Table {  // in the most unlikely scenario you still have time for that, re
     constructor() {
         this.players = [];
         this.currentPlayer = 0;
-        this.moveCallbacks = [];
+
+        this.finishCards = [];
+        this.deck = [];
+        this.moveCallback = () => {};
 
         this.field = new Field();
-    }
-
-    addPlayer(player) {
-        this.players.push(player);
-    }
-
-    placeFinishCards(finishCards) {
-        this.finishCards = finishCards;
-    }
-
-    registerMoveCallback(callback) {
-        this.moveCallbacks.push(callback);
     }
 
     nextPlayer() {
@@ -28,7 +19,7 @@ class Table {  // in the most unlikely scenario you still have time for that, re
         if (this.currentPlayer < 0) {
             this.currentPlayer += this.players.length;
         }
-        return this.currentPlayer;
+        return this.players[this.currentPlayer];
     }
 
     processPlaceMove(move) {
@@ -36,6 +27,7 @@ class Table {  // in the most unlikely scenario you still have time for that, re
         for (let [a, b] of this.field.reachableSpaces()) {
             if (a === 8 && (b === 0 || b === 2 || b === -2)) {
                 let card = Math.abs(this.finishCards[(b + 2) / 2]);
+                this.finishCards[(b + 2) / 2] = null;
                 let [canNotReversed, canReversed] = this.field.canPlaceInPosition(card, a, b);
                 if (!canNotReversed && canReversed) {
                     card = -card;
@@ -45,19 +37,27 @@ class Table {  // in the most unlikely scenario you still have time for that, re
         }
     }
 
-    processMove(move) {
+    processMove(player, move) {
         if (move.type === "place") {
             this.processPlaceMove(move);
         }
-        for (let callback of this.moveCallbacks) {
-            callback();
+        if (this.deck.length) {
+            player.drawCard();
         }
-        this.players[this.nextPlayer()].makeMove(this.processMove.bind(this));
+        this.moveCallback();
+        let nextPlayer = this.nextPlayer();
+        nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
     }
 
     startGame() {
+        for (let player of this.players) {
+            for (let i = 0; i < 5; ++i) {
+                player.drawCard();
+            }
+        }
         // ready player minus one, i guess
-        this.players[this.nextPlayer()].makeMove(this.processMove.bind(this));
+        let nextPlayer = this.nextPlayer();
+        nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
     }
 }
 
@@ -66,6 +66,12 @@ class Player {  // base class
         this.table = table;
         this.name = name;
         this.allegiance = allegiance;
+        this.hand = [];
+        //this.breakage
+    }
+
+    drawCard() {
+        this.hand.push(this.table.deck.pop());
     }
 
     makeMove(callback) { }
