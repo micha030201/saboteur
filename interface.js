@@ -11,7 +11,7 @@ class OurPlayer extends Player {
 
 class BotPlayer extends Player {
     makeMove(callback) {
-        console.log("bot");
+        console.log(this.name);
 
         let spaces = [], card;
         while (!spaces.length) {
@@ -29,7 +29,7 @@ class BotPlayer extends Player {
         let move = new Move();
         move.placeCard(card, a, b);
 
-        callback(move);
+        setTimeout(() => callback(move), 300);
     }
 }
 
@@ -42,8 +42,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     we = new OurPlayer(table, "me", "honest");
     let bot = new BotPlayer(table, "connor", "saboteur");
+    let bot2 = new BotPlayer(table, "dummy plug", "saboteur");
 
-    table.players = [we, bot];
+    table.players = [we, bot, bot2];
     table.deck = shuffle(cardIndices);
     table.finishCards = [1, 2, 3];
 
@@ -148,7 +149,14 @@ function draw(table, we) {
     }
 
     drawField(table.field, offsetX, offsetY + cardWidth * 1.5 * 3);
-    drawOtherHand(table.players[1], offsetX, offsetY);
+
+    let otherHandOffsetX = 0;
+    for (let player of table.players) {
+        if (player !== we) {
+            drawOtherHand(player, offsetX + cardWidth * 4 * otherHandOffsetX++, offsetY);
+        }
+    }
+
     drawDeck(table.deck, offsetX + cardWidth * 12, offsetY);
     drawOurHand(we, offsetX, offsetY + cardWidth * 1.5 * 11);
 }
@@ -157,7 +165,7 @@ function drawOtherHand(player, offsetX, offsetY) {
     let x = offsetX;
     for (let card of player.hand) {
         drawCard(card, x, offsetY, true);
-        x += cardWidth;
+        x += cardWidth / 3;
     }
 }
 

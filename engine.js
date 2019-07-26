@@ -57,6 +57,7 @@ class Table {  // in the most unlikely scenario you still have time for that, re
         }
         // ready player minus one, i guess
         let nextPlayer = this.nextPlayer();
+        this.moveCallback();
         nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
     }
 }
