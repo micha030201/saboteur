@@ -1,5 +1,5 @@
 "use strict"
-/* global dirs DefaultDict Table Player Move */
+/* global dirs DefaultDict Table Player Move shuffle */
 
 let finishMoveCallback = null;
 class OurPlayer extends Player {
@@ -12,10 +12,10 @@ class OurPlayer extends Player {
 class BotPlayer extends Player {
     makeMove(callback) {
         console.log("bot");
-        let card = this.hand.pop();
+        let card = shuffle(this.hand).pop();
         console.log(card);
-        let [a, b] = this.table.field.availableSpaces(card)[0];
-        if (this.table.field.canBePlaced(card)[0]) {
+        let [a, b] = this.table.field.availableSpaces(card).randomElement();
+        if (this.table.field.canBePlaced(card, a, b)[0]) {
             card = Math.abs(card);
         } else {
             card = -Math.abs(card);
@@ -34,9 +34,9 @@ document.addEventListener('DOMContentLoaded', function() {
     table = new Table();
 
     we = new OurPlayer(table, "me", "honest");
-    we.hand = [2, 5, 7, 10];
+    we.hand = [2, 5, 7, 10, 28, 21, 20];
     let bot = new BotPlayer(table, "connor", "saboteur");
-    bot.hand = [3, 6, 8, 11];
+    bot.hand = [3, 6, 8, 11, 13, 15, 22, 19];
 
     table.registerMoveCallback(function () {
         draw(table, we);
@@ -108,7 +108,11 @@ document.addEventListener('mousemove', function(e) {
 
     draggedCardFlipLastA = a;
     draggedCardFlipLastB = b;
-    drawCard(draggedCard, x, y);
+    drawCardOnTop(draggedCard, x, y);
+});
+
+window.addEventListener('resize', function() {
+    draw(table, we);
 });
 
 let fieldOffsetX, fieldOffsetY;
@@ -129,7 +133,7 @@ function draw(table, we) {
     let margin = Math.min(window.innerWidth, window.innerHeight) * 0.04;
     let offsetX, offsetY;
 
-    if (window.innerHeight * 14 * 1.5 <= window.innerWidth * 13) {
+    if (window.innerHeight / 14 / 1.5 <= window.innerWidth / 13) {
         cardWidth = (window.innerHeight - margin * 2) / 14 / 1.5;
         offsetX = (window.innerWidth - cardWidth * 13) / 2;
         offsetY = margin;
@@ -189,6 +193,29 @@ function drawCard(card, x, y) {
         c.y = y
         c.width = cardWidth
     }
+}
+
+function drawCardOnTop(card, x, y) {
+    let reversed = card < 0;
+    card = Math.abs(card);
+
+    let c = drawCache.cardData[card];
+    if (typeof c.elem === "undefined") {
+        c.elem = makeElemForCard(card);
+    }
+
+    c.elem.setAttribute(
+        "transform",
+        "rotate(" + (reversed ? 180 : 0) + " " + (x + cardWidth / 2) + " " + (y + cardWidth * 1.5 / 2) + ") "
+        + "translate(" + x + ", " + y + ") "
+        + "scale(" + cardWidth / 10 + ") "
+    );
+    c.reversed = reversed
+    c.x = x
+    c.y = y
+    c.width = cardWidth
+
+    svg.appendChild(c.elem);
 }
 
 function makeElemForCard(card) {

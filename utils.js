@@ -1,5 +1,5 @@
 "use strict"
-/* exported DefaultDict */
+/* exported DefaultDict shuffle */
 
 function doesIncludeArray(haystack, needle){
     let i, j, current;
@@ -28,4 +28,19 @@ class DefaultDict {
 
 Array.prototype.any = function() {
     return this.some(function(x) { return x });
+}
+
+Array.prototype.randomElement = function () {
+    return this[Math.floor(Math.random() * this.length)];
+}
+
+function shuffle(a) {
+    let j, x, i;
+    for (i = a.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = a[i];
+        a[i] = a[j];
+        a[j] = x;
+    }
+    return a;
 }

@@ -41,6 +41,11 @@ let _dirs = [
     { up: "dead", down: "dead", left: "dead", right: "dead" },
 ];
 
+let cardIndices = [];
+for (let i = 0; i < _dirs.length; ++i) {
+    cardIndices.push(i);
+}
+
 function dirs(card) {
     let c = _dirs[Math.abs(card)];
     return {
