@@ -12,11 +12,13 @@ class OurPlayer extends Player {
 class BotPlayer extends Player {
     makeMove(callback) {
         console.log("bot");
-        let spaces, card;
-        while (typeof spaces === "undefined") {
-            card = shuffle(this.hand).pop();
+        let spaces = [], card;
+        while (!spaces.length) {
+            shuffle(this.hand);
+            card = this.hand[this.hand.length - 1];
             spaces = this.table.field.availableSpaces(card);
         }
+        this.hand.pop();
         let [a, b] = spaces.randomElement();
         if (this.table.field.canBePlaced(card, a, b)[0]) {
             card = Math.abs(card);
