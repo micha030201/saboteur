@@ -74,12 +74,13 @@ function ABtoXY(a, b) {
     ];
 }
 
-document.addEventListener('mousemove', function(e) {
+function dragCard(e) {
     if (draggedCard === null) {
         return;
     }
-    let x = e.clientX - cardWidth / 2;
-    let y = e.clientY - cardWidth * 1.5 / 2;
+    let [clientX, clientY] = eventCoordinates(e);
+    let x = clientX - cardWidth / 2;
+    let y = clientY - cardWidth * 1.5 / 2;
 
     let [a, b] = XYtoAB(x, y);
     let [canNotReversed, canReversed] = table.field.canBePlaced(draggedCard, a, b);
@@ -112,7 +113,10 @@ document.addEventListener('mousemove', function(e) {
     draggedCardFlipLastA = a;
     draggedCardFlipLastB = b;
     drawCardOnTop(draggedCard, x, y, false, true);
-});
+}
+
+document.addEventListener('mousemove', dragCard);
+document.addEventListener('touchmove', dragCard);
 
 window.addEventListener('resize', function() {
     draw(table, we);
@@ -378,16 +382,29 @@ function drawOurHand(we, offsetX, offsetY) {
     }
 }
 
+function eventCoordinates(e) {
+    let clientX, clientY;
+    if (typeof e.changedTouches !== "undefined") {
+        clientX = e.changedTouches[0].clientX;
+        clientY = e.changedTouches[0].clientY;
+    } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
+    return [clientX, clientY];
+}
+
 function createPickHandler(card) {
     let pick = function(e) {
         if (finishMoveCallback !== null) {
-            console.log(e);
             e.stopPropagation();
             draggedCard = card;
-            drawCard(card, e.clientX - cardWidth / 2, e.clientY - cardWidth * 1.5 / 2, false, true);
+            let [clientX, clientY] = eventCoordinates(e);
+            drawCard(card, clientX - cardWidth / 2, clientY - cardWidth * 1.5 / 2, false, true);
             let drop = function(e) {
-                let x = e.clientX - cardWidth / 2;
-                let y = e.clientY - cardWidth * 1.5 / 2;
+                let [clientX, clientY] = eventCoordinates(e);
+                let x = clientX - cardWidth / 2;
+                let y = clientY - cardWidth * 1.5 / 2;
 
                 let [a, b] = XYtoAB(x, y);
                 let [canNotReversed, canReversed] = table.field.canBePlaced(draggedCard, a, b);
@@ -410,6 +427,7 @@ function createPickHandler(card) {
                     finishMoveCallback = null;
                     draw(table, we);
                     drawCache.cardData[Math.abs(card)].elem.onmousedown = null;
+                    drawCache.cardData[Math.abs(card)].elem.ontouchstart = null;
                     callback(move);
                 } else {
                     draggedCard = null;
