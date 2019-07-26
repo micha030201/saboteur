@@ -379,12 +379,13 @@ function drawOurHand(we, offsetX, offsetY) {
 }
 
 function createPickHandler(card) {
-    drawCache.cardData[Math.abs(card)].elem[1].onmousedown = function(e) {
+    let pick = function(e) {
         if (finishMoveCallback !== null) {
+            console.log(e);
             e.stopPropagation();
             draggedCard = card;
             drawCard(card, e.clientX - cardWidth / 2, e.clientY - cardWidth * 1.5 / 2, false, true);
-            drawCache.cardData[Math.abs(card)].elem[1].onmousedown = function(e) {
+            let drop = function(e) {
                 let x = e.clientX - cardWidth / 2;
                 let y = e.clientY - cardWidth * 1.5 / 2;
 
@@ -415,6 +416,13 @@ function createPickHandler(card) {
                     draw(table, we);
                 }
             };
+
+            drawCache.cardData[Math.abs(card)].elem[1].onmousedown = drop;
+            drawCache.cardData[Math.abs(card)].elem[1].ontouchend = drop;
+            drawCache.cardData[Math.abs(card)].elem[1].ontouchcancel = drop;
         }
     };
+
+    drawCache.cardData[Math.abs(card)].elem[1].onmousedown = pick;
+    drawCache.cardData[Math.abs(card)].elem[1].ontouchstart = pick;
 }
