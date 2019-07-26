@@ -3,7 +3,8 @@ function TestAll(){
         "Acsess: " + TestAcsess() + "\n" +
         "Pipe: " + TestPipe() + "\n" +
         "dead end check: " + TestReacheable() + "\n" +
-        "gap test: " + TestGap()+ "\n");
+        "gap test: " + TestGap() + "\n" +
+        "Bordercheck: " + TestBorderCheck() + "\n");
 }
 
 function TestLine () {
@@ -108,4 +109,30 @@ function gap(testField, arr, answer){
         }
     }
     return answ;
+}
+
+function TestBorderCheck(){
+    let card = 0;
+    let testField = new Field();
+    for (let i = 1; i < 4; i++) {
+        testField.place(card, 0,i);
+    }
+    for (let i = -2; i <=10; i++) {
+        testField.place(card, i, 3);
+        testField.place(card, i,-3);
+    }
+    for (let i = -3; i <= 3; i++) {
+        testField.place(card, -2, i);
+        testField.place(card, 10, i)
+    }
+    let cards = [0, 42, 21, 28, 25, 34];
+    for (let l of cards){
+        let result = testField.availableSpaces(l);
+        for (let [a, b] of result){
+            if (Math.abs(a) > 3 || b < -2 || b > 10){
+                return ("false" + l + a + b);
+            }
+         }
+    }
+    return true;
 }
