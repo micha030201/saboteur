@@ -36,7 +36,7 @@ class Table {  // in the most unlikely scenario you still have time for that, re
         for (let [a, b] of this.field.reachableSpaces()) {
             if (a === 8 && (b === 0 || b === 2 || b === -2)) {
                 let card = Math.abs(this.finishCards[(b + 2) / 2]);
-                let [canNotReversed, canReversed] = this.canPlaceInPosition(card, a, b);
+                let [canNotReversed, canReversed] = this.field.canPlaceInPosition(card, a, b);
                 if (!canNotReversed && canReversed) {
                     card = -card;
                 }

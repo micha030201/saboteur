@@ -1,5 +1,5 @@
 "use strict"
-/* global dirs DefaultDict Table Player Move shuffle */
+/* global dirs DefaultDict Table Player Move shuffle cardIndices */
 
 let finishMoveCallback = null;
 class OurPlayer extends Player {
@@ -12,9 +12,12 @@ class OurPlayer extends Player {
 class BotPlayer extends Player {
     makeMove(callback) {
         console.log("bot");
-        let card = shuffle(this.hand).pop();
-        console.log(card);
-        let [a, b] = this.table.field.availableSpaces(card).randomElement();
+        let spaces, card;
+        while (typeof spaces === "undefined") {
+            card = shuffle(this.hand).pop();
+            spaces = this.table.field.availableSpaces(card);
+        }
+        let [a, b] = spaces.randomElement();
         if (this.table.field.canBePlaced(card, a, b)[0]) {
             card = Math.abs(card);
         } else {
@@ -34,9 +37,16 @@ document.addEventListener('DOMContentLoaded', function() {
     table = new Table();
 
     we = new OurPlayer(table, "me", "honest");
-    we.hand = [2, 5, 7, 10, 28, 21, 20];
     let bot = new BotPlayer(table, "connor", "saboteur");
-    bot.hand = [3, 6, 8, 11, 13, 15, 22, 19];
+
+    shuffle(cardIndices);
+    we.hand = [];
+    bot.hand = [];
+    while (cardIndices.length > 1) {
+        we.hand.push(cardIndices.pop());
+        bot.hand.push(cardIndices.pop());
+    }
+    table.placeFinishCards([1, 2, 3]);
 
     table.registerMoveCallback(function () {
         draw(table, we);
@@ -365,6 +375,9 @@ function createPickHandler(card) {
                     draw(table, we);
                     drawCache.cardData[Math.abs(card)].elem.onmousedown = null;
                     callback(move);
+                } else {
+                    draggedCard = null;
+                    draw(table, we);
                 }
             };
         }

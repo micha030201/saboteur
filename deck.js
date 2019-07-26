@@ -42,12 +42,15 @@ let _dirs = [
 ];
 
 let cardIndices = [];
-for (let i = 0; i < _dirs.length; ++i) {
+for (let i = 4; i < _dirs.length; ++i) {
     cardIndices.push(i);
 }
 
 function dirs(card) {
     let c = _dirs[Math.abs(card)];
+    if (typeof c === "undefined") {
+	console.log(card);
+    }
     return {
 	up: card < 0 ? c.down : c.up,
 	down: card < 0 ? c.up : c.down,
