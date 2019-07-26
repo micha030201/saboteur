@@ -9,6 +9,7 @@ class Table {  // in the most unlikely scenario you still have time for that, re
 
         this.finishCards = [];
         this.deck = [];
+        this.discardPile = [];
         this.moveCallback = () => {};
 
         this.field = new Field();
@@ -22,7 +23,8 @@ class Table {  // in the most unlikely scenario you still have time for that, re
         return this.players[this.currentPlayer];
     }
 
-    processPlaceMove(move) {
+    processPlaceMove(player, move) {
+        player.hand = player.hand.filter(item => Math.abs(item) !== Math.abs(move.card));
         this.field.place(move.card, move.a, move.b);
         for (let [a, b] of this.field.reachableSpaces()) {
             if (a === 8 && (b === 0 || b === 2 || b === -2)) {
@@ -37,9 +39,16 @@ class Table {  // in the most unlikely scenario you still have time for that, re
         }
     }
 
+    processDiscardMove(player, move) {
+        player.hand = player.hand.filter(item => Math.abs(item) !== Math.abs(move.card));
+        this.discardPile.push(move.card);
+    }
+
     processMove(player, move) {
         if (move.type === "place") {
-            this.processPlaceMove(move);
+            this.processPlaceMove(player, move);
+        } else if (move.type === "discard") {
+            this.processDiscardMove(player, move);
         }
         if (this.deck.length) {
             player.drawCard();
@@ -84,6 +93,11 @@ class Move {
         this.card = card;
         this.a = a;
         this.b = b;
+    }
+
+    discard(card) {
+        this.type = "discard";
+        this.card = card;
     }
 }
 

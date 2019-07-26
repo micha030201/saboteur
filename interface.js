@@ -13,21 +13,22 @@ class BotPlayer extends Player {
     makeMove(callback) {
         console.log(this.name);
 
+        let move = new Move();
         let spaces = [], card;
-        while (!spaces.length) {
-            shuffle(this.hand);
-            card = this.hand[this.hand.length - 1];
+        for (card of this.hand) {
             spaces = this.table.field.availableSpaces(card);
         }
-        this.hand.pop();
-        let [a, b] = spaces.randomElement();
-        if (this.table.field.canBePlaced(card, a, b)[0]) {
-            card = Math.abs(card);
+        if (!spaces.length) {
+            move.discard(card);
         } else {
-            card = -Math.abs(card);
+            let [a, b] = spaces.randomElement();
+            if (this.table.field.canBePlaced(card, a, b)[0]) {
+                card = Math.abs(card);
+            } else {
+                card = -Math.abs(card);
+            }
+            move.placeCard(card, a, b);
         }
-        let move = new Move();
-        move.placeCard(card, a, b);
 
         setTimeout(() => callback(move), 300);
     }
@@ -159,6 +160,7 @@ function draw(table, we) {
     }
 
     drawDeck(table.deck, offsetX + cardWidth * 12, offsetY);
+    drawDiscardPile(table.discardPile, offsetX + cardWidth * 12, offsetY + cardWidth * 1.5);
     drawOurHand(we, offsetX, offsetY + cardWidth * 1.5 * 11);
 }
 
@@ -173,6 +175,12 @@ function drawOtherHand(player, offsetX, offsetY) {
 function drawDeck(deck, offsetX, offsetY) {
     for (let card of deck) {
         drawCard(card, offsetX, offsetY, true);
+    }
+}
+
+function drawDiscardPile(pile, offsetX, offsetY) {
+    for (let card of pile) {
+        drawCard(card, offsetX, offsetY, false);
     }
 }
 
