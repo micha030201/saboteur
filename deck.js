@@ -2,10 +2,16 @@
 /* exported dirs */
 
 let _dirs = [
+	{ up: "yes",  down: "yes",  left: "yes",  right: "yes"  },
+    { up: "yes",  down: "yes",  left: "yes",  right: "yes"  },
+    { up: "yes",  down: "no",  left: "yes",  right: "no"   },
+    { up: "no",   down: "yes",  left: "yes",  right: "no"   },
     { up: "yes",  down: "yes",  left: "yes",  right: "yes"  },
     { up: "yes",  down: "yes",  left: "yes",  right: "yes"  },
     { up: "yes",  down: "yes",  left: "yes",  right: "yes"  },
     { up: "yes",  down: "yes",  left: "yes",  right: "yes"  },
+    { up: "yes",  down: "no",   left: "yes",  right: "yes"  },
+    { up: "yes",  down: "no",   left: "yes",  right: "yes"  },
     { up: "yes",  down: "no",   left: "yes",  right: "yes"  },
     { up: "yes",  down: "yes",  left: "yes",  right: "no"   },
     { up: "yes",  down: "yes",  left: "yes",  right: "no"   },
