@@ -131,6 +131,11 @@ let drawCache = {
     cardStandInData: new DefaultDict(function () { return {}; }),
 };
 function draw(table, we) {
+    if (table.won) {
+        console.log("honest team won");
+    } else if (table.lost) {
+        console.log("saboteurs won");
+    }
     if (drawCache.width !== window.innerWidth || drawCache.height !== window.innerHeight) {
         svg.setAttribute("width", window.innerWidth);
         svg.setAttribute("height", window.innerHeight);

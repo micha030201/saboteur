@@ -12,7 +12,17 @@ class Table {  // in the most unlikely scenario you still have time for that, re
         this.discardPile = [];
         this.moveCallback = () => {};
 
+        this.won = false;
+
         this.field = new Field();
+    }
+
+    get lost() {
+        let cardsHeld = 0;
+        for (let player of this.players) {
+            cardsHeld += player.hand.length;
+        }
+        return !cardsHeld;
     }
 
     nextPlayer() {
@@ -29,10 +39,13 @@ class Table {  // in the most unlikely scenario you still have time for that, re
         for (let [a, b] of this.field.reachableSpaces()) {
             if (a === 8 && (b === 0 || b === 2 || b === -2)) {
                 let card = Math.abs(this.finishCards[(b + 2) / 2]);
+                if (Math.abs(card) === 1) {
+                    this.won = true;
+                }
                 this.finishCards[(b + 2) / 2] = null;
                 let [canNotReversed, canReversed] = this.field.canPlaceInPosition(card, a, b);
                 if (!canNotReversed && canReversed) {
-                    card = -card;
+                    card = -Math.abs(card);
                 }
                 this.field.place(card, a, b);
             }
