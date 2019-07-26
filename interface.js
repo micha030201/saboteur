@@ -78,10 +78,7 @@ function dragCard(e) {
     if (draggedCard === null) {
         return;
     }
-    let [clientX, clientY] = eventCoordinates(e);
-    let x = clientX - cardWidth / 2;
-    let y = clientY - cardWidth * 1.5 / 2;
-
+    let [x, y] = whereDrawCard(e);
     let [a, b] = XYtoAB(x, y);
     let [canNotReversed, canReversed] = table.field.canBePlaced(draggedCard, a, b);
     let [snapX, snapY] = ABtoXY(a, b);
@@ -382,16 +379,16 @@ function drawOurHand(we, offsetX, offsetY) {
     }
 }
 
-function eventCoordinates(e) {
-    let clientX, clientY;
+function whereDrawCard(e) {
+    let x, y;
     if (typeof e.changedTouches !== "undefined") {
-        clientX = e.changedTouches[0].clientX;
-        clientY = e.changedTouches[0].clientY;
+        x = e.changedTouches[0].clientX - cardWidth * 1.5;
+        y = e.changedTouches[0].clientY - cardWidth * 1.5 - cardWidth / 2;
     } else {
-        clientX = e.clientX;
-        clientY = e.clientY;
+        x = e.clientX - cardWidth / 2;
+        y = e.clientY - cardWidth * 1.5 / 2;
     }
-    return [clientX, clientY];
+    return [x, y];
 }
 
 function createPickHandler(card) {
@@ -399,12 +396,10 @@ function createPickHandler(card) {
         if (finishMoveCallback !== null) {
             e.stopPropagation();
             draggedCard = card;
-            let [clientX, clientY] = eventCoordinates(e);
-            drawCard(card, clientX - cardWidth / 2, clientY - cardWidth * 1.5 / 2, false, true);
+            let [x, y] = whereDrawCard(e);
+            drawCard(card, x, y, false, true);
             let drop = function(e) {
-                let [clientX, clientY] = eventCoordinates(e);
-                let x = clientX - cardWidth / 2;
-                let y = clientY - cardWidth * 1.5 / 2;
+                let [x, y] = whereDrawCard(e);
 
                 let [a, b] = XYtoAB(x, y);
                 let [canNotReversed, canReversed] = table.field.canBePlaced(draggedCard, a, b);
