@@ -42,10 +42,10 @@ document.addEventListener('DOMContentLoaded', function() {
     table = new Table();
 
     we = new OurPlayer(table, "me", "honest");
-    let bot = new BotPlayer(table, "connor", "saboteur");
-    let bot2 = new BotPlayer(table, "dummy plug", "saboteur");
-
-    table.players = [we, bot, bot2];
+  //  let bot = new BotPlayer(table, "connor", "saboteur");
+  //  let bot2 = new BotPlayer(table, "dummy plug", "saboteur");
+  //  let smartGoodBot = new SmartBot(table, "AI", "honest");
+    table.players = [we];
     table.deck = shuffle(cardIndices);
     table.finishCards = [1, 2, 3];
 

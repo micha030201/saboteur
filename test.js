@@ -1,13 +1,13 @@
-function TestAll(){
-    return("line: " + TestLine() + "\n" +
-        "Acsess: " + TestAcsess() + "\n" +
-        "Pipe: " + TestPipe() + "\n" +
-        "dead end check: " + TestReacheable() + "\n" +
-        "gap test: " + TestGap() + "\n" +
-        "Bordercheck: " + TestBorderCheck() + "\n");
+function testAll(){
+    return("line: " + testLine() + "\n" +
+        "Acsess: " + testAcsess() + "\n" +
+        "Pipe: " + testPipe() + "\n" +
+        "dead end check: " + testReacheable() + "\n" +
+        "gap test: " + testGap() + "\n" +
+        "Bordercheck: " + testBorderCheck() + "\n");
 }
 
-function TestLine () {
+function testLine () {
 
     let testField = new Field();
     testField.grid[0][0] = 0;
@@ -27,7 +27,7 @@ function TestLine () {
     return (checkString === "1234567");
 }
 
-function TestAcsess(){
+function testAcsess(){
 
     let testField = new Field();
     let card1 = 41;
@@ -51,7 +51,7 @@ function TestAcsess(){
     return returnVal;
 }
 
-function TestPipe(){
+function testPipe(){
 
     let testField = new Field();
     let card1 = 31;
@@ -62,7 +62,7 @@ function TestPipe(){
         c === false && d === true);
 }
 
-function TestReacheable(){
+function testReacheable(){
 
     let testField = new Field();
     let card = 11;
@@ -76,20 +76,20 @@ function TestReacheable(){
     return (testField.reachableSpaces.length == 0);
 }
 
-function TestGap(){
+function testGap(){
 
     let testField = new Field();
     testField.grid[0][0] = 0;
     let card = 28;
     testField.place(card, 0, - 2);
     let testData = [28, 21, 41];
-    return (gap(testField, testData, [0, -1]));
+    let res = (gap(testField, testData, [0, -1]));
 
     testField.grid[0][0] = 0;
     card = 21;
     testField.place(card, 2, 0);
     testData = [21, 28, 41];
-    return (gap(testField, testData, [1, 0]));
+    return (gap(testField, testData, [1, 0]) && res);
 
 }
 
@@ -111,7 +111,7 @@ function gap(testField, arr, answer){
     return answ;
 }
 
-function TestBorderCheck(){
+function testBorderCheck(){
     let card = 0;
     let testField = new Field();
     for (let i = 1; i < 4; i++) {
