@@ -26,6 +26,7 @@ class Table {  // in the most unlikely scenario you still have time for that, re
         for (let player of this.players) {
             cardsHeld += player.hand.length;
         }
+        cardsHeld += this.deck.length;
         return !cardsHeld;
     }
 
@@ -75,7 +76,7 @@ class Table {  // in the most unlikely scenario you still have time for that, re
 
         let nextPlayer = this.nextPlayer();
         this.moveCallback(move, nextPlayer);
-        if (!this.won && !this.lost) {
+        if (nextPlayer.hand.length && !(this.won || this.lost)) {
             nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
         }
     }

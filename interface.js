@@ -52,6 +52,7 @@ class GUI {
         this.fieldCache = null;
         this.ourTurn = false;
         this.cardsHider = null;
+        this.gameOverScreen = null;
         this.drawnCardsCache = {};
 
         this.svg = svg;
@@ -394,11 +395,26 @@ class GUI {
         this._drawCardsHider(!this.ourTurn);
     }
 
+    drawGameOver(won) {
+        // FIXME
+        let elem;
+        if (this.gameOverScreen === null) {
+            elem = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            this.gameOverScreen = elem;
+        } else {
+            elem = this.gameOverScreen;
+        }
+        this.svg.appendChild(elem);  // HACK
+        elem.setAttribute("x", -500);
+        elem.setAttribute("y", -500);
+        elem.setAttribute("width", 99999);
+        elem.setAttribute("height", 99999);
+        elem.setAttribute("fill", won ? "green" : "red");
+    }
+
     redraw() {
-        if (this.table.won) {
-            console.log("honest team won");
-        } else if (this.table.lost) {
-            console.log("saboteurs won");
+        if (this.table.won || this.table.lost) {
+            this.drawGameOver(this.table.won);
         }
 
         this.svg.setAttribute("width", window.innerWidth);
@@ -423,12 +439,16 @@ class GUI {
     }
 
     drawMove(move, nextPlayer) {
+        if (this.table.won || this.table.lost) {
+            setTimeout(() => this.drawGameOver(this.table.won), 600);
+        }
         // move cards manually so that they stay on top
         if (move.type === "noop") {
             this.redraw();
         } else if (move.type === "place") {
             this.drawCard(move.card, move.a, move.b, false, false);
             setTimeout(() => this.drawOtherHands(false), 300);
+            setTimeout(() => this.drawField(true), this.ourTurn ? 0 : 300);  // HACK
         } else if (move.type === "discard") {
             this.drawCard(move.card, 10, -5);
             setTimeout(() => this.drawOtherHands(false), 300);
