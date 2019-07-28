@@ -1,11 +1,15 @@
 "use strict"
-/* global dirs DefaultDict Table Player Move shuffle cardIndices */
+/* global dirs Table Player Move shuffle cardIndices */
 
-let finishMoveCallback = null;
 class OurPlayer extends Player {
+    constructor(...args) {
+        super(...args);
+        this.moveDone = null;
+    }
+
     makeMove(callback) {
         console.log("player");
-        finishMoveCallback = callback;
+        this.moveDone = callback;
     }
 }
 
@@ -30,18 +34,414 @@ class BotPlayer extends Player {
             move.placeCard(card, a, b);
         }
 
-        setTimeout(() => callback(move), 300);
+        setTimeout(() => callback(move), 600);
     }
 }
 
-let svg, table, we;
+class GUI {
+    constructor(table, we, svg) {
+        table.moveCallback = this.drawMove.bind(this);
+        this.table = table;
+        this.we = we;
+
+        this.cardWidth = 0;
+        this.zeroX = 0;
+        this.zeroY = 0;
+        this.fieldCache = null;
+        this.drawnCardsCache = {};
+
+        this.svg = svg;
+        window.addEventListener('resize', this.redraw.bind(this));
+
+        this.redraw();
+    }
+
+    XYtoAB(x, y) {
+        return [
+            (x - this.zeroX) / this.cardWidth,
+            (y - this.zeroY) / (this.cardWidth * 1.5)
+        ];
+    }
+
+    ABtoXY(a, b) {
+        return [
+            this.zeroX + a * this.cardWidth,
+            this.zeroY + b * this.cardWidth * 1.5
+        ];
+    }
+
+    cardCacheEntry(card) {
+        card = Math.abs(card);
+
+        if (typeof this.drawnCardsCache[card] === "undefined") {
+            let elem = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+            let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect.setAttribute("fill", "black");
+            rect.setAttribute("rx", 1);
+            rect.setAttribute("width", 10);
+            rect.setAttribute("height", 15);
+            elem.appendChild(rect);
+
+            if (dirs(card).up !== "no") {
+                let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                way.setAttribute("x", 4);
+                way.setAttribute("y", 0);
+                way.setAttribute("width", 2);
+                if (dirs(card).up === "yes") {
+                    way.setAttribute("height", 8.5);
+                } else {
+                    way.setAttribute("height", 2);
+                }
+                way.setAttribute("fill", "red");
+                elem.appendChild(way);
+            }
+
+            if (dirs(card).down !== "no") {
+                let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                way.setAttribute("x", 4);
+                way.setAttribute("width", 2);
+                if (dirs(card).down === "yes") {
+                    way.setAttribute("height", 8.5);
+                    way.setAttribute("y", 6.5);
+                } else {
+                    way.setAttribute("height", 2);
+                    way.setAttribute("y", 13);
+                }
+                way.setAttribute("fill", "red");
+                elem.appendChild(way);
+            }
+
+            if (dirs(card).left !== "no") {
+                let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                way.setAttribute("x", 0);
+                way.setAttribute("y", 6.5);
+                way.setAttribute("height", 2);
+                if (dirs(card).left === "yes") {
+                    way.setAttribute("width", 6);
+                } else {
+                    way.setAttribute("width", 2);
+                }
+                way.setAttribute("fill", "red");
+                elem.appendChild(way);
+            }
+
+            if (dirs(card).right !== "no") {
+                let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                way.setAttribute("y", 6.5);
+                way.setAttribute("height", 2);
+                if (dirs(card).right === "yes") {
+                    way.setAttribute("width", 6);
+                    way.setAttribute("x", 4);
+                } else {
+                    way.setAttribute("width", 2);
+                    way.setAttribute("x", 8);
+                }
+                way.setAttribute("fill", "red");
+                elem.appendChild(way);
+            }
+
+            let cover = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            cover.setAttribute("fill", "black");
+            cover.setAttribute("rx", 1);
+            cover.setAttribute("width", 10);
+            cover.setAttribute("height", 15);
+            elem.appendChild(cover);
+
+
+            let gt = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            gt.appendChild(elem);
+
+            let anim = document.createElementNS("http://www.w3.org/2000/svg", "animateTransform");
+            anim.setAttribute("attributeName", "transform");
+            anim.setAttribute("attributeType", "XML");
+            anim.setAttribute("type", "translate");
+            anim.setAttribute("dur", "300ms");
+            anim.setAttribute("begin", "0s");
+            anim.setAttribute("repeatCount", "1");
+            anim.setAttribute("fill", "freeze");
+            gt.appendChild(anim);
+
+            this.drawnCardsCache[card] = {
+                cover: cover,
+                outerGroup: gt,
+                animateTransform: anim,
+                innerGroup: elem,
+
+                a: 0,
+                b: 0,
+                width: 0,
+                hidden: true,
+                reversed: false,
+            };
+        }
+
+        return this.drawnCardsCache[card];
+    }
+
+    drawCard(card, a, b, hidden, instant) {
+        let reversed = card < 0;
+        let c = this.cardCacheEntry(card);
+
+        if (
+            c.a !== a
+            || c.b !== b
+            || c.hidden !== hidden
+            || c.reversed !== reversed
+            || c.width !== this.cardWidth
+        ) {
+            let [x, y] = this.ABtoXY(a, b);
+
+            this.svg.appendChild(c.outerGroup);  // HACK
+
+            c.cover.setAttribute("opacity", hidden ? 1 : 0);
+
+            if (c.a === null || c.b === null || instant) {
+                c.animateTransform.setAttribute("from", x + ", " + y);
+            } else {
+                if (!c.animateTransform.getAttribute("to")) {  // FIXME
+                    throw new Error();
+                }
+                c.animateTransform.setAttribute("from", c.animateTransform.getAttribute("to"));
+            }
+            c.animateTransform.setAttribute("to", x + ", " + y);
+            c.animateTransform.beginElement();
+
+            c.innerGroup.setAttribute(
+                "transform",
+                "scale(" + this.cardWidth / 10 + ") "
+                + "rotate(" + (reversed ? 180 : 0) + " " + (10 / 2) + " " + (10 * 1.5 / 2) + ")"
+            );
+
+            c.a = a;
+            c.b = b;
+            c.hidden = hidden;
+            c.reversed = reversed;
+            c.width = this.cardWidth;
+        }
+    }
+
+    _drawOtherHand(player, a, b, instant) {
+        // TODO draw allegiance
+        for (let [i, card] of player.hand.entries()) {
+            this.drawCard(card, a +  i * (2 / player.hand.length), b, true, instant);
+        }
+        // TODO draw breakage
+    }
+
+    drawOtherHands(instant) {
+        for (let [i, player] of Object.entries(this.table.players.filter(p => p !== this.we))) {
+            this._drawOtherHand(player, (i % 3) * 4 - 2, i > 3 ? -7 : -5, instant);
+        }
+    }
+
+    drawDeck(instant) {
+        // TODO some indication if there are no cards
+        for (let card of this.table.deck) {
+            this.drawCard(card, 10, -7, true, instant);
+        }
+    }
+
+    drawDiscardPile(instant) {
+        // TODO some indication if there are no cards
+        for (let card of this.table.discardPile) {
+            this.drawCard(card, 12, 2, instant);
+        }
+    }
+
+    fieldCacheEntry() {
+        if (this.fieldCache === null) {
+            let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect.setAttribute("fill", "gainsboro");
+            rect.setAttribute("rx", 5);
+
+            this.fieldCache = {
+                elem: rect,
+                x: 0,
+                y: 0,
+                width: 0,
+            };
+        }
+
+        return this.fieldCache;
+    }
+
+    drawField(instant) {
+        let c = this.fieldCacheEntry();
+        let [x, y] = this.ABtoXY(-2, -3);
+
+        if (
+            c.x !== x
+            || c.y !== y
+            || c.width !== this.cardWidth
+        ) {
+            this.svg.appendChild(c.elem);  // HACK
+
+            c.elem.setAttribute("x", x);
+            c.elem.setAttribute("y", y);
+
+            c.elem.setAttribute("width", this.cardWidth * 13);
+            c.elem.setAttribute("height", this.cardWidth * 1.5 * 7);
+
+            c.x = x;
+            c.y = y;
+            c.width = this.cardWidth;
+        }
+
+        if (this.table.finishCards[0] !== null) {
+            this.drawCard(this.table.finishCards[0], 8, -2, true, instant);
+        }
+        if (this.table.finishCards[1] !== null) {
+            this.drawCard(this.table.finishCards[1], 8, 0, true, instant);
+        }
+        if (this.table.finishCards[2] !== null) {
+            this.drawCard(this.table.finishCards[2], 8, 2, true, instant);
+        }
+
+        for (let [a, b, card] of this.table.field.cards()) {
+            this.drawCard(card, a, b, false, instant);
+        }
+    }
+
+    drawOurHand(instant) {
+        for (let [i, card] of this.we.hand.entries()) {
+            this.drawCard(card, i - 2, 5, false, instant);
+            this.createPickHandler(card);
+        }
+    }
+
+    redraw() {
+        if (this.table.won) {
+            console.log("honest team won");
+        } else if (this.table.lost) {
+            console.log("saboteurs won");
+        }
+
+        this.svg.setAttribute("width", window.innerWidth);
+        this.svg.setAttribute("height", window.innerHeight);
+        this.svg.setAttribute("viewBox", "0 0 " + window.innerWidth + " " + window.innerHeight);
+
+        if (window.innerHeight / 14 / 1.5 <= window.innerWidth / 14) {
+            this.cardWidth = window.innerHeight / 14 / 1.5;
+            this.zeroX = (window.innerWidth - this.cardWidth * 13) / 2 + this.cardWidth * 2;
+            this.zeroY = this.cardWidth * 1.5 * 7.5;
+        } else {
+            this.cardWidth = window.innerWidth / 14;
+            this.zeroX = this.cardWidth * 2.5;
+            this.zeroY = (window.innerHeight - this.cardWidth * 1.5 * 13) / 2 + this.cardWidth * 7;
+        }
+
+        this.drawOtherHands(true);
+        this.drawDeck(true);
+        this.drawDiscardPile(true);
+        this.drawField(true);
+        this.drawOurHand(true);
+    }
+
+    drawMove(move) {
+        if (move.type === "noop") {
+            this.redraw();
+        } else if (move.type === "place") {
+            this.drawCard(move.card, move.a, move.b, false, false);
+            setTimeout(() => this.drawOtherHands(false), 300);
+        } else if (move.type === "discard") {
+            this.drawCard(move.card, 10, -5);
+            setTimeout(() => this.drawOtherHands(false), 300);
+        }
+        this.drawOurHand();
+    }
+
+    followEvent(e) {
+        let x, y;
+        if (typeof e.changedTouches !== "undefined") {
+            x = e.changedTouches[0].clientX - this.cardWidth * 1.5;
+            y = e.changedTouches[0].clientY - this.cardWidth * 1.5 - this.cardWidth / 2;
+        } else {
+            x = e.clientX - this.cardWidth / 2;
+            y = e.clientY - this.cardWidth * 1.5 / 2;
+        }
+        return this.XYtoAB(x, y);
+    }
+
+    createPickHandler(card) {
+        let elem = this.cardCacheEntry(card).outerGroup;
+
+        let pick = function(e) {
+            if (this.we.moveDone !== null) {
+                e.stopPropagation();
+                let [a, b] = this.followEvent(e);
+                this.drawCard(card, a, b, false, true);
+
+                let drag = function(e) {
+                    let [a, b] = this.followEvent(e);
+
+                    let [canNotReversed, canReversed] = this.table.field.canBePlaced(card, Math.round(a), Math.round(b));
+                    if (canNotReversed || canReversed) {
+                        a = Math.round(a);
+                        b = Math.round(b);
+                    }
+
+                    this.drawCard(card, a, b, false, true);
+                };
+
+                let drop = function(e) {
+                    let [a, b] = this.followEvent(e);
+                    a = Math.round(a);
+                    b = Math.round(b);
+
+                    let [canNotReversed, canReversed] = this.table.field.canBePlaced(card, a, b);
+                    if (canNotReversed || canReversed) {
+                        if (canNotReversed && canReversed) {
+                            // already in the correct orientation
+                        } else if (canNotReversed) {
+                            card = Math.abs(card);
+                        } else if (canReversed) {
+                            card = -Math.abs(card);
+                        }
+
+                        let move = new Move();
+                        move.placeCard(card, a, b);
+
+                        this.svg.onmousemove = null;
+                        this.svg.ontouchmove = null;
+
+                        elem.onmousedown = null;
+                        elem.ontouchend = null;
+                        elem.ontouchcancel = null;
+
+                        this.we.moveDone(move);
+                    } else {
+                        this.svg.onmousemove = null;
+                        this.svg.ontouchmove = null;
+
+                        elem.onmousedown = null;
+                        elem.ontouchend = null;
+                        elem.ontouchcancel = null;
+
+                        this.drawOurHand();
+                    }
+                };
+
+                this.svg.onmousemove = drag.bind(this);
+                this.svg.ontouchmove = drag.bind(this);
+
+                elem.onmousedown = drop.bind(this);
+                elem.ontouchend = drop.bind(this);
+                elem.ontouchcancel = drop.bind(this);
+            }
+        };
+
+        elem.onmousedown = pick.bind(this);
+        elem.ontouchstart = pick.bind(this);
+    }
+}
 
 document.addEventListener('DOMContentLoaded', function() {
-    svg = document.getElementById("gamearea");
+    let svg = document.getElementById("gamearea");
 
-    table = new Table();
+    let table = new Table();
 
-    we = new OurPlayer(table, "me", "honest");
+    let we = new OurPlayer(table, "me", "honest");
     let bot = new BotPlayer(table, "connor", "saboteur");
     let bot2 = new BotPlayer(table, "dummy plug", "saboteur");
 
@@ -49,406 +449,7 @@ document.addEventListener('DOMContentLoaded', function() {
     table.deck = shuffle(cardIndices);
     table.finishCards = [1, 2, 3];
 
-    table.moveCallback = draw.bind(null, table, we);
+    let gui = new GUI(table, we, svg);
 
     table.startGame();
 });
-
-let cardWidth;
-
-let draggedCard = null;
-let draggedCardFlipTimer = null;
-let draggedCardFlipLastA, draggedCardFlipLastB;
-
-
-function XYtoAB(x, y) {
-    return [
-        Math.round((x - cardWidth * 2 - fieldOffsetX) / cardWidth),
-        Math.round((y - cardWidth * 1.5 * 3 - fieldOffsetY) / (cardWidth * 1.5))
-    ];
-}
-
-function ABtoXY(a, b) {
-    return [
-        cardWidth * 2 + fieldOffsetX + a * cardWidth,
-        cardWidth * 1.5 * 3 + fieldOffsetY + b * cardWidth * 1.5
-    ];
-}
-
-function dragCard(e) {
-    if (draggedCard === null) {
-        return;
-    }
-    let [x, y] = whereDrawCard(e);
-    let [a, b] = XYtoAB(x, y);
-    let [canNotReversed, canReversed] = table.field.canBePlaced(draggedCard, a, b);
-    let [snapX, snapY] = ABtoXY(a, b);
-    if (draggedCardFlipLastA !== a || draggedCardFlipLastB !== b) {
-        clearInterval(draggedCardFlipTimer);
-    }
-    if (canNotReversed && canReversed) {
-        if (draggedCardFlipLastA !== a || draggedCardFlipLastB !== b) {
-            draggedCardFlipTimer = setInterval(function () {
-                draggedCard = -draggedCard;
-                drawCard(draggedCard, x, y);
-            }, 1300);
-        }
-    } else if (canNotReversed) {
-        clearInterval(draggedCardFlipTimer);
-        draggedCard = Math.abs(draggedCard);
-    } else if (canReversed) {
-        clearInterval(draggedCardFlipTimer);
-        draggedCard = -Math.abs(draggedCard);
-    } else {
-        clearInterval(draggedCardFlipTimer);
-    }
-
-    if (canNotReversed || canReversed) {
-        x = snapX;
-        y = snapY;
-    }
-
-    draggedCardFlipLastA = a;
-    draggedCardFlipLastB = b;
-    drawCardOnTop(draggedCard, x, y, false, true);
-}
-
-document.addEventListener('mousemove', dragCard);
-document.addEventListener('touchmove', dragCard);
-
-window.addEventListener('resize', function() {
-    draw(table, we);
-});
-
-let fieldOffsetX, fieldOffsetY;
-let drawCache = {
-    width: 0,
-    height: 0,
-
-    field: {},
-
-    cardData: new DefaultDict(function () { return {}; }),
-    cardStandInData: new DefaultDict(function () { return {}; }),
-};
-function draw(table, we) {
-    if (table.won) {
-        console.log("honest team won");
-    } else if (table.lost) {
-        console.log("saboteurs won");
-    }
-    if (drawCache.width !== window.innerWidth || drawCache.height !== window.innerHeight) {
-        svg.setAttribute("width", window.innerWidth);
-        svg.setAttribute("height", window.innerHeight);
-        svg.setAttribute("viewBox", "0 0 " + window.innerWidth + " " + window.innerHeight);
-    }
-
-    let margin = Math.min(window.innerWidth, window.innerHeight) * 0.04;
-    let offsetX, offsetY;
-
-    if (window.innerHeight / 14 / 1.5 <= window.innerWidth / 13) {
-        cardWidth = (window.innerHeight - margin * 2) / 14 / 1.5;
-        offsetX = (window.innerWidth - cardWidth * 13) / 2;
-        offsetY = margin;
-    } else {
-        cardWidth = (window.innerWidth - margin * 2) / 13;
-        offsetX = margin;
-        offsetY = (window.innerHeight - cardWidth * 1.5 * 14) / 2;
-    }
-
-    drawField(table.field, offsetX, offsetY + cardWidth * 1.5 * 3);
-
-    let otherHandOffsetX = 0;
-    for (let player of table.players) {
-        if (player !== we) {
-            drawOtherHand(player, offsetX + cardWidth * 4 * otherHandOffsetX++, offsetY);
-        }
-    }
-
-    drawDeck(table.deck, offsetX + cardWidth * 12, offsetY);
-    drawDiscardPile(table.discardPile, offsetX + cardWidth * 12, offsetY + cardWidth * 1.5);
-    drawOurHand(we, offsetX, offsetY + cardWidth * 1.5 * 11);
-}
-
-function drawOtherHand(player, offsetX, offsetY) {
-    let x = offsetX;
-    for (let card of player.hand) {
-        drawCard(card, x, offsetY, true);
-        x += cardWidth / 3;
-    }
-}
-
-function drawDeck(deck, offsetX, offsetY) {
-    for (let card of deck) {
-        drawCard(card, offsetX, offsetY, true);
-    }
-}
-
-function drawDiscardPile(pile, offsetX, offsetY) {
-    for (let card of pile) {
-        drawCard(card, offsetX, offsetY, false);
-    }
-}
-
-function drawField(field, offsetX, offsetY) {
-    fieldOffsetX = offsetX;
-    fieldOffsetY = offsetY;
-
-    if (
-        drawCache.field.offsetX !== offsetX
-        || drawCache.field.offsetY !== offsetY
-        //|| cardWidth !== drawCache
-    ) {
-        if (typeof drawCache.field.elem === "undefined") {
-            drawCache.field.elem = makeElemForField();
-            svg.appendChild(drawCache.field.elem);
-        }
-        drawCache.field.elem.setAttribute("x", offsetX);
-        drawCache.field.elem.setAttribute("y", offsetY);
-
-        drawCache.field.elem.setAttribute("width", cardWidth * 13);
-        drawCache.field.elem.setAttribute("height", cardWidth * 1.5 * 7);
-
-        drawCache.field.offsetX = offsetX;
-        drawCache.field.offsetY = offsetY;
-    }
-
-    let x, y;
-    if (table.finishCards[0] !== null) {
-        [x, y] = ABtoXY(8, -2);
-        drawCard(table.finishCards[0], x, y, true);
-    }
-    if (table.finishCards[1] !== null) {
-        [x, y] = ABtoXY(8, 0);
-        drawCard(table.finishCards[1], x, y, true);
-    }
-    if (table.finishCards[2] !== null) {
-        [x, y] = ABtoXY(8, 2);
-        drawCard(table.finishCards[2], x, y, true);
-    }
-
-    for (let [a, b, card] of field.cards()) {
-        [x, y] = ABtoXY(a, b);
-        drawCard(card, x, y);
-    }
-}
-
-function makeElemForField() {
-    let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    rect.setAttribute("fill", "gainsboro");
-    rect.setAttribute("rx", 5);
-
-    return rect;
-}
-
-function drawCard(card, x, y, hidden, doNotAnimate) {
-    let reversed = card < 0;
-    card = Math.abs(card);
-
-    let c = drawCache.cardData[card];
-    if (typeof c.elem === "undefined") {
-        c.elem = makeElemForCard(card);
-        svg.appendChild(c.elem[1]);
-    }
-
-    if (
-        c.reversed !== reversed
-        || c.hidden !== hidden
-        || c.x !== x
-        || c.y !== y
-        || c.width !== cardWidth
-    ) {
-        svg.appendChild(c.elem[1]);  // HACK
-
-        c.elem[0].setAttribute("opacity", hidden ? 1 : 0);
-
-        if (typeof c.x === "undefined" || doNotAnimate) {
-            c.elem[2].setAttribute("from", x + ", " + y);
-        } else {
-            c.elem[2].setAttribute("from", c.x + ", " + c.y);
-        }
-        c.elem[2].setAttribute("to", x + ", " + y);
-        c.elem[2].beginElement();
-
-        c.elem[3].setAttribute(
-            "transform",
-            "scale(" + cardWidth / 10 + ") "
-            + "rotate(" + (reversed ? 180 : 0) + " " + (10 / 2) + " " + (10 * 1.5 / 2) + ")"
-        );
-
-        c.reversed = reversed;
-        c.hidden = hidden;
-        c.x = x
-        c.y = y
-        c.width = cardWidth
-    }
-
-    return c.elem;
-}
-
-function drawCardOnTop(card, x, y, hidden, doNotAnimate) {
-    svg.appendChild(drawCard(card, x, y, hidden, doNotAnimate)[1]);
-}
-
-function makeElemForCard(card) {
-    let elem = document.createElementNS("http://www.w3.org/2000/svg", "g");
-
-    let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    rect.setAttribute("fill", "black");
-    rect.setAttribute("rx", 1);
-    rect.setAttribute("width", 10);
-    rect.setAttribute("height", 15);
-    elem.appendChild(rect);
-
-    if (dirs(card).up !== "no") {
-        let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        way.setAttribute("x", 4);
-        way.setAttribute("y", 0);
-        way.setAttribute("width", 2);
-        if (dirs(card).up === "yes") {
-            way.setAttribute("height", 8.5);
-        } else {
-            way.setAttribute("height", 2);
-        }
-        way.setAttribute("fill", "red");
-        elem.appendChild(way);
-    }
-
-    if (dirs(card).down !== "no") {
-        let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        way.setAttribute("x", 4);
-        way.setAttribute("width", 2);
-        if (dirs(card).down === "yes") {
-            way.setAttribute("height", 8.5);
-            way.setAttribute("y", 6.5);
-        } else {
-            way.setAttribute("height", 2);
-            way.setAttribute("y", 13);
-        }
-        way.setAttribute("fill", "red");
-        elem.appendChild(way);
-    }
-
-    if (dirs(card).left !== "no") {
-        let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        way.setAttribute("x", 0);
-        way.setAttribute("y", 6.5);
-        way.setAttribute("height", 2);
-        if (dirs(card).left === "yes") {
-            way.setAttribute("width", 6);
-        } else {
-            way.setAttribute("width", 2);
-        }
-        way.setAttribute("fill", "red");
-        elem.appendChild(way);
-    }
-
-    if (dirs(card).right !== "no") {
-        let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        way.setAttribute("y", 6.5);
-        way.setAttribute("height", 2);
-        if (dirs(card).right === "yes") {
-            way.setAttribute("width", 6);
-            way.setAttribute("x", 4);
-        } else {
-            way.setAttribute("width", 2);
-            way.setAttribute("x", 8);
-        }
-        way.setAttribute("fill", "red");
-        elem.appendChild(way);
-    }
-
-    let cover = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    cover.setAttribute("fill", "black");
-    cover.setAttribute("rx", 1);
-    cover.setAttribute("width", 10);
-    cover.setAttribute("height", 15);
-    elem.appendChild(cover);
-
-
-    let gt = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    gt.appendChild(elem);
-
-    let anim = document.createElementNS("http://www.w3.org/2000/svg", "animateTransform");
-    anim.setAttribute("attributeName", "transform");
-    anim.setAttribute("attributeType", "XML");
-    anim.setAttribute("type", "translate");
-    anim.setAttribute("dur", "300ms");
-    anim.setAttribute("begin", "0s");
-    anim.setAttribute("repeatCount", "1");
-    anim.setAttribute("fill", "freeze");
-    gt.appendChild(anim);
-
-    return [cover, gt, anim, elem];
-}
-
-function drawOurHand(we, offsetX, offsetY) {
-    let x = offsetX;
-    for (let card of we.hand) {
-        if (card !== draggedCard) {
-            drawCard(card, x, offsetY);
-            createPickHandler(card);
-            x += cardWidth;
-        }
-    }
-}
-
-function whereDrawCard(e) {
-    let x, y;
-    if (typeof e.changedTouches !== "undefined") {
-        x = e.changedTouches[0].clientX - cardWidth * 1.5;
-        y = e.changedTouches[0].clientY - cardWidth * 1.5 - cardWidth / 2;
-    } else {
-        x = e.clientX - cardWidth / 2;
-        y = e.clientY - cardWidth * 1.5 / 2;
-    }
-    return [x, y];
-}
-
-function createPickHandler(card) {
-    let pick = function(e) {
-        if (finishMoveCallback !== null) {
-            e.stopPropagation();
-            draggedCard = card;
-            let [x, y] = whereDrawCard(e);
-            drawCard(card, x, y, false, true);
-            let drop = function(e) {
-                let [x, y] = whereDrawCard(e);
-
-                let [a, b] = XYtoAB(x, y);
-                let [canNotReversed, canReversed] = table.field.canBePlaced(draggedCard, a, b);
-                if (canNotReversed || canReversed) {
-                    if (canNotReversed && canReversed) {
-                        // already in the correct orientation
-                    } else if (canNotReversed) {
-                        draggedCard = Math.abs(draggedCard);
-                    } else if (canReversed) {
-                        draggedCard = -Math.abs(draggedCard);
-                    }
-                    if (draggedCardFlipTimer !== null) {
-                        clearInterval(draggedCardFlipTimer);
-                    }
-                    let move = new Move();
-                    move.placeCard(draggedCard, a, b);
-                    we.hand = we.hand.filter(item => item !== Math.abs(draggedCard));
-                    draggedCard = null;
-                    let callback = finishMoveCallback;
-                    finishMoveCallback = null;
-                    draw(table, we);
-                    drawCache.cardData[Math.abs(card)].elem.onmousedown = null;
-                    drawCache.cardData[Math.abs(card)].elem.ontouchstart = null;
-                    callback(move);
-                } else {
-                    draggedCard = null;
-                    draw(table, we);
-                }
-            };
-
-            drawCache.cardData[Math.abs(card)].elem[1].onmousedown = drop;
-            drawCache.cardData[Math.abs(card)].elem[1].ontouchend = drop;
-            drawCache.cardData[Math.abs(card)].elem[1].ontouchcancel = drop;
-        }
-    };
-
-    drawCache.cardData[Math.abs(card)].elem[1].onmousedown = pick;
-    drawCache.cardData[Math.abs(card)].elem[1].ontouchstart = pick;
-}

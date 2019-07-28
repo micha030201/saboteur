@@ -66,7 +66,7 @@ class Table {  // in the most unlikely scenario you still have time for that, re
         if (this.deck.length) {
             player.drawCard();
         }
-        this.moveCallback();
+        this.moveCallback(move);
         if (!this.won && !this.lost) {
             let nextPlayer = this.nextPlayer();
             nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
@@ -79,9 +79,13 @@ class Table {  // in the most unlikely scenario you still have time for that, re
                 player.drawCard();
             }
         }
+
+        let move = new Move();
+        move.noop();
+        this.moveCallback(move);
+
         // ready player minus one, i guess
         let nextPlayer = this.nextPlayer();
-        this.moveCallback();
         nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
     }
 }
@@ -103,6 +107,10 @@ class Player {  // base class
 }
 
 class Move {
+    noop() {
+        this.type = "noop";
+    }
+
     placeCard(card, a, b) {
         this.type = "place";
         this.card = card;
