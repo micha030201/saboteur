@@ -1,5 +1,5 @@
 "use strict"
-/* global dirs Table Player Move shuffle cardIndices */
+/* global dirs Table Player Move shuffle cardIndices symmetrical */
 
 class OurPlayer extends Player {
     constructor(...args) {
@@ -26,7 +26,7 @@ class BotPlayer extends Player {
             move.discard(card);
         } else {
             let [a, b] = spaces.randomElement();
-            if (this.table.field.canBePlaced(card, a, b)[0]) {
+            if (this.table.field.canBePlaced(card, a, b)) {
                 card = Math.abs(card);
             } else {
                 card = -Math.abs(card);
@@ -47,6 +47,7 @@ class GUI {
         this.cardWidth = 0;
         this.zeroX = 0;
         this.zeroY = 0;
+        this.rotateIcons = [];
         this.fieldCache = null;
         this.drawnCardsCache = {};
 
@@ -303,8 +304,42 @@ class GUI {
         }
     }
 
+    _drawRotateIcon(index, visible) {
+        let elem;
+        if (!this.rotateIcons.length) {
+            for (let i = 0; i < 6; ++i) {
+                elem = document.createElementNS("http://www.w3.org/2000/svg", "image");
+                elem.setAttributeNS("http://www.w3.org/1999/xlink", "href", "assets/rotate.svg");
+                this.createRotateHandler(elem, i);
+                this.svg.appendChild(elem);
+                this.rotateIcons[i] = elem;
+            }
+        } else {
+            elem = this.rotateIcons[index];
+        }
+        elem.setAttribute("x", this.zeroX + this.cardWidth * (-2 + index));
+        elem.setAttribute("y", this.zeroY + this.cardWidth * 1.5 * 4);
+        elem.setAttribute("width", this.cardWidth);
+        elem.setAttribute("height", this.cardWidth * 1.5);
+        elem.setAttribute("opacity", visible ? 1 : 0);
+    }
+
     drawOurHand(instant) {
-        for (let [i, card] of this.we.hand.entries()) {
+        for (let i = 0; i < 6; ++i) {
+            let card = this.we.hand[i];
+            if (typeof card === "undefined") {
+                this._drawRotateIcon(i, false);
+                return;
+            }
+
+            let canBePlacedAsIs = this.table.field.availableSpaces(card).length;
+            let canBePlacedReversed = this.table.field.availableSpaces(-card).length;
+
+            this._drawRotateIcon(i, canBePlacedAsIs && canBePlacedReversed && !symmetrical(card));
+
+            if (canBePlacedReversed && !canBePlacedAsIs) {
+                this.we.hand[i] = card = -card;
+            }
             this.drawCard(card, i - 2, 5, false, instant);
             this.createPickHandler(card);
         }
@@ -375,8 +410,7 @@ class GUI {
                 let drag = function(e) {
                     let [a, b] = this.followEvent(e);
 
-                    let [canNotReversed, canReversed] = this.table.field.canBePlaced(card, Math.round(a), Math.round(b));
-                    if (canNotReversed || canReversed) {
+                    if (this.table.field.canBePlaced(card, Math.round(a), Math.round(b))) {
                         a = Math.round(a);
                         b = Math.round(b);
                     }
@@ -408,16 +442,7 @@ class GUI {
                         this.we.moveDone(move);
                     }
 
-                    let [canNotReversed, canReversed] = this.table.field.canBePlaced(card, a, b);
-                    if (canNotReversed || canReversed) {
-                        if (canNotReversed && canReversed) {
-                            // already in the correct orientation
-                        } else if (canNotReversed) {
-                            card = Math.abs(card);
-                        } else if (canReversed) {
-                            card = -Math.abs(card);
-                        }
-
+                    if (this.table.field.canBePlaced(card, a, b)) {
                         resetCallbacks();
 
                         let move = new Move();
@@ -441,6 +466,16 @@ class GUI {
 
         elem.onmousedown = pick.bind(this);
         elem.ontouchstart = pick.bind(this);
+    }
+
+    createRotateHandler(elem, index) {
+        let rotate = function() {
+            this.we.hand[index] = -this.we.hand[index];
+            this.drawOurHand(true);
+        };
+
+        elem.onmousedown = rotate.bind(this);
+        elem.ontouchstart = rotate.bind(this);
     }
 }
 

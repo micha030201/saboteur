@@ -1,6 +1,10 @@
 "use strict"
 /* global dirs DefaultDict doesIncludeArray */
-/* exported Table Player Move */
+/* exported symmetrical Table Player Move */
+
+function symmetrical(card) {
+    return (dirs(card).up === dirs(card).down && dirs(card).left === dirs(card).right);
+}
 
 class Table {  // in the most unlikely scenario you still have time for that, rewrite so that it can get finish cards from the server
     constructor() {
@@ -172,7 +176,7 @@ class Field {
         return result;
     }
 
-    _canPlaceInPosition(card, a, b) {
+    canPlaceInPosition(card, a, b) {
         let fit = function(neighbour, dir_n, card, dir_c) {
             return (
                 typeof neighbour === "undefined"
@@ -189,13 +193,6 @@ class Field {
         );
     }
 
-    canPlaceInPosition(card, a, b) {
-        return [
-            this._canPlaceInPosition(Math.abs(card), a, b),
-            this._canPlaceInPosition(-Math.abs(card), a, b)
-        ];
-    }
-
     availableSpaces(card) {
         let result = [];
         let reachable = this.reachableSpaces();
@@ -203,7 +200,7 @@ class Field {
             if (
                 (-3 < a && a < 11)
                 && (-4 < b && b < 4)
-                && this.canPlaceInPosition(card, a, b).any()
+                && this.canPlaceInPosition(card, a, b)
             ) {
                 result.push([a, b]);
             }
@@ -212,11 +209,7 @@ class Field {
     }
 
     canBePlaced(card, a, b) {
-        if (doesIncludeArray(this.availableSpaces(card), [a, b])) {
-            let [canNotReversed, canReversed] = this.canPlaceInPosition(card, a, b);
-            return [canNotReversed, canReversed]
-        }
-        return [false, false];
+        return doesIncludeArray(this.availableSpaces(card), [a, b]);
     }
 
     place(card, a, b) {
