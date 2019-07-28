@@ -537,8 +537,14 @@ class GUI {
     createRotateHandler(elem, index) {
         let rotate = function(e) {
             e.stopPropagation();
-            this.we.hand[index] = -this.we.hand[index];
-            this.drawOurHand(true);
+
+            let canBePlacedAsIs = this.table.field.availableSpaces(this.we.hand[index]).length;
+            let canBePlacedReversed = this.table.field.availableSpaces(-this.we.hand[index]).length;
+
+            if (this.ourTurn && canBePlacedAsIs && canBePlacedReversed && !symmetrical(this.we.hand[index])) {
+                this.we.hand[index] = -this.we.hand[index];
+                this.drawOurHand(true);
+            }
         };
 
         elem.onmousedown = rotate.bind(this);
