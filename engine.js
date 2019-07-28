@@ -130,6 +130,9 @@ class Field {
 
     _reachableSpaces(_visited, _result, a, b, direction) {
         let card = this.grid[a][b];
+         if (Math.abs(b) > 3 || a < -2 || a > 10){
+                return;
+         }        
         if (typeof card === "undefined") {
             _result.push([a, b]);
             return;
@@ -159,6 +162,7 @@ class Field {
         let result = [];
         let visited = new Set(["0 0"]);
         this._reachableSpaces(visited, result, 0, 0, "up");
+        reportDeadEnd(visited);
         return result;
     }
 

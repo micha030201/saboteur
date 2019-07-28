@@ -129,7 +129,7 @@ function testBorderCheck(){
     for (let l of cards){
         let result = testField.availableSpaces(l);
         for (let [a, b] of result){
-            if (Math.abs(a) > 3 || b < -2 || b > 10){
+            if (Math.abs(b) > 3 || a < -2 || a > 10){
                 return ("false" + l + a + b);
             }
          }

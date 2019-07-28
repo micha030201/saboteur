@@ -44,8 +44,8 @@ document.addEventListener('DOMContentLoaded', function() {
     we = new OurPlayer(table, "me", "honest");
   //  let bot = new BotPlayer(table, "connor", "saboteur");
   //  let bot2 = new BotPlayer(table, "dummy plug", "saboteur");
-  //  let smartGoodBot = new SmartBot(table, "AI", "honest");
-    table.players = [we];
+    let smartGoodBot = new SmartBot(table, "AI", "honest");
+    table.players = [we, smartGoodBot];
     table.deck = shuffle(cardIndices);
     table.finishCards = [1, 2, 3];
 
