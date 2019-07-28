@@ -47,9 +47,11 @@ class Table {  // in the most unlikely scenario you still have time for that, re
                     this.won = true;
                 }
                 this.finishCards[(b + 2) / 2] = null;
-                let [canNotReversed, canReversed] = this.field.canPlaceInPosition(card, a, b);
-                if (!canNotReversed && canReversed) {
-                    card = -Math.abs(card);
+                if (
+                    !this.field.canPlaceInPosition(card, a, b)
+                    && this.field.canPlaceInPosition(-card, a, b)
+                ) {
+                    card = -card;
                 }
                 this.field.place(card, a, b);
             }
