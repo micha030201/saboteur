@@ -493,7 +493,8 @@ class GUI {
     }
 
     createRotateHandler(elem, index) {
-        let rotate = function() {
+        let rotate = function(e) {
+            e.stopPropagation();
             this.we.hand[index] = -this.we.hand[index];
             this.drawOurHand(true);
         };
