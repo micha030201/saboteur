@@ -385,9 +385,28 @@ class GUI {
                 };
 
                 let drop = function(e) {
+                    let resetCallbacks = (function() {
+                        this.svg.onmousemove = null;
+                        this.svg.ontouchmove = null;
+
+                        elem.onmousedown = null;
+                        elem.ontouchend = null;
+                        elem.ontouchcancel = null;
+                    }).bind(this);
+
                     let [a, b] = this.followEvent(e);
                     a = Math.round(a);
                     b = Math.round(b);
+
+                    if (a === 10 && b === -5) {
+                        resetCallbacks();
+
+                        this.drawCard(card, a, b, false, true);
+
+                        let move = new Move();
+                        move.discard(card);
+                        this.we.moveDone(move);
+                    }
 
                     let [canNotReversed, canReversed] = this.table.field.canBePlaced(card, a, b);
                     if (canNotReversed || canReversed) {
@@ -399,24 +418,13 @@ class GUI {
                             card = -Math.abs(card);
                         }
 
+                        resetCallbacks();
+
                         let move = new Move();
                         move.placeCard(card, a, b);
-
-                        this.svg.onmousemove = null;
-                        this.svg.ontouchmove = null;
-
-                        elem.onmousedown = null;
-                        elem.ontouchend = null;
-                        elem.ontouchcancel = null;
-
                         this.we.moveDone(move);
                     } else {
-                        this.svg.onmousemove = null;
-                        this.svg.ontouchmove = null;
-
-                        elem.onmousedown = null;
-                        elem.ontouchend = null;
-                        elem.ontouchcancel = null;
+                        resetCallbacks();
 
                         this.drawOurHand();
                     }
