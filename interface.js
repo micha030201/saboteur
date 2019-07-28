@@ -55,6 +55,8 @@ class GUI {
         this.gameOverScreen = null;
         this.drawnCardsCache = {};
 
+        this.touch = false;
+
         this.svg = svg;
         window.addEventListener('resize', this.redraw.bind(this));
 
@@ -469,17 +471,33 @@ class GUI {
         return this.XYtoAB(x, y);
     }
 
+    correctEventType(e) {
+        if (typeof e.changedTouches !== "undefined") {
+            this.touch = true;  // i'm using tilt controls
+            return true;
+        }
+        return !this.touch;
+    }
+
     createPickHandler(card) {
         let elem = this.cardCacheEntry(card).outerGroup;
 
         let pick = function(e) {
             if (this.we.moveDone !== null) {
+                if (!this.correctEventType(e)) {
+                    return;
+                }
                 e.stopPropagation();
+
                 let [a, b] = this.followEvent(e);
                 this._drawAvailableSpaces(card);
                 this.drawCard(card, a, b, false, true);
 
                 let drag = function(e) {
+                    if (!this.correctEventType(e)) {
+                        return;
+                    }
+
                     let [a, b] = this.followEvent(e);
 
                     if (this.table.field.canBePlaced(card, Math.round(a), Math.round(b))) {
@@ -491,6 +509,10 @@ class GUI {
                 };
 
                 let drop = function(e) {
+                    if (!this.correctEventType(e)) {
+                        return;
+                    }
+
                     this.svg.onmousemove = null;
                     this.svg.ontouchmove = null;
 
@@ -536,6 +558,9 @@ class GUI {
 
     createRotateHandler(elem, index) {
         let rotate = function(e) {
+            if (!this.correctEventType(e)) {
+                return;
+            }
             e.stopPropagation();
 
             let canBePlacedAsIs = this.table.field.availableSpaces(this.we.hand[index]).length;
