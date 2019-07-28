@@ -249,7 +249,7 @@ class GUI {
     drawDiscardPile(instant) {
         // TODO some indication if there are no cards
         for (let card of this.table.discardPile) {
-            this.drawCard(card, 10, -5, instant);
+            this.drawCard(card, 10, -5, false, instant);
         }
     }
 
