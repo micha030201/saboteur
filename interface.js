@@ -168,8 +168,8 @@ class GUI {
                 animateTransform: anim,
                 innerGroup: elem,
 
-                a: 0,
-                b: 0,
+                x: 0,
+                y: 0,
                 width: 0,
                 hidden: true,
                 reversed: false,
@@ -183,15 +183,15 @@ class GUI {
         let reversed = card < 0;
         let c = this.cardCacheEntry(card);
 
+        let [x, y] = this.ABtoXY(a, b);
+
         if (
-            c.a !== a
-            || c.b !== b
+            c.x !== x
+            || c.y !== y
             || c.hidden !== hidden
             || c.reversed !== reversed
             || c.width !== this.cardWidth
         ) {
-            let [x, y] = this.ABtoXY(a, b);
-
             this.svg.appendChild(c.outerGroup);  // HACK
 
             c.cover.setAttribute("opacity", hidden ? 1 : 0);
@@ -213,8 +213,8 @@ class GUI {
                 + "rotate(" + (reversed ? 180 : 0) + " " + (10 / 2) + " " + (10 * 1.5 / 2) + ")"
             );
 
-            c.a = a;
-            c.b = b;
+            c.x = x;
+            c.y = y;
             c.hidden = hidden;
             c.reversed = reversed;
             c.width = this.cardWidth;
@@ -328,7 +328,7 @@ class GUI {
         } else {
             this.cardWidth = window.innerWidth / 14;
             this.zeroX = this.cardWidth * 2.5;
-            this.zeroY = (window.innerHeight - this.cardWidth * 1.5 * 13) / 2 + this.cardWidth * 7;
+            this.zeroY = (window.innerHeight - this.cardWidth * 1.5 * 13) / 2 + this.cardWidth * 1.5 * 7;
         }
 
         this.drawOtherHands(true);
