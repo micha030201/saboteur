@@ -47,7 +47,8 @@ class GUI {
         this.cardWidth = 0;
         this.zeroX = 0;
         this.zeroY = 0;
-        this.rotateIcons = [];
+        this.rotateIcons = null;
+        this.availableSpaces = null;
         this.fieldCache = null;
         this.drawnCardsCache = {};
 
@@ -256,6 +257,8 @@ class GUI {
             rect.setAttribute("fill", "gainsboro");
             rect.setAttribute("rx", 5);
 
+            this.svg.appendChild(rect);
+
             this.fieldCache = {
                 elem: rect,
                 x: 0,
@@ -276,8 +279,6 @@ class GUI {
             || c.y !== y
             || c.width !== this.cardWidth
         ) {
-            this.svg.appendChild(c.elem);  // HACK
-
             c.elem.setAttribute("x", x);
             c.elem.setAttribute("y", y);
 
@@ -304,9 +305,37 @@ class GUI {
         }
     }
 
+    _drawAvailableSpaces(card) {
+        if (this.availableSpaces === null) {
+            this.availableSpaces = {};
+            for (let i = -2; i < 11; ++i) {
+                let column = {};
+                for (let j = -3; j < 4; ++j) {
+                    let elem = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+                    elem.setAttribute("fill", "green");
+                    this.svg.appendChild(elem);
+                    column[j] = elem;
+                }
+                this.availableSpaces[i] = column;
+            }
+        }
+        for (let a = -2; a < 11; ++a) {
+            for (let b = -3; b < 4; ++b) {
+                let elem = this.availableSpaces[a][b];
+                let [x, y] = this.ABtoXY(a, b);
+                elem.setAttribute("x", x);
+                elem.setAttribute("y", y);
+                elem.setAttribute("width", this.cardWidth);
+                elem.setAttribute("height", this.cardWidth * 1.5);
+                elem.setAttribute("opacity", card !== null && this.table.field.canBePlaced(card, a, b) ? 0.3 : 0);
+            }
+        }
+    }
+
     _drawRotateIcon(index, visible) {
         let elem;
-        if (!this.rotateIcons.length) {
+        if (this.rotateIcons === null) {
+            this.rotateIcons = [];
             for (let i = 0; i < 6; ++i) {
                 elem = document.createElementNS("http://www.w3.org/2000/svg", "image");
                 elem.setAttributeNS("http://www.w3.org/1999/xlink", "href", "assets/rotate.svg");
@@ -405,6 +434,7 @@ class GUI {
             if (this.we.moveDone !== null) {
                 e.stopPropagation();
                 let [a, b] = this.followEvent(e);
+                this._drawAvailableSpaces(card);
                 this.drawCard(card, a, b, false, true);
 
                 let drag = function(e) {
@@ -419,22 +449,20 @@ class GUI {
                 };
 
                 let drop = function(e) {
-                    let resetCallbacks = (function() {
-                        this.svg.onmousemove = null;
-                        this.svg.ontouchmove = null;
+                    this.svg.onmousemove = null;
+                    this.svg.ontouchmove = null;
 
-                        elem.onmousedown = null;
-                        elem.ontouchend = null;
-                        elem.ontouchcancel = null;
-                    }).bind(this);
+                    elem.onmousedown = null;
+                    elem.ontouchend = null;
+                    elem.ontouchcancel = null;
+
+                    this._drawAvailableSpaces(null);
 
                     let [a, b] = this.followEvent(e);
                     a = Math.round(a);
                     b = Math.round(b);
 
                     if (a === 10 && b === -5) {
-                        resetCallbacks();
-
                         this.drawCard(card, a, b, false, true);
 
                         let move = new Move();
@@ -443,14 +471,10 @@ class GUI {
                     }
 
                     if (this.table.field.canBePlaced(card, a, b)) {
-                        resetCallbacks();
-
                         let move = new Move();
                         move.placeCard(card, a, b);
                         this.we.moveDone(move);
                     } else {
-                        resetCallbacks();
-
                         this.drawOurHand();
                     }
                 };
