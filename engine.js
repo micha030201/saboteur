@@ -67,8 +67,10 @@ class Table {  // in the most unlikely scenario you still have time for that, re
             player.drawCard();
         }
         this.moveCallback();
-        let nextPlayer = this.nextPlayer();
-        nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
+        if (!this.won && !this.lost) {
+            let nextPlayer = this.nextPlayer();
+            nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
+        }
     }
 
     startGame() {
