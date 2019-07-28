@@ -249,7 +249,7 @@ class GUI {
     drawDiscardPile(instant) {
         // TODO some indication if there are no cards
         for (let card of this.table.discardPile) {
-            this.drawCard(card, 12, 2, instant);
+            this.drawCard(card, 10, -5, instant);
         }
     }
 
@@ -423,6 +423,7 @@ class GUI {
     }
 
     drawMove(move, nextPlayer) {
+        // move cards manually so that they stay on top
         if (move.type === "noop") {
             this.redraw();
         } else if (move.type === "place") {
