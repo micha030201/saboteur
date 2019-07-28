@@ -50,6 +50,8 @@ class GUI {
         this.rotateIcons = null;
         this.availableSpaces = null;
         this.fieldCache = null;
+        this.ourTurn = false;
+        this.cardsHider = null;
         this.drawnCardsCache = {};
 
         this.svg = svg;
@@ -353,25 +355,43 @@ class GUI {
         elem.setAttribute("opacity", visible ? 1 : 0);
     }
 
+    _drawCardsHider(hide) {
+        let elem;
+        if (this.cardsHider === null) {
+            elem = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            elem.setAttribute("fill", "white");  // FIXME
+            this.cardsHider = elem;
+        } else {
+            elem = this.cardsHider;
+        }
+        this.svg.appendChild(elem);  // HACK
+        elem.setAttribute("x", this.zeroX + this.cardWidth * -2);
+        elem.setAttribute("y", hide ? this.zeroY + this.cardWidth * 1.5 * 5 : -9999);
+        elem.setAttribute("width", this.cardWidth * this.we.hand.length);
+        elem.setAttribute("height", this.cardWidth * 1.5);
+        elem.setAttribute("opacity", 0.5);
+    }
+
     drawOurHand(instant) {
         for (let i = 0; i < 6; ++i) {
             let card = this.we.hand[i];
             if (typeof card === "undefined") {
                 this._drawRotateIcon(i, false);
-                return;
+                continue;
             }
 
             let canBePlacedAsIs = this.table.field.availableSpaces(card).length;
             let canBePlacedReversed = this.table.field.availableSpaces(-card).length;
 
-            this._drawRotateIcon(i, canBePlacedAsIs && canBePlacedReversed && !symmetrical(card));
+            this._drawRotateIcon(i, this.ourTurn && canBePlacedAsIs && canBePlacedReversed && !symmetrical(card));
 
-            if (canBePlacedReversed && !canBePlacedAsIs) {
+            if (this.ourTurn && canBePlacedReversed && !canBePlacedAsIs) {
                 this.we.hand[i] = card = -card;
             }
             this.drawCard(card, i - 2, 5, false, instant);
             this.createPickHandler(card);
         }
+        this._drawCardsHider(!this.ourTurn);
     }
 
     redraw() {
@@ -402,7 +422,7 @@ class GUI {
         this.drawOurHand(true);
     }
 
-    drawMove(move) {
+    drawMove(move, nextPlayer) {
         if (move.type === "noop") {
             this.redraw();
         } else if (move.type === "place") {
@@ -412,7 +432,8 @@ class GUI {
             this.drawCard(move.card, 10, -5);
             setTimeout(() => this.drawOtherHands(false), 300);
         }
-        this.drawOurHand();
+        this.ourTurn = nextPlayer === this.we;
+        setTimeout(() => this.drawOurHand(false), this.ourTurn ? 600 : 0);
     }
 
     followEvent(e) {
@@ -475,7 +496,7 @@ class GUI {
                         move.placeCard(card, a, b);
                         this.we.moveDone(move);
                     } else {
-                        this.drawOurHand();
+                        this.drawOurHand(false);
                     }
                 };
 

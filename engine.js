@@ -70,9 +70,10 @@ class Table {  // in the most unlikely scenario you still have time for that, re
         if (this.deck.length) {
             player.drawCard();
         }
-        this.moveCallback(move);
+
+        let nextPlayer = this.nextPlayer();
+        this.moveCallback(move, nextPlayer);
         if (!this.won && !this.lost) {
-            let nextPlayer = this.nextPlayer();
             nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
         }
     }
@@ -86,10 +87,10 @@ class Table {  // in the most unlikely scenario you still have time for that, re
 
         let move = new Move();
         move.noop();
-        this.moveCallback(move);
 
         // ready player minus one, i guess
         let nextPlayer = this.nextPlayer();
+        this.moveCallback(move, nextPlayer);
         nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
     }
 }
