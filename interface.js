@@ -230,7 +230,7 @@ class GUI {
         }
     }
 
-    _drawOtherName(player, a, b) {
+    _drawName(player, x, y) {
         let elem;
         if (typeof this.playerNames[player.name] === "undefined") {
             elem = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -239,16 +239,16 @@ class GUI {
         } else {
             elem = this.playerNames[player.name];
         }
-        let [x, y] = this.ABtoXY(a, b);
         elem.setAttribute("x", x);
-        elem.setAttribute("y", y - this.cardWidth / 5);
+        elem.setAttribute("y", y);
         elem.setAttribute("style", "font: italic " + this.cardWidth / 3 + "px sans-serif;");
         elem.textContent = player.name;
     }
 
     _drawOtherHand(player, a, b, instant) {
         // TODO draw allegiance
-        this._drawOtherName(player, a, b);
+        let [x, y] = this.ABtoXY(a, b);
+        this._drawName(player, x, y - this.cardWidth / 5);
         for (let [i, card] of player.hand.entries()) {
             this.drawCard(card, a +  i * (2 / player.hand.length), b, true, instant);
         }
@@ -408,6 +408,8 @@ class GUI {
     }
 
     drawOurHand(instant) {
+        let [x, y] = this.ABtoXY(-2, 6 + 1/3);  // FIXME
+        this._drawName(this.we, x, y);
         for (let i = 0; i < 6; ++i) {
             let card = this.we.hand[i];
             if (typeof card === "undefined") {
@@ -615,9 +617,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let table = new Table();
 
-    let we = new OurPlayer(table, "me", "honest");
-    let bot = new BotPlayer(table, "connor", "saboteur");
-    let bot2 = new BotPlayer(table, "dummy plug", "saboteur");
+    let we = new OurPlayer(table, "shinji", "honest");
+    let bot = new BotPlayer(table, "rei", "saboteur");
+    let bot2 = new BotPlayer(table, "asuka", "saboteur");
 
     table.players = [we, bot, bot2];
     table.deck = shuffle(cardIndices);
