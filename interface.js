@@ -54,6 +54,7 @@ class GUI {
         this.cardsHider = null;
         this.gameOverScreen = null;
         this.discardPile = null;
+        this.playerNames = {};
         this.drawnCardsCache = {};
 
         this.touch = false;
@@ -229,8 +230,25 @@ class GUI {
         }
     }
 
+    _drawOtherName(player, a, b) {
+        let elem;
+        if (typeof this.playerNames[player.name] === "undefined") {
+            elem = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            this.svg.appendChild(elem);
+            this.playerNames[player.name] = elem;
+        } else {
+            elem = this.playerNames[player.name];
+        }
+        let [x, y] = this.ABtoXY(a, b);
+        elem.setAttribute("x", x);
+        elem.setAttribute("y", y - this.cardWidth / 5);
+        elem.setAttribute("style", "font: italic " + this.cardWidth / 3 + "px sans-serif;");
+        elem.textContent = player.name;
+    }
+
     _drawOtherHand(player, a, b, instant) {
         // TODO draw allegiance
+        this._drawOtherName(player, a, b);
         for (let [i, card] of player.hand.entries()) {
             this.drawCard(card, a +  i * (2 / player.hand.length), b, true, instant);
         }
