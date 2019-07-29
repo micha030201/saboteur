@@ -625,7 +625,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     table.players = [we, bot, bot2];
     table.deck = shuffle(cardIndices);
-    table.finishCards = [1, 2, 3];
+    table.finishCards = shuffle([1, 2, 3]);
 
     let gui = new GUI(table, we, svg);
 
