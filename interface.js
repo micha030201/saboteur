@@ -617,9 +617,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let table = new Table();
 
-    let we = new OurPlayer(table, "shinji", "honest");
-    let bot = new BotPlayer(table, "rei", "saboteur");
-    let bot2 = new BotPlayer(table, "asuka", "saboteur");
+    let names = shuffle(["Shinji", "Rei", "Asuka"]);
+
+    let we = new OurPlayer(table, names.pop(), "honest");
+    let bot = new BotPlayer(table, names.pop(), "saboteur");
+    let bot2 = new BotPlayer(table, names.pop(), "saboteur");
 
     table.players = [we, bot, bot2];
     table.deck = shuffle(cardIndices);
