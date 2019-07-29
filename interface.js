@@ -250,7 +250,7 @@ class GUI {
         let [x, y] = this.ABtoXY(a, b);
         this._drawName(player, x, y - this.cardWidth / 5);
         for (let [i, card] of player.hand.entries()) {
-            this.drawCard(card, a +  i * (2 / player.hand.length), b, true, instant);
+            this.drawCard(card, a +  i, b, false, instant);
         }
         // TODO draw breakage
     }
@@ -617,13 +617,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let table = new Table();
 
-    let names = shuffle(["Shinji", "Rei", "Asuka"]);
+    let names = shuffle(["Shinji", "Rei"]);
 
     let we = new OurPlayer(table, names.pop(), "honest");
-    let bot = new BotPlayer(table, names.pop(), "saboteur");
-    let bot2 = new BotPlayer(table, names.pop(), "saboteur");
+    let smartBot = new SmartBot (table, names.pop(), "honest");
 
-    table.players = [we, bot, bot2];
+    table.players = [we, smartBot];
     table.deck = shuffle(cardIndices);
     table.finishCards = shuffle([1, 2, 3]);
 

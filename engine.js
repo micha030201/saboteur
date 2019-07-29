@@ -207,7 +207,7 @@ class Field {
             if (
                 (-3 < a && a < 11)
                 && (-4 < b && b < 4)
-                && this.canPlaceInPosition(card, a, b).any()
+                && this.canPlaceInPosition(card, a, b).all()
             ) {
                 result.push([a, b]);
             }
