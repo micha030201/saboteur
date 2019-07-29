@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
     table = new Table();
 
     we = new OurPlayer(table, "me", "honest");
-  //  let bot = new BotPlayer(table, "connor", "saboteur");
+   // let bot = new BotPlayer(table, "connor", "saboteur");
   //  let bot2 = new BotPlayer(table, "dummy plug", "saboteur");
     let smartGoodBot = new SmartBot(table, "AI", "honest");
     table.players = [we, smartGoodBot];
@@ -160,7 +160,7 @@ function draw(table, we) {
     let otherHandOffsetX = 0;
     for (let player of table.players) {
         if (player !== we) {
-            drawOtherHand(player, offsetX + cardWidth * 4 * otherHandOffsetX++, offsetY);
+            drawOurHand(player, offsetX + cardWidth * 4 * otherHandOffsetX++, offsetY);
         }
     }
 

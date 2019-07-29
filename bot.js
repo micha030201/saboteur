@@ -1,59 +1,67 @@
-let deadEndSet;
-
-function reportDeadEnd(set){
-
-	deadEndSet = set;
-}
-
 class SmartBot extends Player {
 
 	makeMove(callback) {
 
+		this.closesVal = 2000000;
         console.log(this.name);
         let move = new Move();
-
-        let validCells = this.table.field.reachableSpaces();
-        let resultD = {};
-        let closesVal = 2000000;
-        let x, y;
-        let bestcard;
+        let validCells = this.table.field.reachableSpaces(); 
+        this.resultD ={};                     
 
         for (let i of validCells) {
         	let key = i[0] + "," + i[1];        	
-        	resultD[key] = this.dijkstra(i);
-        	let bestAdjCell = this.determineAdjCells(resultD[key]);
+        	this.resultD[key] = this.dijkstra(i);
+        	let bestAdjCell = this.determineAdjCells(this.resultD[key]);
 
         	for (let cell of bestAdjCell){        		
 		        for (let card of this.hand) {
-		        	if (this.table.field.canBePlaced(card, i[0], i[0]) === [false, false]){
+		        	let canBePlaced = this.table.field.canPlaceInPosition(card, i[0], i[1]);
+		        	if (!canBePlaced[0] && !canBePlaced[1]){
 	                		 continue;
                 		}
-		            if (this.table.field.canBePlaced(card, i[0], i[1])) {//!
-	                	card = Math.abs(card);	                	
+		            if (canBePlaced[0] && canBePlaced[1]) {//!
+	                	card = Math.abs(card);
+                	 	this.compareCards(card, cell, i[0], i[1]);
+
+                		card = - Math.abs(card);
+                		this.compareCards(card, cell, i[0], i[1]);             	
 	            	}
 	            	else {
-	                	card = -Math.abs(card);	
-	            	}
-	            	if (this.deadendCheck(card, i[0], i[1], cell.index[0], cell.index[1]) && 
-	                		this.canLead(card, cell, i[0], i[1])){
-                		if (cell.distToValidCell <= closesVal){
-                			closesVal = cell.distToValidCell;
-                			x = i[0];
-                			y = i[1];
-                			bestcard = card;
-                		}
-                	}
+	            		if (canBePlaced[0]){
+							card = Math.abs(card);
+	            		}
+	            		else {
+            				card = -Math.abs(card);
+	            		}	                	
+                		this.compareCards(card, cell, i[0], i[1]);                		
+	            	}            	
 		        }
 	    	}
         }
 
-        if (closesVal === 2000000) {
+        if (this.closesVal === 2000000) {
             move.discard(this.hand[0]);
         } else {            
-            move.placeCard(bestcard, x, y);
+            move.placeCard(this.bestcard, this.x, this.y);
         }
-
+        console.dir(this.resultD);
         setTimeout(() => callback(move), 300);
+    }
+
+    compareCards (card, cell, a, b){
+
+		if (this.canLead(card, cell, a, b)) {
+			if (cell.distToValidCell <= this.closesVal){
+				let vailableSpaces = table.field.availableSpaces(card);
+				let compare = [a, b];
+				if (doesIncludeArray(vailableSpaces, compare)){
+					this.closesVal = cell.distToValidCell;
+					this.x = a;
+					this.y = b;
+					this.bestcard = card;
+				}
+			}
+		}
     }
 
     dijkstra(apex){
@@ -110,9 +118,26 @@ class SmartBot extends Player {
     	}
     }
 
+ 	canLead(card, cell, a, b){
+
+		let botfield = new BotField(table.field.grid);
+		botfield.grid[a][b] = card;    
+		let visited = botfield.reachableSpaces();
+		botfield.grid[a][b] = undefined;
+		return (visited.has(cell.index[0] + " " + cell.index[1]));
+	}
+
     determineAdjCells(graph){
 
     	let finishPoints = [[8, 0], [8, -2], [8, 2]];
+    	let index = 0;
+    	for (let f of finishPoints){    		
+    		if (table.field.grid[f[0]][f[1]] !== undefined){
+    			finishPoints = finishPoints.splice(index);
+    		}
+    		++index;
+    	}
+
     	let result = [];
     	for (let [a, b] of finishPoints){
     		let prevcell;
@@ -125,36 +150,11 @@ class SmartBot extends Player {
     		}
     		result.push(prevcell);
     	}
-    	result.sort(function (a, b){
+    	result.sort((a, b) =>{
     		return b.distToValidCell - a.distToValidCell;
     	});
     	return result;
-    }
-
-    canLead(card, cell, a, b){
-
-    	if (a + 1 === cell.index[0]){
-    		return (dirs(card).right === "yes");
-    	}
-    	if (a - 1 === cell.index[0]){
-    		return (dirs(card).left === "yes")
-    	}
-    	if (b + 1 === cell.index[1]){
-    		return (dirs(card).down === "yes")
-    	}
-    	if (b - 1 === cell.index[1]){
-    		return (dirs(card).up === "yes")
-    	}
-    }
-
-    deadendCheck(card, a, b, x, y){
-
-    	table.field.grid[a][b] = card;    
-    	this.table.field.reachableSpaces();
-    	table.field.grid[a][b] = undefined;
-    	return (deadEndSet.has(x + " " + y));
-    }  
-     
+    }    
 }
 
 class Vertex {
@@ -165,3 +165,18 @@ class Vertex {
 		this.index = index;
 	}
 };
+
+class BotField extends Field{
+
+	constructor (area){
+		super();		
+		this.grid = cloneObject(area);
+	}
+
+    reachableSpaces() {
+    let result = [];
+    let visited = new Set(["0 0"]);
+    this._reachableSpaces(visited, result, 0, 0, "up");        
+    return visited;
+	}
+} 

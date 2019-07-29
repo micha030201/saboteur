@@ -162,7 +162,6 @@ class Field {
         let result = [];
         let visited = new Set(["0 0"]);
         this._reachableSpaces(visited, result, 0, 0, "up");
-        reportDeadEnd(visited);
         return result;
     }
 
@@ -194,11 +193,7 @@ class Field {
         let result = [];
         let reachable = this.reachableSpaces();
         for (let [a, b] of reachable) {
-            if (
-                (-3 < a && a < 11)
-                && (-4 < b && b < 4)
-                && this.canPlaceInPosition(card, a, b).any()
-            ) {
+            if (this.canPlaceInPosition(card, a, b).any()){               
                 result.push([a, b]);
             }
         }
