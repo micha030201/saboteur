@@ -523,6 +523,7 @@ class GUI {
 
                 let [a, b] = this.followEvent(e);
                 this._drawAvailableSpaces(card);
+                this._drawRotateIcon(this.we.hand.indexOf(card), false);  // FIXME
                 this.drawCard(card, a, b, false, true);
 
                 let drag = function(e) {
