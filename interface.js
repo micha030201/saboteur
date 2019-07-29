@@ -53,6 +53,7 @@ class GUI {
         this.ourTurn = false;
         this.cardsHider = null;
         this.gameOverScreen = null;
+        this.discardPile = null;
         this.drawnCardsCache = {};
 
         this.touch = false;
@@ -250,7 +251,20 @@ class GUI {
     }
 
     drawDiscardPile(instant) {
-        // TODO some indication if there are no cards
+        let elem;
+        if (this.discardPile === null) {
+            elem = document.createElementNS("http://www.w3.org/2000/svg", "image");
+            elem.setAttributeNS("http://www.w3.org/1999/xlink", "href", "assets/discard.svg");
+            this.svg.appendChild(elem);
+            this.discardPile = elem;
+        } else {
+            elem = this.discardPile;
+        }
+        elem.setAttribute("x", this.zeroX + this.cardWidth * 10);
+        elem.setAttribute("y", this.zeroY + this.cardWidth * 1.5 * -5);
+        elem.setAttribute("width", this.cardWidth);
+        elem.setAttribute("height", this.cardWidth * 1.5);
+
         for (let card of this.table.discardPile) {
             this.drawCard(card, 10, -5, false, instant);
         }
