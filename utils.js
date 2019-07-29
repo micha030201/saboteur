@@ -30,6 +30,10 @@ Array.prototype.any = function() {
     return this.some(function(x) { return x });
 }
 
+Array.prototype.all = function() {
+    return this.every(function(x) { return x });
+}
+
 Array.prototype.randomElement = function () {
     return this[Math.floor(Math.random() * this.length)];
 }

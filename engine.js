@@ -49,8 +49,8 @@ class Table {  // in the most unlikely scenario you still have time for that, re
                 }
                 this.finishCards[(b + 2) / 2] = null;
                 if (
-                    !this.field.canPlaceInPosition(card, a, b)
-                    && this.field.canPlaceInPosition(-card, a, b)
+                    this.field.canPlaceInPosition(-card, a, b).filter(x => x).length
+                    > this.field.canPlaceInPosition(card, a, b).filter(x => x).length
                 ) {
                     card = -card;
                 }
@@ -189,12 +189,12 @@ class Field {
             );
         };
 
-        return (
-            fit(this.grid[a][b + 1], 'up', card, 'down')
-            && fit(this.grid[a][b - 1], 'down', card, 'up')
-            && fit(this.grid[a + 1][b], 'left', card, 'right')
-            && fit(this.grid[a - 1][b], 'right', card, 'left')
-        );
+        return [
+            fit(this.grid[a][b + 1], 'up', card, 'down'),
+            fit(this.grid[a][b - 1], 'down', card, 'up'),
+            fit(this.grid[a + 1][b], 'left', card, 'right'),
+            fit(this.grid[a - 1][b], 'right', card, 'left'),
+        ];
     }
 
     availableSpaces(card) {
@@ -204,7 +204,7 @@ class Field {
             if (
                 (-3 < a && a < 11)
                 && (-4 < b && b < 4)
-                && this.canPlaceInPosition(card, a, b)
+                && this.canPlaceInPosition(card, a, b).all()
             ) {
                 result.push([a, b]);
             }
