@@ -1,6 +1,10 @@
 "use strict"
 /* global dirs DefaultDict doesIncludeArray */
-/* exported Table Player Move */
+/* exported symmetrical Table Player Move */
+
+function symmetrical(card) {
+    return (dirs(card).up === dirs(card).down && dirs(card).left === dirs(card).right);
+}
 
 class Table {  // in the most unlikely scenario you still have time for that, rewrite so that it can get finish cards from the server
     constructor() {
@@ -22,6 +26,7 @@ class Table {  // in the most unlikely scenario you still have time for that, re
         for (let player of this.players) {
             cardsHeld += player.hand.length;
         }
+        cardsHeld += this.deck.length;
         return !cardsHeld;
     }
 
@@ -43,9 +48,11 @@ class Table {  // in the most unlikely scenario you still have time for that, re
                     this.won = true;
                 }
                 this.finishCards[(b + 2) / 2] = null;
-                let [canNotReversed, canReversed] = this.field.canPlaceInPosition(card, a, b);
-                if (!canNotReversed && canReversed) {
-                    card = -Math.abs(card);
+                if (
+                    this.field.canPlaceInPosition(-card, a, b).filter(x => x).length
+                    > this.field.canPlaceInPosition(card, a, b).filter(x => x).length
+                ) {
+                    card = -card;
                 }
                 this.field.place(card, a, b);
             }
@@ -66,9 +73,12 @@ class Table {  // in the most unlikely scenario you still have time for that, re
         if (this.deck.length) {
             player.drawCard();
         }
-        this.moveCallback();
+
         let nextPlayer = this.nextPlayer();
-        nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
+        this.moveCallback(move, nextPlayer);
+        if (nextPlayer.hand.length && !(this.won || this.lost)) {
+            nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
+        }
     }
 
     startGame() {
@@ -77,9 +87,13 @@ class Table {  // in the most unlikely scenario you still have time for that, re
                 player.drawCard();
             }
         }
+
+        let move = new Move();
+        move.noop();
+
         // ready player minus one, i guess
         let nextPlayer = this.nextPlayer();
-        this.moveCallback();
+        this.moveCallback(move, nextPlayer);
         nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
     }
 }
@@ -101,6 +115,10 @@ class Player {  // base class
 }
 
 class Move {
+    noop() {
+        this.type = "noop";
+    }
+
     placeCard(card, a, b) {
         this.type = "place";
         this.card = card;
@@ -165,7 +183,7 @@ class Field {
         return result;
     }
 
-    _canPlaceInPosition(card, a, b) {
+    canPlaceInPosition(card, a, b) {
         let fit = function(neighbour, dir_n, card, dir_c) {
             return (
                 typeof neighbour === "undefined"
@@ -174,18 +192,11 @@ class Field {
             );
         };
 
-        return (
-            fit(this.grid[a][b + 1], 'up', card, 'down')
-            && fit(this.grid[a][b - 1], 'down', card, 'up')
-            && fit(this.grid[a + 1][b], 'left', card, 'right')
-            && fit(this.grid[a - 1][b], 'right', card, 'left')
-        );
-    }
-
-    canPlaceInPosition(card, a, b) {
         return [
-            this._canPlaceInPosition(Math.abs(card), a, b),
-            this._canPlaceInPosition(-Math.abs(card), a, b)
+            fit(this.grid[a][b + 1], 'up', card, 'down'),
+            fit(this.grid[a][b - 1], 'down', card, 'up'),
+            fit(this.grid[a + 1][b], 'left', card, 'right'),
+            fit(this.grid[a - 1][b], 'right', card, 'left'),
         ];
     }
 
@@ -193,7 +204,11 @@ class Field {
         let result = [];
         let reachable = this.reachableSpaces();
         for (let [a, b] of reachable) {
-            if (this.canPlaceInPosition(card, a, b).any()){               
+            if (
+                (-3 < a && a < 11)
+                && (-4 < b && b < 4)
+                && this.canPlaceInPosition(card, a, b).any()
+            ) {
                 result.push([a, b]);
             }
         }
@@ -201,11 +216,7 @@ class Field {
     }
 
     canBePlaced(card, a, b) {
-        if (doesIncludeArray(this.availableSpaces(card), [a, b])) {
-            let [canNotReversed, canReversed] = this.canPlaceInPosition(card, a, b);
-            return [canNotReversed, canReversed]
-        }
-        return [false, false];
+        return doesIncludeArray(this.availableSpaces(card), [a, b]);
     }
 
     place(card, a, b) {
