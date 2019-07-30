@@ -302,15 +302,7 @@ class GUI {
     }
 
     drawDiscardPile(instant) {
-        let elem;
-        if (this.discardPile === null) {
-            elem = document.createElementNS("http://www.w3.org/2000/svg", "image");
-            elem.setAttributeNS("http://www.w3.org/1999/xlink", "href", "assets/discard.svg");
-            this.svg.appendChild(elem);
-            this.discardPile = elem;
-        } else {
-            elem = this.discardPile;
-        }
+        let elem = document.getElementById("discardPile");
         elem.a(
             "x", this.zeroX + this.cardWidth * DISCARD_PILE_A,
             "y", this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * DISCARD_PILE_B,
@@ -664,7 +656,7 @@ class GUI {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+window.addEventListener("load", function() {
     let svg = document.getElementById("gamearea");
 
     let table = new Table();
