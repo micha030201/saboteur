@@ -131,6 +131,15 @@ class Move {
         this.type = "discard";
         this.card = card;
     }
+
+    equals(that) {
+        for (let [key, value] of Object.entries(this)) {
+            if (that[key] !== value) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
 
 class Field {
