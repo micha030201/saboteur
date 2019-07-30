@@ -21,7 +21,7 @@ class BotPlayer extends Player {
             move.placeCard(card, a, b);
         }
 
-        setTimeout(() => callback(move), 600);
+        setTimeout(() => callback(move), 0);
     }
 }
 
@@ -39,7 +39,7 @@ class SmartBot extends Player {
         } else {
             move.placeCard(this.bestcard, this.x, this.y);
         }
-        setTimeout(() => callback(move), 300);
+        setTimeout(() => callback(move), 0);
     }
 
     chooseBestCard (){
@@ -223,7 +223,7 @@ class MostDistantBot extends SmartBot{
         } else {
             move.placeCard(this.bestcard, this.x, this.y);
         }
-        setTimeout(() => callback(move), 300);
+        setTimeout(() => callback(move), 0);
     }
 
     compareCards (card, cell, a, b){
@@ -289,7 +289,7 @@ class DirectionBot extends Player{
         } else {
             move.placeCard(this.bestcard, placmentCoord[0], placmentCoord[1]);
         }
-        setTimeout(() => callback(move), 300);
+        setTimeout(() => callback(move), 0);
     }
 
 }
@@ -311,13 +311,13 @@ class SmartBadBot extends MostDistantBot{
             for (let [a, b] of finishPoints){
                 if (Math.sqrt(Math.pow(a - this._x) + Math.pow(b - this._y)) <= 3){
                     move.placeCard(this.bestcard, this._x, this._y);
-                    setTimeout(() => callback(move), 300);
+                    setTimeout(() => callback(move), 0);
                     return;
                 }
             }
             move.placeCard(this.worstCard, this.x, this.y);
         }
-        setTimeout(() => callback(move), 300);
+        setTimeout(() => callback(move), 0);
     }
 
     _compareCards (card, cell, a, b){

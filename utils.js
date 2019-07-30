@@ -1,5 +1,5 @@
 "use strict"
-/* exported DefaultDict shuffle sleep */
+/* exported doesIncludeArray DefaultDict shuffle sleep */
 
 function doesIncludeArray(haystack, needle){
     let i, j, current;
@@ -34,7 +34,7 @@ Array.prototype.all = function() {
     return this.every(function(x) { return x });
 }
 
-Array.prototype.randomElement = function () {
+Array.prototype.randomElement = function() {
     return this[Math.floor(Math.random() * this.length)];
 }
 
@@ -58,4 +58,10 @@ function cloneObject(obj) {
             clone[i] = obj[i];
     }
     return clone;
+}
+
+Node.prototype.a = function() {
+    for (let i = 0; i < arguments.length; i += 2) {
+        this.setAttribute(arguments[i], arguments[i + 1]);
+    }
 }

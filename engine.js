@@ -9,7 +9,6 @@ function symmetrical(card) {
 class Table {  // in the most unlikely scenario you still have time for that, rewrite so that it can get finish cards from the server
     constructor() {
         this.players = [];
-        this.currentPlayer = 0;
 
         this.finishCards = [];
         this.deck = [];
@@ -30,12 +29,13 @@ class Table {  // in the most unlikely scenario you still have time for that, re
         return !cardsHeld;
     }
 
-    nextPlayer() {
-        this.currentPlayer--;
-        if (this.currentPlayer < 0) {
-            this.currentPlayer += this.players.length;
+    nextPlayer(player) {
+        let index = this.players.indexOf(player);
+        index--;
+        if (index < 0) {
+            index += this.players.length;
         }
-        return this.players[this.currentPlayer];
+        return this.players[index];
     }
 
     processPlaceMove(player, move) {
@@ -49,7 +49,7 @@ class Table {  // in the most unlikely scenario you still have time for that, re
                 }
                 this.finishCards[(b + 2) / 2] = null;
                 if (
-                    this.field.canPlaceInPosition(-card, a, b).filter(x => x).length
+                    this.field.canPlaceInPosition(-card, a, b).filter(x => x).length  // FIXME this logic is wrong actually
                     > this.field.canPlaceInPosition(card, a, b).filter(x => x).length
                 ) {
                     card = -card;
@@ -74,11 +74,12 @@ class Table {  // in the most unlikely scenario you still have time for that, re
             player.drawCard();
         }
 
-        let nextPlayer = this.nextPlayer();
-        this.moveCallback(move, nextPlayer);
-        if (nextPlayer.hand.length && !(this.won || this.lost)) {
-            nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
-        }
+        let nextPlayer = this.nextPlayer(player);
+        this.moveCallback(move, player, () => {
+            if (nextPlayer.hand.length && !(this.won || this.lost)) {
+                nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
+            }
+        });
     }
 
     startGame() {
@@ -149,7 +150,7 @@ class Field {
     _reachableSpaces(_visited, _result, a, b, direction) {
         let card = this.grid[a][b];
          if (Math.abs(b) > 3 || a < -2 || a > 10){
-                return;
+            return;
          }
         if (typeof card === "undefined") {
             _result.push([a, b]);
