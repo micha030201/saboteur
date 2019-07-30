@@ -212,20 +212,20 @@ class GUI {
             c.cover.setAttribute("opacity", hidden ? 1 : 0);
 
             if (c.a === null || c.b === null || instant) {
-                c.animateTransform.setAttribute("from", x + ", " + y);
+                c.animateTransform.setAttribute("from", `${x}, ${y}`);
             } else {
                 if (!c.animateTransform.getAttribute("to")) {  // FIXME
                     throw new Error();
                 }
                 c.animateTransform.setAttribute("from", c.animateTransform.getAttribute("to"));
             }
-            c.animateTransform.setAttribute("to", x + ", " + y);
+            c.animateTransform.setAttribute("to", `${x}, ${y}`);
             c.animateTransform.beginElement();
 
             c.innerGroup.setAttribute(
                 "transform",
-                "scale(" + this.cardWidth / TEXTURE_WIDTH + ") "
-                + "rotate(" + (reversed ? 180 : 0) + " " + (TEXTURE_WIDTH / 2) + " " + (TEXTURE_WIDTH * TEXTURE_HEIGHT_RATIO / 2) + ")"
+                `scale(${this.cardWidth / TEXTURE_WIDTH})
+                 rotate(${reversed ? 180 : 0} ${TEXTURE_WIDTH / 2} ${TEXTURE_WIDTH * TEXTURE_HEIGHT_RATIO / 2})`
             );
 
             c.x = x;
@@ -247,7 +247,7 @@ class GUI {
         }
         elem.setAttribute("x", x);
         elem.setAttribute("y", y);
-        elem.setAttribute("style", "font: italic " + this.cardWidth / 3 + "px sans-serif;");
+        elem.setAttribute("style", `font: italic ${this.cardWidth / 3}px sans-serif;`);
         elem.textContent = player.name;
     }
 
@@ -461,7 +461,7 @@ class GUI {
 
         this.svg.setAttribute("width", window.innerWidth);
         this.svg.setAttribute("height", window.innerHeight);
-        this.svg.setAttribute("viewBox", "0 0 " + window.innerWidth + " " + window.innerHeight);
+        this.svg.setAttribute("viewBox", `0 0 ${window.innerWidth} ${window.innerHeight}`);
 
         if (window.innerHeight / 14 / TEXTURE_HEIGHT_RATIO <= window.innerWidth / 14) {
             this.cardWidth = window.innerHeight / 14 / TEXTURE_HEIGHT_RATIO;
