@@ -14,7 +14,6 @@ class SmartBot extends Player {
         } else {
             move.placeCard(this.bestcard, this.x, this.y);
         }
-        console.dir(this.resultDijsktra);
         setTimeout(() => callback(move), 300);
     }
 
@@ -182,5 +181,40 @@ class BotField extends Field{
     let visited = new Set(["0 0"]);
     this._reachableSpaces(visited, result, 0, 0, "up");
     return visited;
+    }
+}
+
+class MostDistantBot extends SmartBot{
+
+        makeMove(callback) {
+
+        this.closesVal = 0;
+        console.log(this.name);
+        let move = new Move();
+        this.chooseBestCard();
+
+        if (this.closesVal === TheMostDistant) {
+            move.discard(this.hand[0]);
+        } else {
+            move.placeCard(this.bestcard, this.x, this.y);
+        }
+        console.dir(this.resultDijsktra);
+        setTimeout(() => callback(move), 300);
+    }
+
+    compareCards (card, cell, a, b){
+
+        if (this.canLead(card, cell, a, b)) {
+            if (cell.distToValidCell >= this.closesVal){
+                let vailableSpaces = this.table.field.availableSpaces(card);
+                let compare = [a, b];
+                if (doesIncludeArray(vailableSpaces, compare)){
+                    this.closesVal = cell.distToValidCell;
+                    this.x = a;
+                    this.y = b;
+                    this.bestcard = card;
+                }
+            }
+        }
     }
 }

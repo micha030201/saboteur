@@ -617,12 +617,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let table = new Table();
 
-    let names = shuffle(["Shinji", "Rei"]);
+    let names = shuffle(["Shinji", "Rei","Asuka"]);
 
     let we = new OurPlayer(table, names.pop(), "honest");
     let smartBot = new SmartBot (table, names.pop(), "honest");
+    let distbot = new MostDistantBot (table, names.pop(), "saboteur")
 
-    table.players = [we, smartBot];
+    table.players = [we, smartBot, distbot];
     table.deck = shuffle(cardIndices);
     table.finishCards = shuffle([1, 2, 3]);
 
