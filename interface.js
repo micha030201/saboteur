@@ -3,6 +3,10 @@
 
 const ANIMATION_LENGTH = 600;  // in milliseconds
 
+// has to correspond to assets/* image sizes
+const TEXTURE_WIDTH = 10;
+const TEXTURE_HEIGHT_RATIO = 1.5;
+
 class OurPlayer extends Player {
     constructor(...args) {
         super(...args);
@@ -70,14 +74,14 @@ class GUI {
     XYtoAB(x, y) {
         return [
             (x - this.zeroX) / this.cardWidth,
-            (y - this.zeroY) / (this.cardWidth * 1.5)
+            (y - this.zeroY) / (this.cardWidth * TEXTURE_HEIGHT_RATIO)
         ];
     }
 
     ABtoXY(a, b) {
         return [
             this.zeroX + a * this.cardWidth,
-            this.zeroY + b * this.cardWidth * 1.5
+            this.zeroY + b * this.cardWidth * TEXTURE_HEIGHT_RATIO
         ];
     }
 
@@ -90,7 +94,7 @@ class GUI {
             let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
             rect.setAttribute("fill", "black");
             rect.setAttribute("rx", 1);
-            rect.setAttribute("width", 10);
+            rect.setAttribute("width", TEXTURE_WIDTH);
             rect.setAttribute("height", 15);
             elem.appendChild(rect);
 
@@ -155,7 +159,7 @@ class GUI {
             let cover = document.createElementNS("http://www.w3.org/2000/svg", "rect");
             cover.setAttribute("fill", "black");
             cover.setAttribute("rx", 1);
-            cover.setAttribute("width", 10);
+            cover.setAttribute("width", TEXTURE_WIDTH);
             cover.setAttribute("height", 15);
             elem.appendChild(cover);
 
@@ -220,8 +224,8 @@ class GUI {
 
             c.innerGroup.setAttribute(
                 "transform",
-                "scale(" + this.cardWidth / 10 + ") "
-                + "rotate(" + (reversed ? 180 : 0) + " " + (10 / 2) + " " + (10 * 1.5 / 2) + ")"
+                "scale(" + this.cardWidth / TEXTURE_WIDTH + ") "
+                + "rotate(" + (reversed ? 180 : 0) + " " + (TEXTURE_WIDTH / 2) + " " + (TEXTURE_WIDTH * TEXTURE_HEIGHT_RATIO / 2) + ")"
             );
 
             c.x = x;
@@ -281,9 +285,9 @@ class GUI {
             elem = this.discardPile;
         }
         elem.setAttribute("x", this.zeroX + this.cardWidth * 10);
-        elem.setAttribute("y", this.zeroY + this.cardWidth * 1.5 * -5);
+        elem.setAttribute("y", this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * -5);
         elem.setAttribute("width", this.cardWidth);
-        elem.setAttribute("height", this.cardWidth * 1.5);
+        elem.setAttribute("height", this.cardWidth * TEXTURE_HEIGHT_RATIO);
 
         for (let card of this.table.discardPile) {
             this.drawCard(card, 10, -5, false, instant);
@@ -322,7 +326,7 @@ class GUI {
             c.elem.setAttribute("y", y);
 
             c.elem.setAttribute("width", this.cardWidth * 13);
-            c.elem.setAttribute("height", this.cardWidth * 1.5 * 7);
+            c.elem.setAttribute("height", this.cardWidth * TEXTURE_HEIGHT_RATIO * 7);
 
             c.x = x;
             c.y = y;
@@ -365,7 +369,7 @@ class GUI {
                 elem.setAttribute("x", x);
                 elem.setAttribute("y", y);
                 elem.setAttribute("width", this.cardWidth);
-                elem.setAttribute("height", this.cardWidth * 1.5);
+                elem.setAttribute("height", this.cardWidth * TEXTURE_HEIGHT_RATIO);
                 elem.setAttribute("opacity", card !== null && this.table.field.canBePlaced(card, a, b) ? 0.3 : 0);
             }
         }
@@ -386,9 +390,9 @@ class GUI {
             elem = this.rotateIcons[index];
         }
         elem.setAttribute("x", this.zeroX + this.cardWidth * (-2 + index));
-        elem.setAttribute("y", this.zeroY + this.cardWidth * 1.5 * 4);
+        elem.setAttribute("y", this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * 4);
         elem.setAttribute("width", this.cardWidth);
-        elem.setAttribute("height", this.cardWidth * 1.5);
+        elem.setAttribute("height", this.cardWidth * TEXTURE_HEIGHT_RATIO);
         elem.setAttribute("opacity", visible ? 1 : 0);
     }
 
@@ -403,9 +407,9 @@ class GUI {
         }
         this.svg.appendChild(elem);  // HACK
         elem.setAttribute("x", this.zeroX + this.cardWidth * -2);
-        elem.setAttribute("y", hide ? this.zeroY + this.cardWidth * 1.5 * 5 : -9999);
+        elem.setAttribute("y", hide ? this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * 5 : -9999);
         elem.setAttribute("width", this.cardWidth * this.we.hand.length);
-        elem.setAttribute("height", this.cardWidth * 1.5);
+        elem.setAttribute("height", this.cardWidth * TEXTURE_HEIGHT_RATIO);
         elem.setAttribute("opacity", 0.5);
     }
 
@@ -459,14 +463,14 @@ class GUI {
         this.svg.setAttribute("height", window.innerHeight);
         this.svg.setAttribute("viewBox", "0 0 " + window.innerWidth + " " + window.innerHeight);
 
-        if (window.innerHeight / 14 / 1.5 <= window.innerWidth / 14) {
-            this.cardWidth = window.innerHeight / 14 / 1.5;
+        if (window.innerHeight / 14 / TEXTURE_HEIGHT_RATIO <= window.innerWidth / 14) {
+            this.cardWidth = window.innerHeight / 14 / TEXTURE_HEIGHT_RATIO;
             this.zeroX = (window.innerWidth - this.cardWidth * 13) / 2 + this.cardWidth * 2;
-            this.zeroY = this.cardWidth * 1.5 * 7.5;
+            this.zeroY = this.cardWidth * TEXTURE_HEIGHT_RATIO * 7.5;
         } else {
             this.cardWidth = window.innerWidth / 14;
             this.zeroX = this.cardWidth * 2.5;
-            this.zeroY = (window.innerHeight - this.cardWidth * 1.5 * 13) / 2 + this.cardWidth * 1.5 * 7;
+            this.zeroY = (window.innerHeight - this.cardWidth * TEXTURE_HEIGHT_RATIO * 13) / 2 + this.cardWidth * TEXTURE_HEIGHT_RATIO * 7;
         }
 
         this.drawOtherHands(true);
@@ -502,10 +506,10 @@ class GUI {
         let x, y;
         if (typeof e.changedTouches !== "undefined") {
             x = e.changedTouches[0].clientX - this.cardWidth;
-            y = e.changedTouches[0].clientY - this.cardWidth * 1.5;
+            y = e.changedTouches[0].clientY - this.cardWidth * TEXTURE_HEIGHT_RATIO;
         } else {
             x = e.clientX - this.cardWidth / 2;
-            y = e.clientY - this.cardWidth * 1.5 / 2;
+            y = e.clientY - this.cardWidth * TEXTURE_HEIGHT_RATIO / 2;
         }
         return this.XYtoAB(x, y);
     }
