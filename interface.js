@@ -27,6 +27,12 @@ const OUR_HAND_B = 8;
 const OTHER_HANDS_A = -4;
 const OTHER_HANDS_B = -10;
 
+// has to corespond to the actual field limits
+const FIELD_A = -4;
+const FIELD_B = -6;
+const FIELD_WIDTH = 17;
+const FIELD_HEIGHT = 13;
+
 
 class OurPlayer extends Player {
     constructor(...args) {
@@ -338,7 +344,7 @@ class GUI {
 
     drawField(instant) {
         let c = this.fieldCacheEntry();
-        let [x, y] = this.ABtoXY(-2, -3);
+        let [x, y] = this.ABtoXY(FIELD_A, FIELD_B);
 
         if (
             c.x !== x
@@ -349,8 +355,8 @@ class GUI {
                 "x", x,
                 "y", y,
 
-                "width", this.cardWidth * 13,
-                "height", this.cardWidth * TEXTURE_HEIGHT_RATIO * 7,
+                "width", this.cardWidth * FIELD_WIDTH,
+                "height", this.cardWidth * TEXTURE_HEIGHT_RATIO * FIELD_HEIGHT,
             );
 
             c.x = x;
@@ -376,9 +382,9 @@ class GUI {
     _drawAvailableSpaces(card) {
         if (this.availableSpaces === null) {
             this.availableSpaces = {};
-            for (let i = -2; i < 11; ++i) {
+            for (let i = FIELD_A; i < FIELD_WIDTH + FIELD_A; ++i) {
                 let column = {};
-                for (let j = -3; j < 4; ++j) {
+                for (let j = FIELD_B; j < FIELD_HEIGHT + FIELD_B; ++j) {
                     let elem = document.createElementNS("http://www.w3.org/2000/svg", "rect")
                     elem.a("fill", "green");
                     this.svg.appendChild(elem);
@@ -387,8 +393,8 @@ class GUI {
                 this.availableSpaces[i] = column;
             }
         }
-        for (let a = -2; a < 11; ++a) {
-            for (let b = -3; b < 4; ++b) {
+        for (let a = FIELD_A; a < FIELD_WIDTH + FIELD_A; ++a) {
+            for (let b = FIELD_B; b < FIELD_HEIGHT + FIELD_B; ++b) {
                 let elem = this.availableSpaces[a][b];
                 let [x, y] = this.ABtoXY(a, b);
                 elem.a(
