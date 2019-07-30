@@ -92,10 +92,12 @@ class GUI {
             let elem = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
             let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            rect.setAttribute("fill", "black");
-            rect.setAttribute("rx", 1);
-            rect.setAttribute("width", TEXTURE_WIDTH);
-            rect.setAttribute("height", 15);
+            rect.a(
+                "fill", "black",
+                "rx", 1,
+                "width", TEXTURE_WIDTH,
+                "height", 15,
+            );
             elem.appendChild(rect);
 
             if (dirs(card).up !== "no") {
@@ -168,13 +170,15 @@ class GUI {
             gt.appendChild(elem);
 
             let anim = document.createElementNS("http://www.w3.org/2000/svg", "animateTransform");
-            anim.setAttribute("attributeName", "transform");
-            anim.setAttribute("attributeType", "XML");
-            anim.setAttribute("type", "translate");
-            anim.setAttribute("dur", `${ANIMATION_LENGTH}ms`);
-            anim.setAttribute("begin", "0s");
-            anim.setAttribute("repeatCount", "1");
-            anim.setAttribute("fill", "freeze");
+            anim.a(
+                "attributeName", "transform",
+                "attributeType", "XML",
+                "type", "translate",
+                "dur", `${ANIMATION_LENGTH}ms`,
+                "begin", "0s",
+                "repeatCount", "1",
+                "fill", "freeze",
+            );
             gt.appendChild(anim);
 
             this.drawnCardsCache[card] = {
@@ -209,20 +213,20 @@ class GUI {
         ) {
             this.svg.appendChild(c.outerGroup);  // HACK
 
-            c.cover.setAttribute("opacity", hidden ? 1 : 0);
+            c.cover.a("opacity", hidden ? 1 : 0);
 
             if (c.a === null || c.b === null || instant) {
-                c.animateTransform.setAttribute("from", `${x}, ${y}`);
+                c.animateTransform.a("from", `${x}, ${y}`);
             } else {
                 if (!c.animateTransform.getAttribute("to")) {  // FIXME
                     throw new Error();
                 }
-                c.animateTransform.setAttribute("from", c.animateTransform.getAttribute("to"));
+                c.animateTransform.a("from", c.animateTransform.getAttribute("to"));
             }
-            c.animateTransform.setAttribute("to", `${x}, ${y}`);
+            c.animateTransform.a("to", `${x}, ${y}`);
             c.animateTransform.beginElement();
 
-            c.innerGroup.setAttribute(
+            c.innerGroup.a(
                 "transform",
                 `scale(${this.cardWidth / TEXTURE_WIDTH})
                  rotate(${reversed ? 180 : 0} ${TEXTURE_WIDTH / 2} ${TEXTURE_WIDTH * TEXTURE_HEIGHT_RATIO / 2})`
@@ -245,9 +249,11 @@ class GUI {
         } else {
             elem = this.playerNames[player.name];
         }
-        elem.setAttribute("x", x);
-        elem.setAttribute("y", y);
-        elem.setAttribute("style", `font: italic ${this.cardWidth / 3}px sans-serif;`);
+        elem.a(
+            "x", x,
+            "y", y,
+            "style", `font: italic ${this.cardWidth / 3}px sans-serif;`,
+        );
         elem.textContent = player.name;
     }
 
@@ -284,10 +290,12 @@ class GUI {
         } else {
             elem = this.discardPile;
         }
-        elem.setAttribute("x", this.zeroX + this.cardWidth * 10);
-        elem.setAttribute("y", this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * -5);
-        elem.setAttribute("width", this.cardWidth);
-        elem.setAttribute("height", this.cardWidth * TEXTURE_HEIGHT_RATIO);
+        elem.a(
+            "x", this.zeroX + this.cardWidth * 10,
+            "y", this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * -5,
+            "width", this.cardWidth,
+            "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
+        );
 
         for (let card of this.table.discardPile) {
             this.drawCard(card, 10, -5, false, instant);
@@ -297,8 +305,10 @@ class GUI {
     fieldCacheEntry() {
         if (this.fieldCache === null) {
             let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            rect.setAttribute("fill", "gainsboro");
-            rect.setAttribute("rx", 5);
+            rect.a(
+                "fill", "gainsboro",
+                "rx", 5,
+            );
 
             this.svg.appendChild(rect);
 
@@ -322,11 +332,13 @@ class GUI {
             || c.y !== y
             || c.width !== this.cardWidth
         ) {
-            c.elem.setAttribute("x", x);
-            c.elem.setAttribute("y", y);
+            c.elem.a(
+                "x", x,
+                "y", y,
 
-            c.elem.setAttribute("width", this.cardWidth * 13);
-            c.elem.setAttribute("height", this.cardWidth * TEXTURE_HEIGHT_RATIO * 7);
+                "width", this.cardWidth * 13,
+                "height", this.cardWidth * TEXTURE_HEIGHT_RATIO * 7,
+            );
 
             c.x = x;
             c.y = y;
@@ -355,7 +367,7 @@ class GUI {
                 let column = {};
                 for (let j = -3; j < 4; ++j) {
                     let elem = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-                    elem.setAttribute("fill", "green");
+                    elem.a("fill", "green");
                     this.svg.appendChild(elem);
                     column[j] = elem;
                 }
@@ -366,11 +378,13 @@ class GUI {
             for (let b = -3; b < 4; ++b) {
                 let elem = this.availableSpaces[a][b];
                 let [x, y] = this.ABtoXY(a, b);
-                elem.setAttribute("x", x);
-                elem.setAttribute("y", y);
-                elem.setAttribute("width", this.cardWidth);
-                elem.setAttribute("height", this.cardWidth * TEXTURE_HEIGHT_RATIO);
-                elem.setAttribute("opacity", card !== null && this.table.field.canBePlaced(card, a, b) ? 0.3 : 0);
+                elem.a(
+                    "x", x,
+                    "y", y,
+                    "width", this.cardWidth,
+                    "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
+                    "opacity", card !== null && this.table.field.canBePlaced(card, a, b) ? 0.3 : 0,
+                );
             }
         }
     }
@@ -389,28 +403,32 @@ class GUI {
         } else {
             elem = this.rotateIcons[index];
         }
-        elem.setAttribute("x", this.zeroX + this.cardWidth * (-2 + index));
-        elem.setAttribute("y", this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * 4);
-        elem.setAttribute("width", this.cardWidth);
-        elem.setAttribute("height", this.cardWidth * TEXTURE_HEIGHT_RATIO);
-        elem.setAttribute("opacity", visible ? 1 : 0);
+        elem.a(
+            "x", this.zeroX + this.cardWidth * (-2 + index),
+            "y", this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * 4,
+            "width", this.cardWidth,
+            "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
+            "opacity", visible ? 1 : 0,
+        );
     }
 
     _drawCardsHider(hide) {
         let elem;
         if (this.cardsHider === null) {
             elem = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            elem.setAttribute("fill", "white");  // FIXME
+            elem.a("fill", "white");  // FIXME
             this.cardsHider = elem;
         } else {
             elem = this.cardsHider;
         }
         this.svg.appendChild(elem);  // HACK
-        elem.setAttribute("x", this.zeroX + this.cardWidth * -2);
-        elem.setAttribute("y", hide ? this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * 5 : -9999);
-        elem.setAttribute("width", this.cardWidth * this.we.hand.length);
-        elem.setAttribute("height", this.cardWidth * TEXTURE_HEIGHT_RATIO);
-        elem.setAttribute("opacity", 0.5);
+        elem.a(
+            "x", this.zeroX + this.cardWidth * -2,
+            "y", hide ? this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * 5 : -9999,
+            "width", this.cardWidth * this.we.hand.length,
+            "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
+            "opacity", 0.5,
+        );
     }
 
     drawOurHand(instant) {
@@ -447,11 +465,13 @@ class GUI {
             elem = this.gameOverScreen;
         }
         this.svg.appendChild(elem);  // HACK
-        elem.setAttribute("x", -500);
-        elem.setAttribute("y", -500);
-        elem.setAttribute("width", 99999);
-        elem.setAttribute("height", 99999);
-        elem.setAttribute("fill", won ? "green" : "red");
+        elem.a(
+            "x", -500,
+            "y", -500,
+            "width", 99999,
+            "height", 99999,
+            "fill", won ? "green" : "red",
+        );
     }
 
     redraw() {
@@ -459,9 +479,11 @@ class GUI {
             this.drawGameOver(this.table.won);
         }
 
-        this.svg.setAttribute("width", window.innerWidth);
-        this.svg.setAttribute("height", window.innerHeight);
-        this.svg.setAttribute("viewBox", `0 0 ${window.innerWidth} ${window.innerHeight}`);
+        this.svg.a(
+            "width", window.innerWidth,
+            "height", window.innerHeight,
+            "viewBox", `0 0 ${window.innerWidth} ${window.innerHeight}`,
+        );
 
         if (window.innerHeight / 14 / TEXTURE_HEIGHT_RATIO <= window.innerWidth / 14) {
             this.cardWidth = window.innerHeight / 14 / TEXTURE_HEIGHT_RATIO;
