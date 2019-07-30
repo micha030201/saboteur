@@ -29,12 +29,12 @@ class SmartBot extends Player {
 
     makeMove(callback) {
 
-        this.closesVal = TheMostDistant;
+        this.bestcard = undefined;
         console.log(this.name + " " + "smartbot");
         let move = new Move();
-        this.chooseBestCard();
+        this.Bfs();
 
-        if (this.closesVal === TheMostDistant) {
+        if (this.bestcard === undefined) {
             move.discard(this.hand[0]);
         } else {
             move.placeCard(this.bestcard, this.x, this.y);
@@ -42,108 +42,94 @@ class SmartBot extends Player {
         setTimeout(() => callback(move), 0);
     }
 
-    chooseBestCard (){
-
-        let validCells = this.table.field.reachableSpaces();
-        this.resultDijsktra = {};
-
-        for (let [a, b] of validCells) {
-            let key = a + "," + b;
-            this.resultDijsktra[key] = this.dijkstra([a, b]);
-            let bestAdjCell = this.determineAdjCells(this.resultDijsktra[key]);
-
-            for (let cell of bestAdjCell){
-                for (let card of this.hand) {
-                    let [notreversed, reversed]= this.table.field.canPlaceInPosition(card, a, b);
-                    if (!notreversed && !reversed){
-                             continue;
-                        }
-                    if (notreversed&& reversed) {
-                        this.compareCards(card, cell, a, b);
-                        this.compareCards(-card, cell, a, b);
-                    }
-                    else {
-                        if (notreversed){
-                            card = Math.abs(card);
-                        }
-                        else {
-                            card = -Math.abs(card);
-                        }
-                        this.compareCards(card, cell, a, b);
-                    }
-                }
-            }
-        }
-    }
-
     compareCards (card, cell, a, b){
 
         if (this.canLead(card, cell, a, b)) {
-            if (cell.distToValidCell <= this.closesVal){
-                let vailableSpaces = this.table.field.availableSpaces(card);
-                let compare = [a, b];
-                if (doesIncludeArray(vailableSpaces, compare)){
-                    this.closesVal = cell.distToValidCell;
-                    this.x = a;
-                    this.y = b;
-                    this.bestcard = card;
+            let vailableSpaces = this.table.field.availableSpaces(card);
+            let compare = [a, b];
+            if (doesIncludeArray(vailableSpaces, compare)){
+                this.x = a;
+                this.y = b;
+                this.bestcard = card;
+            }
+        }
+    }
+
+    Bfs(){
+
+        let validCells = this.table.field.reachableSpaces();
+        let parentKey;
+        let vertexes = {};
+        let queueBfs = [];
+        let finishPoints = [[8, 0], [8, -2], [8, 2]];
+
+        for (let [x, y] of finishPoints){
+            if (this.table.field.grid[x][y] !== undefined){
+                continue;
+            }
+            let finishVertex = new Vertex(true, 0, x, y);
+            parentKey = x + " , " + y;
+            vertexes[parentKey] = finishVertex;
+            queueBfs.push(finishVertex);
+        }
+        let posDirect = [[1, 0,"left", "right"], [0, 1, "up", "down"], [-1, 0,"right", "left"], [0, -1,"down", "up"]];
+        let currentVertex;
+
+        while (queueBfs.length){
+            currentVertex = queueBfs.shift();
+            for (let [biasX, biasY, where, from] of posDirect){
+
+                biasX += currentVertex.x;
+                biasY += currentVertex.y;
+                if (this.canPassThrough(currentVertex.x, currentVertex.y, where) ||
+                        Math.abs(biasY) > 3 || biasX < -2 || biasX > 10 ||
+                            this.canPassThrough(biasX, biasY, from)) {
+                    continue;
+                }
+
+                let key = (biasX) + " , " + (biasY);
+                if (!vertexes.hasOwnProperty(key)){
+                    let vertex = new Vertex(true, currentVertex.dist + 1, biasX, biasY);
+                    if (this.canBePlaced(vertex, validCells, currentVertex)){
+                        return;
+                    }
+                    queueBfs.push(vertex);
+                    vertexes[key] = vertex;
                 }
             }
         }
     }
 
-    dijkstra(apex){
+    canBePlaced(vertex, validCells, parent){
 
-        let beginver = new Vertex(true, 0, undefined, apex);
-        let apexstr = apex[0] + " , " + apex[1];
-        let vertexes = new Object();
-        vertexes[apexstr] = beginver;
-
-        let posDirect = [[1, 0,"left", "right"], [0, 1, "up", "down"], [-1, 0,"right", "left"], [0, -1,"down", "up"]];
-        while(true){
-            for (let [a, b, c, d] of posDirect){
-                if (this.table.field.grid[apex[0]][apex[1]] !== undefined &&
-                 dirs(this.table.field.grid[apex[0]][apex[1]])[d] !== "yes"){
-                    continue;
+        if (!doesIncludeArray(validCells, ([vertex.x, vertex.y]))){
+            return;
+        }
+        for (let card of this.hand) {
+            let [notreversed, reversed]= this.table.field.canPlaceInPosition(card, vertex.x, vertex.y);
+            if (!notreversed && !reversed){
+                     continue;
                 }
-                if (Math.abs(b + apex[1]) > 3 || apex[0] + a < -2 || apex[0] + a > 10){
-                    continue;
-                }
-                if (this.table.field.grid[apex[0] + a] [apex[1] +b] !== undefined){
-                    if (dirs(this.table.field.grid[apex[0] + a] [apex[1] +b])[c] !== "yes"){
-                        continue;
-                    }
-                }
-                let key = [apex[0] + a] + " , " + [apex[1] +b];
-                if (vertexes.hasOwnProperty(key)){
-                    if (vertexes[key].isVisited){
-                        continue;
-                    }
-                    if (vertexes[key].dist < vertexes[apexstr].dist + 1){
-                        vertexes[key].dist = vertexes[apexstr].dist + 1;
-                        //vertexes[key].parent.push(apex);
-                        vertexes[key].parent =  apex;
-                    }
-                }
-                else{
-                    let vertex = new Vertex(false, vertexes[apexstr].dist + 1, vertexes[apexstr], [apex[0] + a, apex[1] +b]);
-                    vertexes[key] = vertex;
-                }
+            if (notreversed && reversed) {
+                this.compareCards(card, parent, vertex.x, vertex.y);
+                this.compareCards(-card, parent, vertex.x, vertex.y);
             }
-
-            let mindist = TheMostDistant;
-            for (let key in vertexes){
-                if (vertexes[key].dist < mindist && vertexes[key].isVisited === false){
-                    mindist = vertexes[key].dist;
-                    apexstr = key;
-                    apex = vertexes[key].index;
+            else {
+                if (notreversed){
+                    card = Math.abs(card);
                 }
-            }
-            vertexes[apexstr].isVisited = true;
-            if (mindist === TheMostDistant){
-                return vertexes;
+                else {
+                    card = -Math.abs(card);
+                }
+                this.compareCards(card, parent, vertex.x, vertex.y);
             }
         }
+        return (this.bestcard !== undefined);
+    }
+
+    canPassThrough(x, y, direction){
+        return (this.table.field.grid[x][y] !== undefined &&
+                 dirs(this.table.field.grid[x][y])[direction] !== "yes");
     }
 
     canLead(card, cell, a, b){
@@ -152,47 +138,18 @@ class SmartBot extends Player {
         botfield.grid[a][b] = card;
         let visited = botfield.reachableSpaces();
         botfield.grid[a][b] = undefined;
-        return (visited.has(cell.index[0] + " " + cell.index[1]));
-    }
-
-    determineAdjCells(graph){
-
-        let finishPoints = [[8, 0], [8, -2], [8, 2]];
-        let index = 0;
-        for (let f of finishPoints){
-            if (this.table.field.grid[f[0]][f[1]] !== undefined){
-                finishPoints = finishPoints.splice(index);
-            }
-            ++index;
-        }
-
-        let result = [];
-        for (let [a, b] of finishPoints){
-            let prevcell;
-            let distToValidCell = 0;
-            let iterat = graph[a + " , " + b];
-            while(iterat.parent != undefined){
-                iterat.distToValidCell = ++distToValidCell;
-                prevcell = iterat;
-                iterat = iterat.parent;
-            }
-            result.push(prevcell);
-        }
-        result.sort((a, b) =>{
-            return b.distToValidCell - a.distToValidCell;
-        });
-        return result;
+        return (visited.has(cell.x + " " + cell.y));
     }
 }
 
 class Vertex {
-    constructor(visit, dist, parent, index){
+    constructor(visit, dist, x, y){
         this.isVisited = visit;
         this.dist = dist;
-        this.parent = parent;
-        this.index = index;
+        this.x = x;
+        this.y = y;
     }
-};
+}
 
 class BotField extends Field{
 
@@ -321,7 +278,6 @@ class SmartBadBot extends MostDistantBot{
     }
 
     _compareCards (card, cell, a, b){
-
 
         if (!this.canLead(card, cell, a, b)) {
             if (cell.distToValidCell <= this.distantVal){

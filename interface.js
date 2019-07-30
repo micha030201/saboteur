@@ -628,10 +628,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let we = new OurPlayer(table, names.pop(), "honest");
     let smartBot = new SmartBot (table, names.pop(), "honest");
-    let badDistBot = new  MostDistantBot(table, names.pop(), "saboteur");
-    let directBot = new  DirectionBot(table, names.pop(), "saboteur", "down");
+    //let badDistBot = new  MostDistantBot(table, names.pop(), "saboteur");
+    //let directBot = new  DirectionBot(table, names.pop(), "saboteur", "down");
 
-    table.players = [smartBot, badDistBot, directBot, we];
+    table.players = [smartBot, we];
     table.deck = shuffle(cardIndices);
     table.finishCards = shuffle([1, 2, 3]);
 
