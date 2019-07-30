@@ -13,31 +13,6 @@ class OurPlayer extends Player {
     }
 }
 
-class BotPlayer extends Player {
-    makeMove(callback) {
-        console.log(this.name);
-
-        let move = new Move();
-        let spaces = [], card;
-        for (card of this.hand) {
-            spaces = this.table.field.availableSpaces(card);
-        }
-        if (!spaces.length) {
-            move.discard(card);
-        } else {
-            let [a, b] = spaces.randomElement();
-            if (this.table.field.canBePlaced(card, a, b)) {
-                card = Math.abs(card);
-            } else {
-                card = -Math.abs(card);
-            }
-            move.placeCard(card, a, b);
-        }
-
-        setTimeout(() => callback(move), 600);
-    }
-}
-
 class GUI {
     constructor(table, we, svg) {
         table.moveCallback = this.drawMove.bind(this);
@@ -621,10 +596,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let we = new OurPlayer(table, names.pop(), "honest");
     let smartBot = new SmartBot (table, names.pop(), "honest");
-    let distbot = new MostDistantBot (table, names.pop(), "saboteur");
-    let directBot = new MostDistantBot (table, names.pop(), "saboteur","up");
+    let badSmartBot = new  SmartBadBot(table, names.pop(), "saboteur");
+    let directBot = new DirectionBot (table, names.pop(), "saboteur","down");
 
-    table.players = [we, smartBot, distbot, directBot];
+    table.players = [we, smartBot, badSmartBot, directBot];
     table.deck = shuffle(cardIndices);
     table.finishCards = shuffle([1, 2, 3]);
 

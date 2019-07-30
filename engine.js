@@ -150,7 +150,7 @@ class Field {
         let card = this.grid[a][b];
          if (Math.abs(b) > 3 || a < -2 || a > 10){
                 return;
-         }        
+         }
         if (typeof card === "undefined") {
             _result.push([a, b]);
             return;

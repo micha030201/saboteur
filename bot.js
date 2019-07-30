@@ -1,5 +1,30 @@
 const TheMostDistant = 2000000;
 
+class BotPlayer extends Player {
+    makeMove(callback) {
+        console.log(this.name);
+
+        let move = new Move();
+        let spaces = [], card;
+        for (card of this.hand) {
+            spaces = this.table.field.availableSpaces(card);
+        }
+        if (!spaces.length) {
+            move.discard(card);
+        } else {
+            let [a, b] = spaces.randomElement();
+            if (this.table.field.canBePlaced(card, a, b)) {
+                card = Math.abs(card);
+            } else {
+                card = -Math.abs(card);
+            }
+            move.placeCard(card, a, b);
+        }
+
+        setTimeout(() => callback(move), 600);
+    }
+}
+
 class SmartBot extends Player {
 
     makeMove(callback) {
@@ -22,18 +47,18 @@ class SmartBot extends Player {
         let validCells = this.table.field.reachableSpaces();
         this.resultDijsktra = {};
 
-        for (let [a, b] of validCells) {//!
+        for (let [a, b] of validCells) {
             let key = a + "," + b;
             this.resultDijsktra[key] = this.dijkstra([a, b]);
             let bestAdjCell = this.determineAdjCells(this.resultDijsktra[key]);
 
             for (let cell of bestAdjCell){
                 for (let card of this.hand) {
-                    let [notreversed, reversed]= this.table.field.canPlaceInPosition(card, a, b);//!
+                    let [notreversed, reversed]= this.table.field.canPlaceInPosition(card, a, b);
                     if (!notreversed && !reversed){
                              continue;
                         }
-                    if (notreversed&& reversed) {//!
+                    if (notreversed&& reversed) {
                         this.compareCards(card, cell, a, b);
                         this.compareCards(-card, cell, a, b);
                     }
@@ -243,15 +268,15 @@ class DirectionBot extends Player{
             let spaces = this.table.field.availableSpaces(card);
             for (let i of spaces){
                 if (this.sign === ">"){
-                    if (i[side] > turnComparisionValue){
-                        turnComparisionValue = i[side];
+                    if (i[this.side] > turnComparisionValue){
+                        turnComparisionValue = i[this.side];
                         placmentCoord = i;
                         this.bestcard = card;
                     }
                 }
                 else{
-                    if (i[side] <  turnComparisionValue){
-                        turnComparisionValue = i[side];
+                    if (i[this.side] <  turnComparisionValue){
+                        turnComparisionValue = i[this.side];
                         placmentCoord = i;
                         this.bestcard = card;
                     }
@@ -267,4 +292,65 @@ class DirectionBot extends Player{
         setTimeout(() => callback(move), 300);
     }
 
+}
+
+class SmartBadBot extends MostDistantBot{
+
+        makeMove(callback) {
+
+        this.closesVal = 0;
+        this.distantVal = TheMostDistant;
+        console.log(this.name + " " + "smartbadbot");
+        let move = new Move();
+        this.chooseBestCard();
+
+        if (this.closesVal === 0) {
+            move.discard(this.hand[0]);
+        } else {
+            let finishPoints = [[8, 0], [8, -2], [8, 2]];
+            for (let [a, b] of finishPoints){
+                if (Math.sqrt(Math.pow(a - this._x) + Math.pow(b - this._y)) <= 3){
+                    move.placeCard(this.bestcard, this._x, this._y);
+                    setTimeout(() => callback(move), 300);
+                    return;
+                }
+            }
+            move.placeCard(this.worstCard, this.x, this.y);
+        }
+        setTimeout(() => callback(move), 300);
+    }
+
+    _compareCards (card, cell, a, b){
+
+
+        if (!this.canLead(card, cell, a, b)) {
+            if (cell.distToValidCell <= this.distantVal){
+                let vailableSpaces = this.table.field.availableSpaces(card);
+                let compare = [a, b];
+                if (doesIncludeArray(vailableSpaces, compare)){
+                    this.distantVal = cell.distToValidCell;
+                    this._x = a;
+                    this._y = b;
+                    this.bestcard = card;
+                }
+            }
+        }
+    }
+
+    compareCards (card, cell, a, b){
+
+        this._compareCards (card, cell, a, b);
+        if (this.canLead(card, cell, a, b)) {
+            if (cell.distToValidCell >= this.closesVal){
+                let vailableSpaces = this.table.field.availableSpaces(card);
+                let compare = [a, b];
+                if (doesIncludeArray(vailableSpaces, compare)){
+                    this.closesVal = cell.distToValidCell;
+                    this.x = a;
+                    this.y = b;
+                    this.worstCard = card;
+                }
+            }
+        }
+    }
 }
