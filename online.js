@@ -1,3 +1,6 @@
+"use strict"
+/* global firebase Player Move shuffle cardIndices */
+
 let firebaseConfig = {
     apiKey: "AIzaSyBkKCcqBlYGyW9x1xglCzSVqqCKpJF_Aq4",
     authDomain: "saboteur-a2bd1.firebaseapp.com",
@@ -9,13 +12,15 @@ let firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 
+
 class NetGame {
     constructor() {
         this.onPlayerAdd = () => {};
     }
 
-    _onPlayerAdd(snap) {
-        this.onPlayerAdd(snap.key);
+    _onPlayerAdd(snapshot) {
+        let player = new Player(snapshot.key);
+        this.onPlayerAdd(player);
     }
 
     createGame() {
@@ -24,33 +29,21 @@ class NetGame {
         refAllUsers.on("child_added", this._onPlayerAdd.bind(this));
     }
 
-    joinGame(roomCode) {
-        let hasCode;
+    joinGame(roomCode, foundCallback, startedCallback) {
+        // FIXME what if the supplied room code has a forward-slash?
         this.roomCode = roomCode;
+        this.startedCallback = startedCallback;
+
         let refAllRooms = firebase.database().ref("/rooms");
         refAllRooms.once("value")
             .then(function(snapshot) {
-                hasCode = snapshot.hasChild(roomCode); 
-                
-                if (hasCode) {                    
-                    let player = new Player(null, document.getElementById("name_").value);
-                    game.addPlayer(player);    
-                }
-                else {
-                    window.alert("room doesnt exist");
-                }
+                foundCallback(snapshot.hasChild(roomCode));
             });
 
         let refAllUsers = firebase.database().ref(`/rooms/${roomCode}/users`);
         refAllUsers.on("child_added", this._onPlayerAdd.bind(this));
-    }
 
-    get players() {
-
-    }
-
-    get gameStarted() {
-
+        // TODO on game started call callback
     }
 
     addPlayer(player) {
@@ -74,7 +67,7 @@ class NetGame {
         let refAllUsers = firebase.database().ref(`/rooms/${this.roomCode}/users`);
         refAllUsers.once("value", function (snapshot) {
             snapshot.forEach(function (child) {
-                let refCurrentUser = refAllUsers.child(child.key);           
+                let refCurrentUser = refAllUsers.child(child.key);
                 refCurrentUser.set({
                     role: "...",
                     //lastMove
@@ -109,8 +102,8 @@ class NetGame {
                     refUser.off();
                     callback(move);
                 }
-            } 
-        );        
+            }
+        );
     }
 
     sendMove(player, move) {
@@ -131,7 +124,7 @@ document.addEventListener("DOMContentLoaded", function() {
         game.createGame();
         game.addPlayer(player);
 
-    }); 
+    });
 
     $("#startGame").click(function() {game.startGame()});
 
