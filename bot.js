@@ -5,7 +5,7 @@ class SmartBot extends Player {
     makeMove(callback) {
 
         this.closesVal = TheMostDistant;
-        console.log(this.name);
+        console.log(this.name + " " + "smartbot");
         let move = new Move();
         this.chooseBestCard();
 
@@ -189,16 +189,15 @@ class MostDistantBot extends SmartBot{
         makeMove(callback) {
 
         this.closesVal = 0;
-        console.log(this.name);
+        console.log(this.name + "  MostDistantBot");
         let move = new Move();
         this.chooseBestCard();
 
-        if (this.closesVal === TheMostDistant) {
+        if (this.closesVal === 0) {
             move.discard(this.hand[0]);
         } else {
             move.placeCard(this.bestcard, this.x, this.y);
         }
-        console.dir(this.resultDijsktra);
         setTimeout(() => callback(move), 300);
     }
 
@@ -217,4 +216,55 @@ class MostDistantBot extends SmartBot{
             }
         }
     }
+}
+
+class DirectionBot extends Player{
+
+    constructor(table, name, allegiance, direct) {
+        super(table, name, allegiance);
+        let tableDirect = [["right", -3, 0, ">"], ["left", 13, 0, "<"], ["up", 4, 1, "<"], ["down", -4, 1, ">"]];
+        for (let [a, b, c, d] of tableDirect){
+            if (a === direct){
+                this.comparisionValue = b;
+                this.side = c;
+                this. direct = direct;
+                this.sign = d;
+            }
+        }
+    }
+
+    makeMove(callback) {
+
+        let turnComparisionValue = this.comparisionValue;
+        console.log(this.name + "  directbot");
+        let move = new Move();
+        let placmentCoord;
+        for (let card of this.hand){
+            let spaces = this.table.field.availableSpaces(card);
+            for (let i of spaces){
+                if (this.sign === ">"){
+                    if (i[side] > turnComparisionValue){
+                        turnComparisionValue = i[side];
+                        placmentCoord = i;
+                        this.bestcard = card;
+                    }
+                }
+                else{
+                    if (i[side] <  turnComparisionValue){
+                        turnComparisionValue = i[side];
+                        placmentCoord = i;
+                        this.bestcard = card;
+                    }
+                }
+            }
+        }
+
+        if (turnComparisionValue === this.comparisionValue) {
+            move.discard(this.hand[0]);
+        } else {
+            move.placeCard(this.bestcard, placmentCoord[0], placmentCoord[1]);
+        }
+        setTimeout(() => callback(move), 300);
+    }
+
 }
