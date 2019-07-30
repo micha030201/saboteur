@@ -34,7 +34,7 @@ class BotPlayer extends Player {
             move.placeCard(card, a, b);
         }
 
-        setTimeout(() => callback(move), 600);
+        setTimeout(() => callback(move), 0);
     }
 }
 
@@ -474,7 +474,7 @@ class GUI {
         this.drawOurHand(true);
     }
 
-    drawMove(move, nextPlayer) {
+    drawMove(move, player, callback) {
         if (this.table.won || this.table.lost) {
             setTimeout(() => this.drawGameOver(this.table.won), 600);
         }
@@ -489,8 +489,11 @@ class GUI {
             this.drawCard(move.card, 10, -5);
             setTimeout(() => this.drawOtherHands(false), 300);
         }
-        this.ourTurn = nextPlayer === this.we;
+
+        this.ourTurn = this.table.nextPlayer(player) === this.we;
         setTimeout(() => this.drawOurHand(false), this.ourTurn ? 600 : 0);
+
+        setTimeout(callback, (player === this.we) ? 300 : 600);
     }
 
     followEvent(e) {
