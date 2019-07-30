@@ -5,7 +5,26 @@ const ANIMATION_LENGTH = 600;  // in milliseconds
 
 // has to correspond to assets/* image sizes
 const TEXTURE_WIDTH = 10;
-const TEXTURE_HEIGHT_RATIO = 1.5;
+const TEXTURE_HEIGHT_RATIO = 538 / 380;
+
+const TOTAL_CARDS_HORIZONTALLY = 18;
+const TOTAL_CARDS_VERTICALLY = 19;
+
+const ZERO_A = 4;
+const ZERO_B = 10;
+
+const DISCARD_PILE_A = 12;
+const DISCARD_PILE_B = -8;
+
+const DECK_A = 12;
+const DECK_B = -10;
+
+const OUR_HAND_A = -3;
+const OUR_HAND_B = 6;
+
+const OTHER_HANDS_A = -4;
+const OTHER_HANDS_B = -10;
+
 
 class OurPlayer extends Player {
     constructor(...args) {
@@ -229,7 +248,7 @@ class GUI {
             c.innerGroup.a(
                 "transform",
                 `scale(${this.cardWidth / TEXTURE_WIDTH})
-                 rotate(${reversed ? 180 : 0} ${TEXTURE_WIDTH / 2} ${TEXTURE_WIDTH * TEXTURE_HEIGHT_RATIO / 2})`
+                 rotate(${reversed ? 180 : 0} ${TEXTURE_WIDTH / 2} ${TEXTURE_WIDTH * TEXTURE_HEIGHT_RATIO / 2})`  // FIXME
             );
 
             c.x = x;
@@ -269,14 +288,14 @@ class GUI {
 
     drawOtherHands(instant) {
         for (let [i, player] of Object.entries(this.table.players.filter(p => p !== this.we))) {
-            this._drawOtherHand(player, (i % 3) * 4 - 2, i > 3 ? -7 : -5, instant);
+            this._drawOtherHand(player, (i % 3) * 4 + OTHER_HANDS_A, OTHER_HANDS_B + (i > 4 ? 0 : 2), instant);
         }
     }
 
     drawDeck(instant) {
         // TODO some indication if there are no cards
         for (let card of this.table.deck) {
-            this.drawCard(card, 10, -7, true, instant);
+            this.drawCard(card, DECK_A, DECK_B, true, instant);
         }
     }
 
@@ -291,14 +310,14 @@ class GUI {
             elem = this.discardPile;
         }
         elem.a(
-            "x", this.zeroX + this.cardWidth * 10,
-            "y", this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * -5,
+            "x", this.zeroX + this.cardWidth * DISCARD_PILE_A,
+            "y", this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * DISCARD_PILE_B,
             "width", this.cardWidth,
             "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
         );
 
         for (let card of this.table.discardPile) {
-            this.drawCard(card, 10, -5, false, instant);
+            this.drawCard(card, DISCARD_PILE_A, DISCARD_PILE_B, false, instant);
         }
     }
 
@@ -423,8 +442,8 @@ class GUI {
         }
         this.svg.appendChild(elem);  // HACK
         elem.a(
-            "x", this.zeroX + this.cardWidth * -2,
-            "y", hide ? this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * 5 : -9999,
+            "x", this.zeroX + this.cardWidth * OUR_HAND_A,
+            "y", hide ? this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * OUR_HAND_B : -9999,
             "width", this.cardWidth * this.we.hand.length,
             "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
             "opacity", 0.5,
@@ -432,7 +451,7 @@ class GUI {
     }
 
     drawOurHand(instant) {
-        let [x, y] = this.ABtoXY(-2, 6 + 1/3);  // FIXME
+        let [x, y] = this.ABtoXY(OUR_HAND_A, OUR_HAND_B + 1 + 1/3);  // FIXME
         this._drawName(this.we, x, y);
         for (let i = 0; i < 6; ++i) {
             let card = this.we.hand[i];
@@ -449,7 +468,7 @@ class GUI {
             if (this.ourTurn && canBePlacedReversed && !canBePlacedAsIs) {
                 this.we.hand[i] = card = -card;
             }
-            this.drawCard(card, i - 2, 5, false, instant);
+            this.drawCard(card, i + OUR_HAND_A, OUR_HAND_B, false, instant);
             this.createPickHandler(card);
         }
         this._drawCardsHider(!this.ourTurn);
@@ -485,14 +504,14 @@ class GUI {
             "viewBox", `0 0 ${window.innerWidth} ${window.innerHeight}`,
         );
 
-        if (window.innerHeight / 14 / TEXTURE_HEIGHT_RATIO <= window.innerWidth / 14) {
-            this.cardWidth = window.innerHeight / 14 / TEXTURE_HEIGHT_RATIO;
-            this.zeroX = (window.innerWidth - this.cardWidth * 13) / 2 + this.cardWidth * 2;
-            this.zeroY = this.cardWidth * TEXTURE_HEIGHT_RATIO * 7.5;
+        if (window.innerHeight / TOTAL_CARDS_VERTICALLY / TEXTURE_HEIGHT_RATIO <= window.innerWidth / TOTAL_CARDS_HORIZONTALLY) {
+            this.cardWidth = window.innerHeight / TOTAL_CARDS_HORIZONTALLY / TEXTURE_HEIGHT_RATIO;
+            this.zeroX = (window.innerWidth - this.cardWidth * (TOTAL_CARDS_HORIZONTALLY - 1)) / 2 + this.cardWidth * ZERO_A;
+            this.zeroY = this.cardWidth * TEXTURE_HEIGHT_RATIO * (ZERO_B + 0.5);
         } else {
-            this.cardWidth = window.innerWidth / 14;
-            this.zeroX = this.cardWidth * 2.5;
-            this.zeroY = (window.innerHeight - this.cardWidth * TEXTURE_HEIGHT_RATIO * 13) / 2 + this.cardWidth * TEXTURE_HEIGHT_RATIO * 7;
+            this.cardWidth = window.innerWidth / TOTAL_CARDS_VERTICALLY;
+            this.zeroX = this.cardWidth * (ZERO_A + 0.5);
+            this.zeroY = (window.innerHeight - this.cardWidth * TEXTURE_HEIGHT_RATIO * (TOTAL_CARDS_VERTICALLY - 1)) / 2 + this.cardWidth * TEXTURE_HEIGHT_RATIO * ZERO_B;
         }
 
         this.drawOtherHands(true);
@@ -514,7 +533,7 @@ class GUI {
             setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
             setTimeout(() => this.drawField(true), ANIMATION_LENGTH * (this.ourTurn ? 0 : 1));  // HACK
         } else if (move.type === "discard") {
-            this.drawCard(move.card, 10, -5);
+            this.drawCard(move.card, DISCARD_PILE_A, DISCARD_PILE_B);
             setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
         }
 
@@ -592,7 +611,7 @@ class GUI {
                     a = Math.round(a);
                     b = Math.round(b);
 
-                    if (a === 10 && b === -5) {
+                    if (a === DISCARD_PILE_A && b === DISCARD_PILE_B) {
                         this.drawCard(card, a, b, false, true);
 
                         let move = new Move();
