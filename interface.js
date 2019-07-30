@@ -1,6 +1,8 @@
 "use strict"
 /* global dirs Table Player Move shuffle cardIndices symmetrical */
 
+const ANIMATION_LENGTH = 600;  // in milliseconds
+
 class OurPlayer extends Player {
     constructor(...args) {
         super(...args);
@@ -165,7 +167,7 @@ class GUI {
             anim.setAttribute("attributeName", "transform");
             anim.setAttribute("attributeType", "XML");
             anim.setAttribute("type", "translate");
-            anim.setAttribute("dur", "300ms");
+            anim.setAttribute("dur", `${ANIMATION_LENGTH}ms`);
             anim.setAttribute("begin", "0s");
             anim.setAttribute("repeatCount", "1");
             anim.setAttribute("fill", "freeze");
@@ -476,24 +478,24 @@ class GUI {
 
     drawMove(move, player, callback) {
         if (this.table.won || this.table.lost) {
-            setTimeout(() => this.drawGameOver(this.table.won), 600);
+            setTimeout(() => this.drawGameOver(this.table.won), ANIMATION_LENGTH * 2);
         }
         // move cards manually so that they stay on top
         if (move.type === "noop") {
             this.redraw();
         } else if (move.type === "place") {
             this.drawCard(move.card, move.a, move.b, false, false);
-            setTimeout(() => this.drawOtherHands(false), 300);
-            setTimeout(() => this.drawField(true), this.ourTurn ? 0 : 300);  // HACK
+            setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
+            setTimeout(() => this.drawField(true), ANIMATION_LENGTH * (this.ourTurn ? 0 : 1));  // HACK
         } else if (move.type === "discard") {
             this.drawCard(move.card, 10, -5);
-            setTimeout(() => this.drawOtherHands(false), 300);
+            setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
         }
 
         this.ourTurn = this.table.nextPlayer(player) === this.we;
-        setTimeout(() => this.drawOurHand(false), this.ourTurn ? 600 : 0);
+        setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH * (this.ourTurn ? 2 : 0));
 
-        setTimeout(callback, (player === this.we) ? 300 : 600);
+        setTimeout(callback, ANIMATION_LENGTH * ((player === this.we) ? 1 : 2));
     }
 
     followEvent(e) {
