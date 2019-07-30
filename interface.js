@@ -8,10 +8,12 @@ const TEXTURE_WIDTH = 10;
 const TEXTURE_HEIGHT_RATIO = 538 / 380;
 
 const TOTAL_CARDS_HORIZONTALLY = 18;
-const TOTAL_CARDS_VERTICALLY = 19;
+const TOTAL_CARDS_VERTICALLY = 21;
 
 const ZERO_A = 4;
 const ZERO_B = 10;
+
+// coordinates below relative to zero
 
 const DISCARD_PILE_A = 12;
 const DISCARD_PILE_B = -8;
@@ -20,7 +22,7 @@ const DECK_A = 12;
 const DECK_B = -10;
 
 const OUR_HAND_A = -3;
-const OUR_HAND_B = 6;
+const OUR_HAND_B = 8;
 
 const OTHER_HANDS_A = -4;
 const OTHER_HANDS_B = -10;
@@ -423,8 +425,8 @@ class GUI {
             elem = this.rotateIcons[index];
         }
         elem.a(
-            "x", this.zeroX + this.cardWidth * (-2 + index),
-            "y", this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * 4,
+            "x", this.zeroX + this.cardWidth * (OUR_HAND_A + index),
+            "y", this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * (OUR_HAND_B - 1),
             "width", this.cardWidth,
             "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
             "opacity", visible ? 1 : 0,
@@ -505,11 +507,11 @@ class GUI {
         );
 
         if (window.innerHeight / TOTAL_CARDS_VERTICALLY / TEXTURE_HEIGHT_RATIO <= window.innerWidth / TOTAL_CARDS_HORIZONTALLY) {
-            this.cardWidth = window.innerHeight / TOTAL_CARDS_HORIZONTALLY / TEXTURE_HEIGHT_RATIO;
+            this.cardWidth = window.innerHeight / TOTAL_CARDS_VERTICALLY / TEXTURE_HEIGHT_RATIO;
             this.zeroX = (window.innerWidth - this.cardWidth * (TOTAL_CARDS_HORIZONTALLY - 1)) / 2 + this.cardWidth * ZERO_A;
             this.zeroY = this.cardWidth * TEXTURE_HEIGHT_RATIO * (ZERO_B + 0.5);
         } else {
-            this.cardWidth = window.innerWidth / TOTAL_CARDS_VERTICALLY;
+            this.cardWidth = window.innerWidth / TOTAL_CARDS_HORIZONTALLY;
             this.zeroX = this.cardWidth * (ZERO_A + 0.5);
             this.zeroY = (window.innerHeight - this.cardWidth * TEXTURE_HEIGHT_RATIO * (TOTAL_CARDS_VERTICALLY - 1)) / 2 + this.cardWidth * TEXTURE_HEIGHT_RATIO * ZERO_B;
         }
