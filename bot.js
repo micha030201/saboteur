@@ -1,5 +1,3 @@
-const TheMostDistant = 2000000;
-
 class BotPlayer extends Player {
     makeMove(callback) {
         console.log(this.name);
@@ -67,7 +65,7 @@ class SmartBot extends Player {
             if (this.table.field.grid[x][y] !== undefined){
                 continue;
             }
-            let finishVertex = new Vertex(true, 0, x, y);
+            let finishVertex = new Vertex(0, x, y);
             parentKey = x + " , " + y;
             vertexes[parentKey] = finishVertex;
             queueBfs.push(finishVertex);
@@ -89,7 +87,7 @@ class SmartBot extends Player {
 
                 let key = (biasX) + " , " + (biasY);
                 if (!vertexes.hasOwnProperty(key)){
-                    let vertex = new Vertex(true, currentVertex.dist + 1, biasX, biasY);
+                    let vertex = new Vertex(currentVertex.dist + 1, biasX, biasY);
                     if (this.canBePlaced(vertex, validCells, currentVertex)){
                         return;
                     }
@@ -103,7 +101,7 @@ class SmartBot extends Player {
     canBePlaced(vertex, validCells, parent){
 
         if (!doesIncludeArray(validCells, ([vertex.x, vertex.y]))){
-            return;
+            return false;
         }
         for (let card of this.hand) {
             let [notreversed, reversed]= this.table.field.canPlaceInPosition(card, vertex.x, vertex.y);
@@ -143,8 +141,7 @@ class SmartBot extends Player {
 }
 
 class Vertex {
-    constructor(visit, dist, x, y){
-        this.isVisited = visit;
+    constructor(dist, x, y){
         this.dist = dist;
         this.x = x;
         this.y = y;
@@ -168,14 +165,14 @@ class BotField extends Field{
 
 class MostDistantBot extends SmartBot{
 
-        makeMove(callback) {
+    makeMove(callback) {
 
-        this.closesVal = 0;
-        console.log(this.name + "  MostDistantBot");
+        this.bestcard = undefined;
+        console.log(this.name + " " + "mostDistantBot");
         let move = new Move();
-        this.chooseBestCard();
+        this.Bfs();
 
-        if (this.closesVal === 0) {
+        if (this.bestcard === undefined) {
             move.discard(this.hand[0]);
         } else {
             move.placeCard(this.bestcard, this.x, this.y);
@@ -183,21 +180,33 @@ class MostDistantBot extends SmartBot{
         setTimeout(() => callback(move), 0);
     }
 
-    compareCards (card, cell, a, b){
+    canBePlaced(vertex, validCells, parent){
 
-        if (this.canLead(card, cell, a, b)) {
-            if (cell.distToValidCell >= this.closesVal){
-                let vailableSpaces = this.table.field.availableSpaces(card);
-                let compare = [a, b];
-                if (doesIncludeArray(vailableSpaces, compare)){
-                    this.closesVal = cell.distToValidCell;
-                    this.x = a;
-                    this.y = b;
-                    this.bestcard = card;
+        if (!doesIncludeArray(validCells, ([vertex.x, vertex.y]))){
+            return false;
+        }
+        for (let card of this.hand) {
+            let [notreversed, reversed]= this.table.field.canPlaceInPosition(card, vertex.x, vertex.y);
+            if (!notreversed && !reversed){
+                     continue;
                 }
+            if (notreversed && reversed) {
+                this.compareCards(card, parent, vertex.x, vertex.y);
+                this.compareCards(-card, parent, vertex.x, vertex.y);
+            }
+            else {
+                if (notreversed){
+                    card = Math.abs(card);
+                }
+                else {
+                    card = -Math.abs(card);
+                }
+                this.compareCards(card, parent, vertex.x, vertex.y);
             }
         }
+        return (false);
     }
+
 }
 
 class DirectionBot extends Player{
@@ -253,59 +262,50 @@ class DirectionBot extends Player{
 
 class SmartBadBot extends MostDistantBot{
 
-        makeMove(callback) {
+    makeMove(callback) {
 
-        this.closesVal = 0;
-        this.distantVal = TheMostDistant;
-        console.log(this.name + " " + "smartbadbot");
+        this.realBestCard = undefined;
+        this.IsBestFound = false;
+        this.bestcard = undefined;
+        this.worstCard = undefined;
+        console.log(this.name + " " + "MostDistantBot");
         let move = new Move();
-        this.chooseBestCard();
+        this.Bfs();
 
-        if (this.closesVal === 0) {
+        if (this.bestcard === undefined && this.worstCard == undefined) {
             move.discard(this.hand[0]);
         } else {
-            let finishPoints = [[8, 0], [8, -2], [8, 2]];
-            for (let [a, b] of finishPoints){
-                if (Math.sqrt(Math.pow(a - this._x) + Math.pow(b - this._y)) <= 3){
-                    move.placeCard(this.bestcard, this._x, this._y);
-                    setTimeout(() => callback(move), 0);
-                    return;
+            if (this.worstCard !== undefined){
+                let finishPoints = [[8, 0], [8, -2], [8, 2]];
+                for (let [x, y] of finishPoints){
+                    if (Math.sqrt(Math.pow(x - this.realX) + Math.pow(y - this.realY)) <= 3){
+                        move.placeCard(this.worstCard, this.badX, this.badY);
+                        setTimeout(() => callback(move), 0);
+                        return;
+                    }
                 }
             }
-            move.placeCard(this.worstCard, this.x, this.y);
-        }
-        setTimeout(() => callback(move), 0);
-    }
-
-    _compareCards (card, cell, a, b){
-
-        if (!this.canLead(card, cell, a, b)) {
-            if (cell.distToValidCell <= this.distantVal){
-                let vailableSpaces = this.table.field.availableSpaces(card);
-                let compare = [a, b];
-                if (doesIncludeArray(vailableSpaces, compare)){
-                    this.distantVal = cell.distToValidCell;
-                    this._x = a;
-                    this._y = b;
-                    this.bestcard = card;
-                }
-            }
+            move.placeCard(this.bestcard, this.x, this.y);
+            setTimeout(() => callback(move), 0);
         }
     }
 
     compareCards (card, cell, a, b){
 
-        this._compareCards (card, cell, a, b);
-        if (this.canLead(card, cell, a, b)) {
-            if (cell.distToValidCell >= this.closesVal){
-                let vailableSpaces = this.table.field.availableSpaces(card);
-                let compare = [a, b];
-                if (doesIncludeArray(vailableSpaces, compare)){
-                    this.closesVal = cell.distToValidCell;
-                    this.x = a;
-                    this.y = b;
-                    this.worstCard = card;
-                }
+        super.compareCards(card, cell,a, b);
+        if (this.bestcard !== undefined && !this.IsBestFound){
+            this.realBestCard = this.bestcard;
+            this.realX = this.x;
+            this.realY = this.y;
+            this.IsBestFound = true;
+        }
+        if (!this.canLead(card, cell, a, b)) {
+            let vailableSpaces = this.table.field.availableSpaces(card);
+            let compare = [a, b];
+            if (doesIncludeArray(vailableSpaces, compare)){
+                this.badX = a;
+                this.badY = b;
+                this.worstCard = card;
             }
         }
     }
