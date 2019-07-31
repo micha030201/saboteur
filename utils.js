@@ -1,5 +1,5 @@
 "use strict"
-/* exported doesIncludeArray DefaultDict shuffle sleep */
+/* exported doesIncludeArray DefaultDict shuffle Join */
 
 function doesIncludeArray(haystack, needle){
     let i, j, current;
@@ -52,5 +52,23 @@ function shuffle(a) {
 Node.prototype.a = function() {
     for (let i = 0; i < arguments.length; i += 2) {
         this.setAttribute(arguments[i], arguments[i + 1]);
+    }
+}
+
+class Join {
+    constructor(n, callback) {
+        this.k = 0;
+        this.n = n;
+        this.callback = callback;
+
+        this.oneDone = this._oneDone.bind(this);
+    }
+
+    _oneDone() {
+        this.k += 1;
+        console.log(this.k, this.n);
+        if (this.k === this.n) {
+            setTimeout(this.callback, 0);
+        }
     }
 }

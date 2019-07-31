@@ -685,7 +685,7 @@ window.addEventListener("load", function() {
     make.onclick = () => {
         let netgame = new NetGame();
 
-        netgame.createGame();
+        netgame.createGame(console.log);
 
         window.alert(netgame.roomCode);
 
@@ -699,17 +699,17 @@ window.addEventListener("load", function() {
 
         let gui = new GUI(netgame.table, we, svg);
 
-        netgame.addPlayer(we);
-        netgame.addPlayer(bot);
-        netgame.addPlayer(bot2);
+        netgame.addPlayer(we, console.log);
+        netgame.addPlayer(bot, console.log);
+        netgame.addPlayer(bot2, console.log);
 
-        start.onclick = () => {
-            netgame.startGame(function(table) {
-                gui.redraw();
+        netgame.onGameStart = function(table) {
+            gui.redraw();
 
-                table.startGame();
-            });
+            table.startGame();
         };
+
+        start.onclick = () => netgame.startGame();
     };
 
     join.onclick = () => {
@@ -719,18 +719,19 @@ window.addEventListener("load", function() {
 
         let we = new OurPlayer(netgame, netgame.table, "Misato");
 
+        netgame.onGameStart = function(table) {
+            console.log(123);
+            gui.redraw();
+
+            table.startGame();
+        }
+
         netgame.joinGame(
             keyInput.value,
-            console.log,
-            function(table) {
-                console.log(123);
-                gui.redraw();
-
-                table.startGame();
-            }
+            console.log
         );
 
-        netgame.addPlayer(we);
+        netgame.addPlayer(we, console.log);
 
         let gui = new GUI(netgame.table, we, svg);
 
