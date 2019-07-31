@@ -85,9 +85,27 @@ class NetGame {
 
     createGame(callback) {
         this.roomCode = firebase.database().ref("/rooms").push().key;
-        firebase.database().ref(`/rooms/${this.roomCode}/gameStarted`).set(false, callback);
 
-        this._registerCallbacks();
+        let refRoom = firebase.database().ref(`/rooms/${this.roomCode}`);
+
+        refRoom.transaction(
+            (room) => {
+                if (room === null) {
+                    return {
+                        gameStarted: false,
+                    };
+                }
+            },
+            (error, success) => {
+                if ((error === null) && success) {
+                    this._registerCallbacks();
+                    callback(true);
+                } else {
+                    callback(false);
+                }
+            },
+            false
+        );
     }
 
     joinGame(roomCode, foundCallback) {
@@ -110,12 +128,13 @@ class NetGame {
     addPlayer(player, callback) {
         this._localPlayers[player.name] = player;
 
-        let refAllUsers = firebase.database().ref(`/rooms/${this.roomCode}`);
+        let refRoom = firebase.database().ref(`/rooms/${this.roomCode}`);
 
-        refAllUsers.transaction(
+        refRoom.transaction(
             (room) => {
+                console.log(room);
                 if (room === null) {
-                    return;
+                    return {};
                 }
                 if (room.gameStarted) {
                     return;

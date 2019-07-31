@@ -685,31 +685,33 @@ window.addEventListener("load", function() {
     make.onclick = () => {
         let netgame = new NetGame();
 
-        netgame.createGame(console.log);
+        netgame.createGame((success) => {
+            if (success) {
+                window.alert(netgame.roomCode);
 
-        window.alert(netgame.roomCode);
+                netgame.onPlayerAdd = console.log;
 
-        netgame.onPlayerAdd = console.log;
+                let names = shuffle([/*"Shinji",*/ "Rei", "Asuka"]);
 
-        let names = shuffle([/*"Shinji",*/ "Rei", "Asuka"]);
+                let we = new OurPlayer(netgame, netgame.table, "Shinji", "honest");
+                let bot = new BotPlayer(netgame, netgame.table, names.pop(), "saboteur");
+                let bot2 = new BotPlayer(netgame, netgame.table, names.pop(), "saboteur");
 
-        let we = new OurPlayer(netgame, netgame.table, "Shinji", "honest");
-        let bot = new BotPlayer(netgame, netgame.table, names.pop(), "saboteur");
-        let bot2 = new BotPlayer(netgame, netgame.table, names.pop(), "saboteur");
+                let gui = new GUI(netgame.table, we, svg);
 
-        let gui = new GUI(netgame.table, we, svg);
+                netgame.addPlayer(we, console.log);
+                netgame.addPlayer(bot, console.log);
+                netgame.addPlayer(bot2, console.log);
 
-        netgame.addPlayer(we, console.log);
-        netgame.addPlayer(bot, console.log);
-        netgame.addPlayer(bot2, console.log);
+                netgame.onGameStart = function(table) {
+                    gui.redraw();
 
-        netgame.onGameStart = function(table) {
-            gui.redraw();
+                    table.startGame();
+                };
 
-            table.startGame();
-        };
-
-        start.onclick = () => netgame.startGame();
+                start.onclick = () => netgame.startGame();
+            }
+        });
     };
 
     join.onclick = () => {
