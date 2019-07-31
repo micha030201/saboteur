@@ -650,7 +650,7 @@ window.addEventListener("load", function() {
     let directBot = new  DirectionBot (table, names.pop(), "saboteur", "down");
     let smartBadBot = new  SmartBadBot (table, names.pop(), "saboteur");
 
-    table.players = [smartBot, smartBadBot,directBot,we];
+  //  table.players = [smartBot, smartBadBot,directBot,we];
     table.deck = shuffle(cardIndices);
     table.finishCards = shuffle([1, 2, 3]);
 

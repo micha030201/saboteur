@@ -136,3 +136,28 @@ function testBorderCheck(){
     }
     return true;
 }
+
+function testBfs(){
+
+    let table = new Table();
+    table.finishCards = shuffle([1, 2, 3]);
+    let smartBadBot = new  SmartBadBot (table, "TestBot", "saboteur");
+    let smartBadBot2 = new  SmartBadBot (table, "TestBot2", "saboteur");
+    table.players = [smartBadBot , smartBadBot2];
+    let move = new Move();
+    move.noop();
+    let nextPlayer = table.nextPlayer();
+    table.moveCallback(move, nextPlayer);
+    for (let i = 0; i<43; ++i){
+        table.deck.push(0);
+        nextPlayer.makeMove(table.processMove.bind(table, nextPlayer));
+    }
+
+    let finishPoints = [[8, 0], [8, -2], [8, 2]];
+    for (let [x, y] of finishPoints){
+        if (table.field.grid[x][y] !== undefined){
+            return false;
+        }
+    }
+    return true;
+}
