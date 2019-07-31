@@ -3,13 +3,13 @@
 /* exported NetGame */
 
 let firebaseConfig = {
-    apiKey: "AIzaSyBkKCcqBlYGyW9x1xglCzSVqqCKpJF_Aq4",
-    authDomain: "saboteur-a2bd1.firebaseapp.com",
-    databaseURL: "https://saboteur-a2bd1.firebaseio.com",
-    projectId: "saboteur-a2bd1",
+    apiKey: "AIzaSyCUyZQ2q6ScfcBDnSzkf-MXpkWFjGLDLvs",
+    authDomain: "saboteur-db7c9.firebaseapp.com",
+    databaseURL: "https://saboteur-db7c9.firebaseio.com",
+    projectId: "saboteur-db7c9",
     storageBucket: "",
-    messagingSenderId: "909750920785",
-    appId: "1:909750920785:web:62f7ca03912cc76a"
+    messagingSenderId: "784977077365",
+    appId: "1:784977077365:web:6c30aaf5c9de20fd"
 };
 firebase.initializeApp(firebaseConfig);
 
