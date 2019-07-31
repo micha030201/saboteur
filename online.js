@@ -126,7 +126,7 @@ class NetGame {
     }
 
     onMoveChange(player, oldMove, callback) {
-        let refUser = firebase.database().ref(`/rooms/${this.roomCode}/us/ers/${player.name}`);
+        let refUser = firebase.database().ref(`/rooms/${this.roomCode}/users/${player.name}`);
         refUser.on(
             "child_changed",
             (snapshot) => {

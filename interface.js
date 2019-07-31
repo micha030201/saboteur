@@ -35,18 +35,31 @@ const FIELD_HEIGHT = 13;
 
 
 class OurPlayer extends Player {
-    constructor(...args) {
+    constructor(netgame, ...args) {
         super(...args);
-        this.moveDone = null;
+
+        this.netgame = netgame;
+        this._moveDone = null;
+    }
+
+    moveDone(move) {
+        this.netgame.sendMove(this, move);
+        this._moveDone(move);
     }
 
     makeMove(callback) {
         console.log("player");
-        this.moveDone = callback;
+        this._moveDone = callback;
     }
 }
 
 class BotPlayer extends Player {
+    constructor(netgame, ...args) {
+        super(...args);
+
+        this.netgame = netgame;
+    }
+
     makeMove(callback) {
         console.log(this.name);
 
@@ -67,6 +80,7 @@ class BotPlayer extends Player {
             move.placeCard(card, a, b);
         }
 
+        this.netgame.sendMove(this, move);
         setTimeout(() => callback(move), 0);
     }
 }
@@ -679,9 +693,9 @@ window.addEventListener("load", function() {
 
         let names = shuffle(["Shinji", "Rei", "Asuka"]);
 
-        let we = new OurPlayer(netgame.table, names.pop(), "honest");
-        let bot = new BotPlayer(netgame.table, names.pop(), "saboteur");
-        let bot2 = new BotPlayer(netgame.table, names.pop(), "saboteur");
+        let we = new OurPlayer(netgame, netgame.table, names.pop(), "honest");
+        let bot = new BotPlayer(netgame, netgame.table, names.pop(), "saboteur");
+        let bot2 = new BotPlayer(netgame, netgame.table, names.pop(), "saboteur");
 
         let gui = new GUI(netgame.table, we, svg);
 
@@ -703,7 +717,7 @@ window.addEventListener("load", function() {
 
         netgame.onPlayerAdd = console.log;
 
-        let we = new OurPlayer(netgame.table, "literally me rn");
+        let we = new OurPlayer(netgame, netgame.table, "literally me rn");
 
         netgame.joinGame(
             keyInput.value,
