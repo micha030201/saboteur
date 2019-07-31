@@ -39,11 +39,17 @@ class NetGame {
 
     _onPlayerAdd(snapshot) {
         let player = new OnlinePlayer(this, this.table, snapshot.key);
+        if (this.table.players.map(p => p.name).includes(player.name)) {
+            return;
+        }
+        this.table.players.push(player);
         this.onPlayerAdd(player);
     }
 
     createGame() {
         this.roomCode = firebase.database().ref("/rooms").push().key;
+        firebase.database().ref(`/rooms/${this.roomCode}/gameStarted`).set("false");
+
         let refAllUsers = firebase.database().ref(`/rooms/${this.roomCode}/users`);
         refAllUsers.on("child_added", this._onPlayerAdd.bind(this));
     }
@@ -51,28 +57,39 @@ class NetGame {
     joinGame(roomCode, foundCallback, startedCallback) {
         // FIXME what if the supplied room code has a forward-slash?
         this.roomCode = roomCode;
-        this.startedCallback = startedCallback;
 
         let refAllRooms = firebase.database().ref("/rooms");
-        refAllRooms.once("value")
+        refAllRooms.once("value")                 // 2 arguments ???
             .then(function(snapshot) {
                 foundCallback(snapshot.hasChild(roomCode));
+                //TODO don't join started game
             });
 
         let refAllUsers = firebase.database().ref(`/rooms/${roomCode}/users`);
         refAllUsers.on("child_added", this._onPlayerAdd.bind(this));
 
         // TODO on game started call callback
+        this.table.deck = firebase.database().ref(`/rooms/${roomCode}/deck`).val();
+        this.table.finishCards = firebase.database().ref(`/rooms/${roomCode}/finishCards`).val();
+
+        let refGameStarted = firebase.database().ref(`/rooms/${this.roomCode}/gameStarted`);
+        refGameStarted.on("value", function(snapshot) {
+            startedCallback(this.table);
+        });
     }
 
     addPlayer(player) {
+        this.table.players.push(player);
         let refUser = firebase.database().ref(`/rooms/${this.roomCode}/users/${player.name}`);
         refUser.set("");
     }
 
-    startGame() {
+    startGame(startedCallback) {
         let finishCards = [1, 2, 3];
         shuffle(finishCards);
+        shuffle(cardIndices);
+        this.table.deck = cardIndices;
+        this.table.finishCards = finishCards;
         let refRoom = firebase.database().ref(`/rooms/${this.roomCode}`);
         refRoom.update( {
             field: {
@@ -94,6 +111,9 @@ class NetGame {
                 });
             });
         });
+
+        firebase.database().ref(`/rooms/${this.roomCode}/gameStarted`).set("true");
+        startedCallback(this.table);
     }
 
     static _parseMove(snapshot) {
@@ -105,7 +125,7 @@ class NetGame {
     }
 
     onMoveChange(player, oldMove, callback) {
-        let refUser = firebase.database().ref(`/rooms/${this.roomCode}/users/${player.name}`);
+        let refUser = firebase.database().ref(`/rooms/${this.roomCode}/us/ers/${player.name}`);
         refUser.on(
             "child_changed",
             (snapshot) => {
@@ -132,42 +152,3 @@ class NetGame {
         refUserLastMove.set(move);
     }
 }
-
-/*let game = new NetGame();
-
-document.addEventListener("DOMContentLoaded", function() {
-    $("#newRoom").click(function() {
-        game.onPlayerAdd = function(name) { console.log(name); };
-
-        let player = new Player(null, document.getElementById("name").value);
-        game.createGame();
-        game.addPlayer(player);
-
-    });
-
-    $("#startGame").click(function() {game.startGame()});
-
-    $("#addUser").click(function() {
-        game.onPlayerAdd = function(name) { console.log(name); };
-        let roomCode = document.getElementById("roomCode").value;
-
-        game.joinGame(roomCode);
-    });
-
-
-    $("#sendMove").click(function() {
-        let move = new Move();
-        let player = new Player(null, document.getElementById("name").value);
-        move.discard(document.getElementById("newCard").value * 1);
-        game.sendMove(player, move);
-    });
-
-    $("#receiveMove").click(function() {
-        let move = new Move();
-        let player = new Player(null, document.getElementById("name").value);
-        move.discard(6);
-        game.addMoveReceiver(player, move, console.log);
-    });
-});*/
-
-
