@@ -6,7 +6,7 @@ function symmetrical(card) {
     return (dirs(card).up === dirs(card).down && dirs(card).left === dirs(card).right);
 }
 
-class Table {  // in the most unlikely scenario you still have time for that, rewrite so that it can get finish cards from the server
+class Table {
     constructor() {
         this.players = [];
 
@@ -100,10 +100,10 @@ class Table {  // in the most unlikely scenario you still have time for that, re
 }
 
 class Player {  // base class
-    constructor(table, name, allegiance) {
+    constructor(table, name) {
         this.table = table;
         this.name = name;
-        this.allegiance = allegiance;
+        this.allegiance = "[DATA EXPUNGED]";
         this.hand = [];
         //this.breakage
     }

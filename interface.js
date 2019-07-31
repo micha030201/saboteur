@@ -1,11 +1,11 @@
 "use strict"
-/* global dirs Table Player Move shuffle cardIndices symmetrical */
+/* global dirs Player Move shuffle symmetrical NetGame */
 
 const ANIMATION_LENGTH = 600;  // in milliseconds
 
 // has to correspond to assets/* image sizes
 const TEXTURE_WIDTH = 10;
-const TEXTURE_HEIGHT_RATIO = 538 / 380;
+const TEXTURE_HEIGHT_RATIO = 1.5;// 538 / 380;
 
 const TOTAL_CARDS_HORIZONTALLY = 18;
 const TOTAL_CARDS_VERTICALLY = 21;
@@ -94,8 +94,6 @@ class GUI {
 
         this.svg = svg;
         window.addEventListener('resize', this.redraw.bind(this));
-
-        this.redraw();
     }
 
     XYtoAB(x, y) {
@@ -665,19 +663,27 @@ class GUI {
 window.addEventListener("load", function() {
     let svg = document.getElementById("gamearea");
 
-    let table = new Table();
+    let netgame = new NetGame();
+
+    netgame.createGame();
+
+    netgame.onPlayerAdd = console.log;
 
     let names = shuffle(["Shinji", "Rei", "Asuka"]);
 
-    let we = new OurPlayer(table, names.pop(), "honest");
-    let bot = new BotPlayer(table, names.pop(), "saboteur");
-    let bot2 = new BotPlayer(table, names.pop(), "saboteur");
+    let we = new OurPlayer(netgame.table, names.pop(), "honest");
+    let bot = new BotPlayer(netgame.table, names.pop(), "saboteur");
+    let bot2 = new BotPlayer(netgame.table, names.pop(), "saboteur");
 
-    table.players = [we, bot, bot2];
-    table.deck = shuffle(cardIndices);
-    table.finishCards = shuffle([1, 2, 3]);
+    let gui = new GUI(netgame.table, we, svg);
 
-    let gui = new GUI(table, we, svg);
+    netgame.addPlayer(we);
+    netgame.addPlayer(bot);
+    netgame.addPlayer(bot2);
 
-    table.startGame();
+    netgame.startGame(function(table) {
+        gui.redraw();
+
+        table.startGame();
+    });
 });

@@ -1,5 +1,6 @@
 "use strict"
-/* global firebase Player Move shuffle cardIndices */
+/* global firebase Table Player Move shuffle cardIndices */
+/* exported NetGame */
 
 let firebaseConfig = {
     apiKey: "AIzaSyBkKCcqBlYGyW9x1xglCzSVqqCKpJF_Aq4",
@@ -13,13 +14,31 @@ let firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 
+class OnlinePlayer extends Player {
+    constructor(netgame, ...args) {
+        super(...args);
+
+        this.netgame = netgame;
+
+        let move = new Move();
+        move.noop();
+        this.lastMove = move;
+    }
+
+    makeMove(callback) {
+        console.log(this.name);
+        this.netgame.onMoveChange(this, this.lastMove, callback);
+    }
+}
+
 class NetGame {
     constructor() {
+        this.table = new Table();
         this.onPlayerAdd = () => {};
     }
 
     _onPlayerAdd(snapshot) {
-        let player = new Player(snapshot.key);
+        let player = new OnlinePlayer(this, this.table, snapshot.key);
         this.onPlayerAdd(player);
     }
 
@@ -85,7 +104,7 @@ class NetGame {
         return move;
     }
 
-    addMoveReceiver(player, oldMove, callback) {
+    onMoveChange(player, oldMove, callback) {
         let refUser = firebase.database().ref(`/rooms/${this.roomCode}/users/${player.name}`);
         refUser.on(
             "child_changed",
@@ -114,7 +133,7 @@ class NetGame {
     }
 }
 
-let game = new NetGame();
+/*let game = new NetGame();
 
 document.addEventListener("DOMContentLoaded", function() {
     $("#newRoom").click(function() {
@@ -149,6 +168,6 @@ document.addEventListener("DOMContentLoaded", function() {
         move.discard(6);
         game.addMoveReceiver(player, move, console.log);
     });
-});
+});*/
 
 
