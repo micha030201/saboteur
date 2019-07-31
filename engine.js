@@ -93,8 +93,8 @@ class Table {
         move.noop();
 
         // ready player minus one, i guess
-        let nextPlayer = this.nextPlayer();
-        this.moveCallback(move, nextPlayer);
+        let nextPlayer = this.nextPlayer(this.players[0]);
+        this.moveCallback(move, this.players[0]);
         nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
     }
 }

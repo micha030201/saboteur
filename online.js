@@ -25,24 +25,32 @@ class OnlinePlayer extends Player {
         this.lastMove = move;
     }
 
+    moveDone(move) {
+        this.lastMove = move;
+        this._moveDone(move);
+    }
+
     makeMove(callback) {
         console.log(this.name);
-        this.netgame.onMoveChange(this, this.lastMove, callback);
+        this._moveDone = callback;
+        this.netgame.onMoveChange(this, this.lastMove, this.moveDone.bind(this));
     }
 }
 
 class NetGame {
     constructor() {
+        this._players = {};
+
         this.table = new Table();
         this.onPlayerAdd = () => {};
     }
 
     _onPlayerAdd(snapshot) {
         let player = new OnlinePlayer(this, this.table, snapshot.key);
-        if (this.table.players.map(p => p.name).includes(player.name)) {
+        if (typeof this._players[player.name] !== "undefined") {
             return;
         }
-        this.table.players.push(player);
+        this._players[player.name] = player;
         this.onPlayerAdd(player);
     }
 
@@ -73,6 +81,10 @@ class NetGame {
         refGameStarted.on("value", (snapshot) => {
             if (snapshot.val()) {
                 firebase.database().ref(`/rooms/${roomCode}`).once("value", (snapshot) => {
+                    snapshot.child("users").forEach(snapshot => {
+                        console.log(111, snapshot.key);
+                        this.table.players.push(this._players[snapshot.key]);
+                    });
                     this.table.deck = snapshot.child("deck").val();
                     this.table.finishCards = snapshot.child("finishCards").val();
 
@@ -83,7 +95,7 @@ class NetGame {
     }
 
     addPlayer(player) {
-        this.table.players.push(player);
+        this._players[player.name] = player;
         let refUser = firebase.database().ref(`/rooms/${this.roomCode}/users/${player.name}`);
         refUser.set("");
     }
@@ -114,7 +126,14 @@ class NetGame {
         });
 
         firebase.database().ref(`/rooms/${this.roomCode}/gameStarted`).set(true);
-        startedCallback(this.table);
+        firebase.database().ref(`/rooms/${this.roomCode}`).once("value", (snapshot) => {
+            snapshot.child("users").forEach(snapshot => {
+                console.log(222, snapshot.key);
+                this.table.players.push(this._players[snapshot.key]);
+            });
+
+            startedCallback(this.table);
+        });
     }
 
     static _parseMove(snapshot) {

@@ -48,7 +48,7 @@ class OurPlayer extends Player {
     }
 
     makeMove(callback) {
-        console.log("player");
+        console.log(this.name);
         this._moveDone = callback;
     }
 }
@@ -691,9 +691,9 @@ window.addEventListener("load", function() {
 
         netgame.onPlayerAdd = console.log;
 
-        let names = shuffle(["Shinji", "Rei", "Asuka"]);
+        let names = shuffle([/*"Shinji",*/ "Rei", "Asuka"]);
 
-        let we = new OurPlayer(netgame, netgame.table, names.pop(), "honest");
+        let we = new OurPlayer(netgame, netgame.table, "Shinji", "honest");
         let bot = new BotPlayer(netgame, netgame.table, names.pop(), "saboteur");
         let bot2 = new BotPlayer(netgame, netgame.table, names.pop(), "saboteur");
 
@@ -717,7 +717,7 @@ window.addEventListener("load", function() {
 
         netgame.onPlayerAdd = console.log;
 
-        let we = new OurPlayer(netgame, netgame.table, "literally me rn");
+        let we = new OurPlayer(netgame, netgame.table, "Misato");
 
         netgame.joinGame(
             keyInput.value,
