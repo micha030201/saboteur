@@ -1,5 +1,5 @@
 "use strict"
-/* global firebase Table Player Move shuffle cardIndices Join */
+/* global firebase Table Player Move shuffle cardIndices */
 /* exported NetGame */
 
 let firebaseConfig = {
@@ -12,6 +12,9 @@ let firebaseConfig = {
     appId: "1:784977077365:web:6c30aaf5c9de20fd"
 };
 firebase.initializeApp(firebaseConfig);
+
+let NOOP_MOVE = new Move();
+NOOP_MOVE.noop();
 
 
 class OnlinePlayer extends Player {
@@ -46,9 +49,8 @@ class NetGame {
         this.onGameStart = () => {};
     }
 
-
     _onGameStart(snapshot) {
-        if (snapshot.val() === "started") {
+        if (snapshot.val()) {
             firebase.database().ref(`/rooms/${this.roomCode}`).once(
                 "value",
                 (snapshot) => {
@@ -92,7 +94,7 @@ class NetGame {
             (room) => {
                 if (room === null) {
                     return {
-                        gameStarted: "not",
+                        gameStarted: false,
                     };
                 }
             },
@@ -112,11 +114,11 @@ class NetGame {
         // FIXME what if the supplied room code has a forward-slash?
         this.roomCode = roomCode;
 
-        let refAllRooms = firebase.database().ref("/rooms");
-        refAllRooms.once(
+        let refRoom = firebase.database().ref(`/rooms/${roomCode}`);
+        refRoom.once(
             "value",
             (snapshot) => {
-                let success = snapshot.hasChild(roomCode);
+                let success = snapshot.exists();
                 if (success) {
                     this._registerCallbacks();
                 }
@@ -136,13 +138,16 @@ class NetGame {
                 if (room === null) {
                     return {};
                 }
-                if (room.gameStarted !== "not") {
+                if (room.gameStarted) {
                     return;
                 } else {
                     if (typeof room.users === "undefined") {
                         room.users = [];
                     }
-                    room.users[player.name] = "...";
+                    room.users[player.name] = {
+                        role: "[DATA EXPUNGED]",
+                        lastMove: NOOP_MOVE,
+                    };
                     return room;
                 }
             },
@@ -159,29 +164,27 @@ class NetGame {
         this.table.finishCards = finishCards;
 
         let refRoom = firebase.database().ref(`/rooms/${this.roomCode}`);
-        refRoom.update( {
-            deck: cardIndices,
-            finishCards: finishCards,
-            //allMoves: [],
-        });
+        refRoom.transaction(
+            (room) => {
+                if (room === null) {
+                    return {};
+                }
+                if (room.gameStarted) {
+                    return;
+                }
+                room.gameStarted = true;
+                room.deck = cardIndices;
+                room.finishCards = finishCards;
 
-        let refGameStarted = firebase.database().ref(`/rooms/${this.roomCode}/gameStarted`);
-        let refAllUsers = firebase.database().ref(`/rooms/${this.roomCode}/users`);
-        refAllUsers.once("value", (snapshot) => {
-            refGameStarted.set("starting", () => {
-                let join = new Join(
-                    snapshot.numChildren(),
-                    () => refGameStarted.set("started")
-                );
-                snapshot.forEach(function (child) {
-                    let refCurrentUser = refAllUsers.child(child.key);
-                    refCurrentUser.set({
-                        role: "...",
-                        lastMove: "...",
-                    }, join.oneDone);
-                });
-            });
-        });
+                for (let user of Object.values(room.users)) {
+                    user.role = "some known value";
+                }
+
+                return room;
+            },
+            () => {},  // the function should only fail when the game has already started
+            false
+        );
     }
 
     static _parseMove(snapshot) {
