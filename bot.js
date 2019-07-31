@@ -80,8 +80,8 @@ class SmartBot extends Player {
                 biasX += currentVertex.x;
                 biasY += currentVertex.y;
                 if (this.canPassThrough(currentVertex.x, currentVertex.y, where) ||
-                        Math.abs(biasY) > 3 || biasX < -2 || biasX > 10 ||
-                            this.canPassThrough(biasX, biasY, from)) {
+                            this.canPassThrough(biasX, biasY, from) ||
+                                !(Field.isInside(biasX, biasY))) {
                     continue;
                 }
 
@@ -274,6 +274,7 @@ class SmartBadBot extends MostDistantBot{
 
         if (this.bestcard === undefined && this.worstCard == undefined) {
             move.discard(this.hand[0]);
+            setTimeout(() => callback(move), 0);
         } else {
             if (this.worstCard !== undefined){
                 let finishPoints = [[8, 0], [8, -2], [8, 2]];
@@ -285,8 +286,13 @@ class SmartBadBot extends MostDistantBot{
                     }
                 }
             }
-            move.placeCard(this.bestcard, this.x, this.y);
-            setTimeout(() => callback(move), 0);
+            if (this.bestcard !== undefined){
+                move.placeCard(this.bestcard, this.x, this.y);
+                setTimeout(() => callback(move), 0);
+            }else{
+                move.discard(this.hand[0]);
+                setTimeout(() => callback(move), 0);
+            }
         }
     }
 

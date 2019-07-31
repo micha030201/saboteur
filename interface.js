@@ -645,7 +645,7 @@ window.addEventListener("load", function() {
 
     let names = shuffle(["Shinji", "Rei", "Asuka", "Misato"]);
 
-    let we = new OurPlayer (table, names.pop(), "honest");
+    let we = new MostDistantBot (table, names.pop(), "honest");
     let smartBot = new SmartBot (table, names.pop(), "honest");
     let directBot = new  DirectionBot (table, names.pop(), "saboteur", "down");
     let smartBadBot = new  SmartBadBot (table, names.pop(), "saboteur");
