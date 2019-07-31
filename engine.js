@@ -201,13 +201,19 @@ class Field {
         ];
     }
 
+    static isInside(a, b) {
+        return (
+            (-5 < a && a < 13) &&
+            (-7 < b && b < 7)
+        );
+    }
+
     availableSpaces(card) {
         let result = [];
         let reachable = this.reachableSpaces();
         for (let [a, b] of reachable) {
             if (
-                (-3 < a && a < 11)
-                && (-4 < b && b < 4)
+                Field.isInside(a, b)
                 && this.canPlaceInPosition(card, a, b).all()
             ) {
                 result.push([a, b]);
