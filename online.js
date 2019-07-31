@@ -48,7 +48,7 @@ class NetGame {
 
 
     _onGameStart(snapshot) {
-        if (snapshot.val()) {
+        if (snapshot.val() === "started") {
             firebase.database().ref(`/rooms/${this.roomCode}`).once(
                 "value",
                 (snapshot) => {
@@ -92,7 +92,7 @@ class NetGame {
             (room) => {
                 if (room === null) {
                     return {
-                        gameStarted: false,
+                        gameStarted: "not",
                     };
                 }
             },
@@ -136,7 +136,7 @@ class NetGame {
                 if (room === null) {
                     return {};
                 }
-                if (room.gameStarted) {
+                if (room.gameStarted !== "not") {
                     return;
                 } else {
                     if (typeof room.users === "undefined") {
@@ -165,18 +165,21 @@ class NetGame {
             //allMoves: [],
         });
 
+        let refGameStarted = firebase.database().ref(`/rooms/${this.roomCode}/gameStarted`);
         let refAllUsers = firebase.database().ref(`/rooms/${this.roomCode}/users`);
         refAllUsers.once("value", (snapshot) => {
-            let join = new Join(
-                snapshot.numChildren(),
-                () => firebase.database().ref(`/rooms/${this.roomCode}/gameStarted`).set(true)
-            );
-            snapshot.forEach(function (child) {
-                let refCurrentUser = refAllUsers.child(child.key);
-                refCurrentUser.set({
-                    role: "...",
-                    lastMove: "...",
-                }, join.oneDone);
+            refGameStarted.set("starting", () => {
+                let join = new Join(
+                    snapshot.numChildren(),
+                    () => refGameStarted.set("started")
+                );
+                snapshot.forEach(function (child) {
+                    let refCurrentUser = refAllUsers.child(child.key);
+                    refCurrentUser.set({
+                        role: "...",
+                        lastMove: "...",
+                    }, join.oneDone);
+                });
             });
         });
     }
