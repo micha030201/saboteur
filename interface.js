@@ -675,68 +675,72 @@ class GUI {
 }
 
 window.addEventListener("load", function() {
-    let svg = document.getElementById("gamearea");
+    let screens = {};
+    for (let screenElem of document.querySelectorAll("template")) {
+        screens[screenElem.id] = document.importNode(screenElem.content, true);
+    }
 
-    let make = document.getElementById("new");
-    let join = document.getElementById("join");
-    let keyInput = document.getElementById("roomKey");
-    let start = document.getElementById("start");
-
-    make.onclick = () => {
-        let netgame = new NetGame();
-
-        netgame.createGame((success) => {
-            if (success) {
-                window.alert(netgame.roomCode);
-
-                netgame.onPlayerAdd = console.log;
-
-                let names = shuffle([/*"Shinji",*/ "Rei", "Asuka"]);
-
-                let we = new OurPlayer(netgame, netgame.table, "Shinji", "honest");
-                let bot = new BotPlayer(netgame, netgame.table, names.pop(), "saboteur");
-                let bot2 = new BotPlayer(netgame, netgame.table, names.pop(), "saboteur");
-
-                let gui = new GUI(netgame.table, we, svg);
-
-                netgame.addPlayer(we, console.log);
-                netgame.addPlayer(bot, console.log);
-                netgame.addPlayer(bot2, console.log);
-
-                netgame.onGameStart = function(table) {
-                    gui.redraw();
-
-                    table.startGame();
-                };
-
-                start.onclick = () => netgame.startGame();
-            }
-        });
+    let switchScreens = function(newScreen) {
+        while (document.body.lastChild) {
+            document.body.removeChild(document.body.lastChild);
+        }
+        document.body.appendChild(screens[newScreen]);
     };
 
-    join.onclick = () => {
-        let netgame = new NetGame();
+    if (window.location.hash) {
+        // TODO parse
+    }
+
+    switchScreens("lobby");
+
+    let netgame = new NetGame();
+
+    let proceedWithGameCreation = () => {
+        window.location.hash = "#" + netgame.roomCode;
+        switchScreens("gameCreated");
 
         netgame.onPlayerAdd = console.log;
 
-        let we = new OurPlayer(netgame, netgame.table, "Misato");
+        let we;
+        let names = shuffle(["Shinji", "Rei", "Asuka"]);
 
         netgame.onGameStart = function(table) {
-            console.log(123);
+            switchScreens("gameStarted");
+            let svg = document.getElementById("gamearea");
+
+            let gui = new GUI(netgame.table, we, svg);
             gui.redraw();
 
             table.startGame();
-        }
+        };
 
-        netgame.joinGame(
-            keyInput.value,
-            console.log
-        );
+        document.getElementById("joinGame").onclick = () => {
+            we = new OurPlayer(netgame, netgame.table, document.getElementById("nameInput").value);
+            netgame.addPlayer(we, (success) => {
+                if (!success) {
+                    switchScreens("joinFail");
+                }
+                document.getElementById("nameInput").a("disabled", true);
+            });
+        };
 
-        netgame.addPlayer(we, console.log);
+        document.getElementById("addBot").onclick = () => {
+            let bot = new BotPlayer(netgame, netgame.table, names.pop());
+            netgame.addPlayer(bot, (success) => {
+                if (!success) {
+                    switchScreens("joinFail");
+                }
+            });
+        };
 
-        let gui = new GUI(netgame.table, we, svg);
+        document.getElementById("startGame").onclick = () => netgame.startGame();
+    };
 
-        console.log(keyInput.value);
+    document.getElementById("createPrivateGame").onclick = () => {
+        netgame.createGame(false, proceedWithGameCreation);
+    };
+
+    document.getElementById("joinPublicGame").onclick = () => {
+        netgame.joinPublicGame(proceedWithGameCreation);
     };
 });

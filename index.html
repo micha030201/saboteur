@@ -11,11 +11,26 @@
     <script type="text/javascript" src="interface.js"></script>
 </head>
 <body style="margin:0px;">
-    <button id="new">new</button><input type="text" id="roomKey" /><button id="join">join</button><button id="start">start</button>
-    <svg id="gamearea" width="1000" height="1000" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 1000">
-        <image id="discardPile" xlink:href="assets/discard.svg" />
-        <image xlink:href="assets/rotate.svg" />
-    </svg>
+    <template id="lobby">
+        <button id="createPrivateGame">create private game</button>
+        <button id="joinPublicGame">join public game</button>
+    </template>
+    <template id="gameSelected">
+        <input id="nameInput" type="text" />
+        <button id="joinGame">join</button>
+    </template>
+    <template id="gameCreated">
+        <input id="nameInput" type="text" />
+        <button id="joinGame">join</button>
+        <button id="addBot">add bot</button>
+        <button id="startGame">start game</button>
+    </template>
+    <template id="gameStarted">
+        <svg id="gamearea" width="1000" height="1000" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 1000">
+            <image id="discardPile" xlink:href="assets/discard.svg" />
+            <image xlink:href="assets/rotate.svg" />
+        </svg>
+    </template>
 </body>
 
 </html>

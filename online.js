@@ -85,7 +85,7 @@ class NetGame {
         refGameStarted.on("value", this._onGameStart.bind(this));
     }
 
-    createGame(callback) {
+    createGame(isPublic, callback) {
         this.roomCode = firebase.database().ref("/rooms").push().key;
 
         let refRoom = firebase.database().ref(`/rooms/${this.roomCode}`);
@@ -94,6 +94,7 @@ class NetGame {
             (room) => {
                 if (room === null) {
                     return {
+                        thePublicGame: isPublic,
                         gameStarted: false,
                     };
                 }
@@ -125,6 +126,21 @@ class NetGame {
                 foundCallback(success);
             }
         );
+    }
+
+    joinPublicGame(callback) {
+        firebase.database().ref("/rooms").orderByChild("thePublicGame").equalTo(true).limitToFirst(1).once("value", (snapshot) => {
+            let success = snapshot.numChildren() === 1;
+            if (success) {
+                snapshot.forEach((snapshot) => {  // there should only ever be one
+                    this.roomCode = snapshot.key;
+                    this._registerCallbacks();
+                    callback();
+                });
+            } else {
+                this.createGame(true, callback);
+            }
+        });
     }
 
     addPlayer(player, callback) {
@@ -173,6 +189,7 @@ class NetGame {
                     return;
                 }
                 room.gameStarted = true;
+                room.thePublicGame = false;
                 room.deck = cardIndices;
                 room.finishCards = finishCards;
 
