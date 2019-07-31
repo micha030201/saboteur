@@ -663,27 +663,63 @@ class GUI {
 window.addEventListener("load", function() {
     let svg = document.getElementById("gamearea");
 
-    let netgame = new NetGame();
+    let make = document.getElementById("new");
+    let join = document.getElementById("join");
+    let keyInput = document.getElementById("roomKey");
+    let start = document.getElementById("start");
 
-    netgame.createGame();
+    make.onclick = () => {
+        let netgame = new NetGame();
 
-    netgame.onPlayerAdd = console.log;
+        netgame.createGame();
 
-    let names = shuffle(["Shinji", "Rei", "Asuka"]);
+        window.alert(netgame.roomCode);
 
-    let we = new OurPlayer(netgame.table, names.pop(), "honest");
-    let bot = new BotPlayer(netgame.table, names.pop(), "saboteur");
-    let bot2 = new BotPlayer(netgame.table, names.pop(), "saboteur");
+        netgame.onPlayerAdd = console.log;
 
-    let gui = new GUI(netgame.table, we, svg);
+        let names = shuffle(["Shinji", "Rei", "Asuka"]);
 
-    netgame.addPlayer(we);
-    netgame.addPlayer(bot);
-    netgame.addPlayer(bot2);
+        let we = new OurPlayer(netgame.table, names.pop(), "honest");
+        let bot = new BotPlayer(netgame.table, names.pop(), "saboteur");
+        let bot2 = new BotPlayer(netgame.table, names.pop(), "saboteur");
 
-    netgame.startGame(function(table) {
-        gui.redraw();
+        let gui = new GUI(netgame.table, we, svg);
 
-        table.startGame();
-    });
+        netgame.addPlayer(we);
+        netgame.addPlayer(bot);
+        netgame.addPlayer(bot2);
+
+        start.onclick = () => {
+            netgame.startGame(function(table) {
+                gui.redraw();
+
+                table.startGame();
+            });
+        };
+    };
+
+    join.onclick = () => {
+        let netgame = new NetGame();
+
+        netgame.onPlayerAdd = console.log;
+
+        let we = new OurPlayer(netgame.table, "literally me rn");
+
+        netgame.joinGame(
+            keyInput.value,
+            console.log,
+            function(table) {
+                console.log(123);
+                gui.redraw();
+
+                table.startGame();
+            }
+        );
+
+        netgame.addPlayer(we);
+
+        let gui = new GUI(netgame.table, we, svg);
+
+        console.log(keyInput.value);
+    };
 });

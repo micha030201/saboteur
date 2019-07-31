@@ -48,7 +48,7 @@ class NetGame {
 
     createGame() {
         this.roomCode = firebase.database().ref("/rooms").push().key;
-        firebase.database().ref(`/rooms/${this.roomCode}/gameStarted`).set("false");
+        firebase.database().ref(`/rooms/${this.roomCode}/gameStarted`).set(false);
 
         let refAllUsers = firebase.database().ref(`/rooms/${this.roomCode}/users`);
         refAllUsers.on("child_added", this._onPlayerAdd.bind(this));
@@ -59,7 +59,7 @@ class NetGame {
         this.roomCode = roomCode;
 
         let refAllRooms = firebase.database().ref("/rooms");
-        refAllRooms.once("value")                 // 2 arguments ???
+        refAllRooms.once("value")
             .then(function(snapshot) {
                 foundCallback(snapshot.hasChild(roomCode));
                 //TODO don't join started game
@@ -68,13 +68,17 @@ class NetGame {
         let refAllUsers = firebase.database().ref(`/rooms/${roomCode}/users`);
         refAllUsers.on("child_added", this._onPlayerAdd.bind(this));
 
-        // TODO on game started call callback
-        this.table.deck = firebase.database().ref(`/rooms/${roomCode}/deck`).val();
-        this.table.finishCards = firebase.database().ref(`/rooms/${roomCode}/finishCards`).val();
 
         let refGameStarted = firebase.database().ref(`/rooms/${this.roomCode}/gameStarted`);
-        refGameStarted.on("value", function(snapshot) {
-            startedCallback(this.table);
+        refGameStarted.on("value", (snapshot) => {
+            if (snapshot.val()) {
+                firebase.database().ref(`/rooms/${roomCode}`).once("value", (snapshot) => {
+                    this.table.deck = snapshot.child("deck").val();
+                    this.table.finishCards = snapshot.child("finishCards").val();
+
+                    startedCallback(this.table);
+                });
+            }
         });
     }
 
@@ -90,14 +94,12 @@ class NetGame {
         shuffle(cardIndices);
         this.table.deck = cardIndices;
         this.table.finishCards = finishCards;
+
         let refRoom = firebase.database().ref(`/rooms/${this.roomCode}`);
         refRoom.update( {
-            field: {
-                0: "0, 0"
-            },
             deck: cardIndices,
             finishCards: finishCards,
-            //allMoves
+            //allMoves: [],
         });
 
         let refAllUsers = firebase.database().ref(`/rooms/${this.roomCode}/users`);
@@ -106,13 +108,12 @@ class NetGame {
                 let refCurrentUser = refAllUsers.child(child.key);
                 refCurrentUser.set({
                     role: "...",
-                    //lastMove
-                    hand: "..."
+                    lastMove: "...",
                 });
             });
         });
 
-        firebase.database().ref(`/rooms/${this.roomCode}/gameStarted`).set("true");
+        firebase.database().ref(`/rooms/${this.roomCode}/gameStarted`).set(true);
         startedCallback(this.table);
     }
 
