@@ -1,9 +1,11 @@
 "use strict"
 /* global DefaultDict */
-/* exported dirs type finishCards cardIndices rolesN finishCardAB finishCardIndex */
+/* exported dirs type impairmentType finishCards cardIndices rolesN finishCardAB finishCardIndex */
 
 const DESTROY_CARDS = 3;
 const MAP_CARDS = 6;
+const IMPAIR_CARDS = 99;
+const REPAIR_CARDS = 9;
 
 let _dirs = [
     { up: "yes",  down: "yes",  left: "yes",  right: "yes"  },
@@ -54,7 +56,7 @@ let _dirs = [
 let finishCards = [1, 2, 3];
 
 let cardIndices = [];
-for (let i = 4; i < _dirs.length + DESTROY_CARDS + MAP_CARDS; ++i) {
+for (let i = 4; i < _dirs.length + DESTROY_CARDS + MAP_CARDS + IMPAIR_CARDS + REPAIR_CARDS; ++i) {
     cardIndices.push(i);
 }
 
@@ -67,6 +69,12 @@ function type(card) {
     }
     if (card < _dirs.length + DESTROY_CARDS + MAP_CARDS) {
         return "map";
+    }
+    if (card < _dirs.length + DESTROY_CARDS + MAP_CARDS + IMPAIR_CARDS) {
+        return "impair";
+    }
+    if (card < _dirs.length + DESTROY_CARDS + MAP_CARDS + IMPAIR_CARDS + REPAIR_CARDS) {
+        return "repair";
     }
 }
 
@@ -81,6 +89,10 @@ function dirs(card) {
         left: card < 0 ? c.right : c.left,
         right: card < 0 ? c.left : c.right,
     }
+}
+
+function impairmentType(card) {
+    return [(Math.abs(card) - DESTROY_CARDS - MAP_CARDS) % 3];
 }
 
 let rolesN = [

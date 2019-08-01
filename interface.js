@@ -1,5 +1,5 @@
 "use strict"
-/* global dirs finishCardIndex finishCardAB type DefaultDict Player Move shuffle symmetrical NetGame */
+/* global dirs finishCardIndex finishCardAB type impairmentType DefaultDict Player Move shuffle symmetrical NetGame */
 
 const ANIMATION_LENGTH = 600;  // in milliseconds
 
@@ -11,7 +11,7 @@ const TOTAL_CARDS_HORIZONTALLY = 18;
 const TOTAL_CARDS_VERTICALLY = 21;
 
 const ZERO_A = 4;
-const ZERO_B = 10;
+const ZERO_B = 11;
 
 // coordinates below relative to zero
 
@@ -123,6 +123,10 @@ class GUI {
             this.zeroX + a * this.cardWidth,
             this.zeroY + b * this.cardWidth * TEXTURE_HEIGHT_RATIO
         ];
+    }
+
+    get otherPlayers() {
+        return this.table.players.filter(p => p !== this.we);
     }
 
     cardCacheEntry(card) {
@@ -299,19 +303,34 @@ class GUI {
         elem.textContent = player.name;
     }
 
-    _drawOtherHand(player, a, b, instant) {
+    _whereDrawOtherHand(player) {
+        let index = this.otherPlayers.indexOf(player);
+        return [OTHER_HANDS_A + (index % 4) * 4, OTHER_HANDS_B + (index > 5 ? 0 : 2)];
+    }
+
+    _whoseHandThere(a, b) {
+        for (let player of this.otherPlayers) {
+            let [a_, b_] = this._whereDrawOtherHand(player);
+            if (a === a_ && b === b_) {
+                return player;
+            }
+        }
+    }
+
+    _drawOtherHand(player, instant) {
         // TODO draw allegiance
+        let [a, b] = this._whereDrawOtherHand(player);
         let [x, y] = this.ABtoXY(a, b);
-        this._drawName(player, x, y - this.cardWidth / 5);
+        this._drawName(player, x, y - this.cardWidth / 5 - this.cardWidth * TEXTURE_HEIGHT_RATIO / 2);
         for (let [i, card] of player.hand.entries()) {
-            this.drawCard(card, a +  i * (2 / player.hand.length), b, true, instant);
+            this.drawCard(card, a + 0.5 + i * (2 / player.hand.length), b - 0.5, true, instant);
         }
         // TODO draw breakage
     }
 
     drawOtherHands(instant) {
-        for (let [i, player] of Object.entries(this.table.players.filter(p => p !== this.we))) {
-            this._drawOtherHand(player, (i % 3) * 4 + OTHER_HANDS_A, OTHER_HANDS_B + (i > 4 ? 0 : 2), instant);
+        for (let player of this.otherPlayers) {
+            this._drawOtherHand(player, instant);
         }
     }
 
@@ -398,6 +417,8 @@ class GUI {
             (a === DISCARD_PILE_A && b === DISCARD_PILE_B)
             || (type(card) === "destroy" && this.table.field.canBeRemoved(a, b))
             || (type(card) === "map" && typeof finishCardIndex[a][b] !== "undefined" && !this.we.seenFinishCards[finishCardIndex[a][b]])
+            || (type(card) === "impair" && typeof this._whoseHandThere(a, b) !== "undefined" && this._whoseHandThere(a, b).impairments[impairmentType(card)] === null)
+            || (type(card) === "repair" && typeof this._whoseHandThere(a, b) !== "undefined" && this._whoseHandThere(a, b).impairments[impairmentType(card)] !== null)
             || (type(card) === "path" && this.table.field.canBePlaced(card, a, b))
         );
     }
@@ -411,6 +432,10 @@ class GUI {
             move.destroy(card, a, b);
         } else if (type(card) === "map" && typeof finishCardIndex[a][b] !== "undefined" && !this.we.seenFinishCards[finishCardIndex[a][b]]) {
             move.look(card, finishCardIndex[a][b]);
+        } else if (type(card) === "impair" && typeof this._whoseHandThere(a, b) !== "undefined" && this._whoseHandThere(a, b).impairments[impairmentType(card)] === null) {
+            move.impair(card, this._whoseHandThere(a, b));
+        } else if (type(card) === "repair" && typeof this._whoseHandThere(a, b) !== "undefined" && this._whoseHandThere(a, b).impairments[impairmentType(card)] !== null) {
+            move.repair(card, this._whoseHandThere(a, b));
         } else if (type(card) === "path" && this.table.field.canBePlaced(card, a, b)) {
             move.placeCard(card, a, b);
         }
@@ -426,11 +451,9 @@ class GUI {
                     possibleAvailableSpaces.push([i, j]);
                 }
             }
-            /*
-            for (let i = 0; i < this.table.players.length - 1; ++i) {
-                possibleAvailableSpaces.push([(i % 3) * 4 + OTHER_HANDS_A, OTHER_HANDS_B + (i > 4 ? 1 : 3)]);
+            for (let player of this.otherPlayers) {
+                possibleAvailableSpaces.push(this._whereDrawOtherHand(player));
             }
-            */
             possibleAvailableSpaces.push([DISCARD_PILE_A, DISCARD_PILE_B]);
 
             this.availableSpaces = new DefaultDict(function () { return {}; });

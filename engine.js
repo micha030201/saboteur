@@ -1,5 +1,5 @@
 "use strict"
-/* global dirs DefaultDict doesIncludeArray */
+/* global dirs impairmentType DefaultDict doesIncludeArray */
 /* exported symmetrical Table Player Move */
 
 function symmetrical(card) {
@@ -36,6 +36,21 @@ class Table {
             index += this.players.length;
         }
         return this.players[index];
+    }
+
+    processRepairMove(player, move) {
+        let affectedPlayer = this.players[move.playerId];
+
+        let impairmentCard = affectedPlayer.impairments[impairmentType(move.card)];
+        affectedPlayer.impairments[impairmentType(move.card)] = null;
+
+        this.discardPile.push(impairmentCard);
+        this.discardPile.push(move.card);
+    }
+
+    processImpairMove(player, move) {
+        let affectedPlayer = this.players[move.playerId];
+        affectedPlayer.impairments[impairmentType(move.card)] = move.card;
     }
 
     processLookMove(player, move) {
@@ -81,6 +96,10 @@ class Table {
             this.processDestroyMove(player, move);
         } else if (move.type === "look") {
             this.processLookMove(player, move);
+        } else if (move.type === "impair") {
+            this.processImpairMove(player, move);
+        } else if (move.type === "repair") {
+            this.processRepairMove(player, move);
         }
         if (this.deck.length) {
             player.drawCard();
@@ -118,7 +137,7 @@ class Player {  // base class
         this.role = "[DATA EXPUNGED]";
         this.hand = [];
         this.seenFinishCards = [false, false, false];
-        //this.breakage
+        this.impairments = [null, null, null];
     }
 
     drawCard() {
@@ -165,6 +184,18 @@ class Move {
         this.type = "look";
         this.card = card;
         this.index = finishCardIndex;
+    }
+
+    impair(card, player) {
+        this.type = "impair";
+        this.card = card;
+        this.playerId = player.id;
+    }
+
+    repair(card, player) {
+        this.type = "repair";
+        this.card = card;
+        this.playerId = player.id;
     }
 }
 
