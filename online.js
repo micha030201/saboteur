@@ -159,6 +159,9 @@ class NetGame {
                     if (typeof room.users === "undefined") {
                         room.users = [];
                     }
+                    if (room.users.length >= 9) {
+                        return;
+                    }
                     room.users[player.name] = {
                         role: "[DATA EXPUNGED]",
                         lastMove: NOOP_MOVE,

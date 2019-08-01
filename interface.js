@@ -701,25 +701,23 @@ window.addEventListener("load", function() {
 
         netgame.onPlayerAdd = console.log;
 
-        let we;
         let names = shuffle(["Shinji", "Rei", "Asuka"]);
-
-        netgame.onGameStart = function(table) {
-            switchScreens("gameStarted");
-            let svg = document.getElementById("gamearea");
-
-            let gui = new GUI(netgame.table, we, svg);
-            gui.redraw();
-
-            table.startGame();
-        };
 
         document.getElementById("joinGame").onclick = () => {
             let name = document.getElementById("nameInput").value;
             if (name.length === 0) {
                 return;
             }
-            we = new OurPlayer(netgame, netgame.table, name);
+            let we = new OurPlayer(netgame, netgame.table, name);
+            netgame.onGameStart = function(table) {
+                switchScreens("gameStarted");
+                let svg = document.getElementById("gamearea");
+
+                let gui = new GUI(netgame.table, we, svg);
+                gui.redraw();
+
+                table.startGame();
+            };
             netgame.addPlayer(we, (success) => {
                 if (!success) {
                     switchScreens("joinFail");
