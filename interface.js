@@ -645,12 +645,12 @@ window.addEventListener("load", function() {
 
     let names = shuffle(["Shinji", "Rei", "Asuka", "Misato"]);
 
-    let we = new MostDistantBot (table, names.pop(), "honest");
-    let smartBot = new SmartBot (table, names.pop(), "honest");
-    let directBot = new  DirectionBot (table, names.pop(), "saboteur", "down");
-    let smartBadBot = new  SmartBadBot (table, names.pop(), "saboteur");
+    let we = new OurPlayer (table, names.pop());
+    let bot = new CommonBot ("badass", table, names.pop());
+    let bo1 = new CommonBot ("miner", table, names.pop());
 
-  //  table.players = [smartBot, smartBadBot,directBot,we];
+
+    table.players = [bot, bo1,we];
     table.deck = shuffle(cardIndices);
     table.finishCards = shuffle([1, 2, 3]);
 
