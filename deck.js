@@ -4,8 +4,8 @@
 
 const DESTROY_CARDS = 3;
 const MAP_CARDS = 6;
-const IMPAIR_CARDS = 99;
-const REPAIR_CARDS = 99;
+const IMPAIR_CARDS = 9;
+const REPAIR_CARDS = 9;
 
 let _dirs = [
     { up: "yes",  down: "yes",  left: "yes",  right: "yes"  },

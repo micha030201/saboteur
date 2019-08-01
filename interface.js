@@ -333,7 +333,7 @@ class GUI {
 
     drawOtherHand(player, instant) {
         let [a, b] = this._whereDrawOtherHand(player);
-        this.drawCard(roleOffsets[player.role] + player.id, a, b, true, instant);
+        this.drawCard(roleOffsets[player.role] + player.id, a, b, !this.table.gameOver, instant);
         let [x, y] = this.ABtoXY(a, b);
         this._drawName(player, x, y - this.cardWidth / 5 - this.cardWidth * TEXTURE_HEIGHT_RATIO / 2);
         for (let [i, card] of player.hand.entries()) {
@@ -588,30 +588,7 @@ class GUI {
         }
     }
 
-    drawGameOver(won) {
-        // FIXME
-        let elem;
-        if (this.gameOverScreen === null) {
-            elem = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            this.gameOverScreen = elem;
-        } else {
-            elem = this.gameOverScreen;
-        }
-        this.svg.appendChild(elem);  // HACK
-        elem.a(
-            "x", -500,
-            "y", -500,
-            "width", 99999,
-            "height", 99999,
-            "fill", won ? "green" : "red",
-        );
-    }
-
     redraw() {
-        if (this.table.won || this.table.lost) {
-            this.drawGameOver(this.table.won);
-        }
-
         this.svg.a(
             "width", window.innerWidth,
             "height", window.innerHeight,
@@ -636,8 +613,10 @@ class GUI {
     }
 
     drawMove(move, player, callback) {
-        if (this.table.won || this.table.lost) {
-            setTimeout(() => this.drawGameOver(this.table.won), ANIMATION_LENGTH * 2);
+        if (this.table.gameOver) {
+            setTimeout(() => this.redraw(), ANIMATION_LENGTH * 2);
+            setTimeout(callback, ANIMATION_LENGTH * 2);
+            return;
         }
 
         let moveAnimations = 0;
@@ -647,6 +626,7 @@ class GUI {
                 this.redraw();
             } else if (move.type === "place") {
                 this.drawCard(move.card, move.a, move.b, false, false);
+                setTimeout(() => this.drawField(false), ANIMATION_LENGTH);
                 setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
 
                 moveAnimations += 2;
@@ -680,7 +660,18 @@ class GUI {
                 moveAnimations += 4;
             }
         } else {
-            if (move.type === "destroy") {
+            if (move.type === "noop") {
+                this.redraw();
+            } else if (move.type === "place") {
+                this.drawField(false);
+                setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH);
+
+                moveAnimations += 1;
+            } else if (move.type === "discard") {
+                setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH);
+
+                moveAnimations += 1;
+            } else if (move.type === "destroy") {
                 this.drawDiscardPile(false);
                 setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH);
 
@@ -701,16 +692,12 @@ class GUI {
                 setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH);
 
                 moveAnimations += 2;
-            } else {
-                this.drawOurHand(false);
-
-                moveAnimations += 1;
             }
         }
 
         setTimeout(callback, ANIMATION_LENGTH * moveAnimations);
 
-        this.ourTurn = this.table.nextPlayer(player).name === this.we.name;
+        this.ourTurn = !this.table.gameOver && this.table.nextPlayer(player).name === this.we.name;
         setTimeout(() => this.drawOurHand(true), ANIMATION_LENGTH * moveAnimations);
     }
 

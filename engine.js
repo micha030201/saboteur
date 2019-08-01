@@ -1,5 +1,5 @@
 "use strict"
-/* global dirs impairmentType DefaultDict doesIncludeArray */
+/* global dirs impairmentType finishCardIndex DefaultDict doesIncludeArray */
 /* exported symmetrical Table Player Move */
 
 function symmetrical(card) {
@@ -15,12 +15,16 @@ class Table {
         this.discardPile = [];
         this.moveCallback = () => {};
 
-        this.won = false;
+        this.goldFound = false;
 
         this.field = new Field();
     }
 
-    get lost() {
+    get gameOver() {
+        if (this.goldFound) {
+            return true;
+        }
+
         let cardsHeld = 0;
         for (let player of this.players) {
             cardsHeld += player.hand.length;
@@ -67,12 +71,13 @@ class Table {
     processPlaceMove(player, move) {
         this.field.place(move.card, move.a, move.b);
         for (let [a, b] of this.field.reachableSpaces()) {
-            if (a === 8 && (b === 0 || b === 2 || b === -2)) {
-                let card = Math.abs(this.finishCards[(b + 2) / 2]);
+            let index = finishCardIndex[a][b];
+            if (typeof index !== "undefined") {
+                let card = this.finishCards[index];
                 if (Math.abs(card) === 1) {
-                    this.won = true;
+                    this.goldFound = true;
                 }
-                this.finishCards[(b + 2) / 2] = null;
+                this.finishCards[index] = null;
                 if (this.field.evaluateOrientation(-card, a, b) > this.field.evaluateOrientation(card, a, b)) {
                     card = -card;
                 }
