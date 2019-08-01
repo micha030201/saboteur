@@ -697,7 +697,7 @@ window.addEventListener("load", function() {
 
     let proceedWithGameCreation = () => {
         window.location.hash = "#" + netgame.roomCode;
-        switchScreens("gameCreated");
+        switchScreens("gameSelected");
 
         netgame.onPlayerAdd = console.log;
 
@@ -715,25 +715,25 @@ window.addEventListener("load", function() {
         };
 
         document.getElementById("joinGame").onclick = () => {
-            we = new OurPlayer(netgame, netgame.table, document.getElementById("nameInput").value);
+            let name = document.getElementById("nameInput").value;
+            if (name.length === 0) {
+                return;
+            }
+            we = new OurPlayer(netgame, netgame.table, name);
             netgame.addPlayer(we, (success) => {
                 if (!success) {
                     switchScreens("joinFail");
-                }
-                document.getElementById("nameInput").a("disabled", true);
-            });
-        };
+                } else {
+                    switchScreens("gameJoinedControls");
 
-        document.getElementById("addBot").onclick = () => {
-            let bot = new BotPlayer(netgame, netgame.table, names.pop());
-            netgame.addPlayer(bot, (success) => {
-                if (!success) {
-                    switchScreens("joinFail");
+                    document.getElementById("addBot").onclick = () => {
+                        let bot = new BotPlayer(netgame, netgame.table, names.pop());
+                        netgame.addPlayer(bot, () => {});
+                    };
+                    document.getElementById("startGame").onclick = () => netgame.startGame();
                 }
             });
         };
-
-        document.getElementById("startGame").onclick = () => netgame.startGame();
     };
 
     document.getElementById("createPrivateGame").onclick = () => {

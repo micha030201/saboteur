@@ -150,7 +150,6 @@ class NetGame {
 
         refRoom.transaction(
             (room) => {
-                console.log(room);
                 if (room === null) {
                     return {};
                 }
