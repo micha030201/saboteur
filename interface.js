@@ -24,6 +24,9 @@ const DECK_B = -10;
 const OUR_HAND_A = -3;
 const OUR_HAND_B = 8;
 
+const OUR_HAND_CARDS_OFFSET_A = 2;
+const OUR_HAND_IMPAIR_OFFSET_A = 9;
+
 const OTHER_HANDS_A = -4;
 const OTHER_HANDS_B = -10;
 
@@ -309,6 +312,9 @@ class GUI {
     }
 
     _whoseHandThere(a, b) {
+        if (a === OUR_HAND_A && b === OUR_HAND_B) {
+            return this.we;
+        }
         for (let player of this.otherPlayers) {
             let [a_, b_] = this._whereDrawOtherHand(player);
             if (a === a_ && b === b_) {
@@ -317,7 +323,15 @@ class GUI {
         }
     }
 
-    _drawOtherHand(player, instant) {
+    impairCardAB(player, index) {
+        if (player === this.we) {
+            return [OUR_HAND_A + OUR_HAND_IMPAIR_OFFSET_A + index, OUR_HAND_B];
+        }
+        let [a, b] = this._whereDrawOtherHand(player);
+        return [a + 0.5 + index, b];
+    }
+
+    drawOtherHand(player, instant) {
         // TODO draw allegiance
         let [a, b] = this._whereDrawOtherHand(player);
         let [x, y] = this.ABtoXY(a, b);
@@ -325,12 +339,17 @@ class GUI {
         for (let [i, card] of player.hand.entries()) {
             this.drawCard(card, a + 0.5 + i * (2 / player.hand.length), b - 0.5, true, instant);
         }
-        // TODO draw breakage
+        for (let [i, card] of player.impairments.entries()) {
+            if (card !== null) {
+                let [a, b] = this.impairCardAB(player, i);
+                this.drawCard(card, a, b, false, instant);
+            }
+        }
     }
 
     drawOtherHands(instant) {
         for (let player of this.otherPlayers) {
-            this._drawOtherHand(player, instant);
+            this.drawOtherHand(player, instant);
         }
     }
 
@@ -419,7 +438,7 @@ class GUI {
             || (type(card) === "map" && typeof finishCardIndex[a][b] !== "undefined" && !this.we.seenFinishCards[finishCardIndex[a][b]])
             || (type(card) === "impair" && typeof this._whoseHandThere(a, b) !== "undefined" && this._whoseHandThere(a, b).impairments[impairmentType(card)] === null)
             || (type(card) === "repair" && typeof this._whoseHandThere(a, b) !== "undefined" && this._whoseHandThere(a, b).impairments[impairmentType(card)] !== null)
-            || (type(card) === "path" && this.table.field.canBePlaced(card, a, b))
+            || (type(card) === "path" && !this.we.impairments.any() && this.table.field.canBePlaced(card, a, b))
         );
     }
 
@@ -497,7 +516,7 @@ class GUI {
             elem = this.rotateIcons[index];
         }
         elem.a(
-            "x", this.zeroX + this.cardWidth * (OUR_HAND_A + index),
+            "x", this.zeroX + this.cardWidth * (OUR_HAND_A + OUR_HAND_CARDS_OFFSET_A + index),
             "y", this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * (OUR_HAND_B - 1),
             "width", this.cardWidth,
             "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
@@ -516,7 +535,7 @@ class GUI {
         }
         this.svg.appendChild(elem);  // HACK
         elem.a(
-            "x", this.zeroX + this.cardWidth * OUR_HAND_A,
+            "x", this.zeroX + this.cardWidth * (OUR_HAND_A + OUR_HAND_CARDS_OFFSET_A),
             "y", hide ? this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * OUR_HAND_B : -9999,
             "width", this.cardWidth * this.we.hand.length,
             "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
@@ -545,10 +564,24 @@ class GUI {
             } else {
                 this._drawRotateIcon(i, false);
             }
-            this.drawCard(card, i + OUR_HAND_A, OUR_HAND_B, false, instant);
+            this.drawCard(card, OUR_HAND_A + OUR_HAND_CARDS_OFFSET_A + i, OUR_HAND_B, false, instant);
             this.createPickHandler(card);
         }
+        for (let [i, card] of this.we.impairments.entries()) {
+            if (card !== null) {
+                let [a, b] = this.impairCardAB(this.we, i);
+                this.drawCard(card, a, b, false, instant);
+            }
+        }
         this._drawCardsHider(!this.ourTurn);
+    }
+
+    drawHand(player, instant) {
+        if (player === this.we) {
+            this.drawOurHand(instant);
+        } else {
+            this.drawOtherHand(player, instant);
+        }
     }
 
     drawGameOver(won) {
@@ -631,6 +664,16 @@ class GUI {
                 setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH * 3);
 
                 moveAnimations += 4;
+            } else if (move.type === "impair") {
+                this.drawHand(this.table.players[move.playerId], false);
+                setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
+
+                moveAnimations += 2;
+            } else if (move.type === "repair") {
+                this.drawCard(move.card, ...this.impairCardAB(this.table.players[move.playerId], impairmentType(move.card)));
+                setTimeout(() => this.drawDiscardPile(false), ANIMATION_LENGTH * 2);
+
+                moveAnimations += 4;
             }
         } else {
             if (move.type === "destroy") {
@@ -641,6 +684,16 @@ class GUI {
             } else if (move.type === "look") {
                 this.drawDiscardPile(false);
                 this.drawField(true);
+                setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH);
+
+                moveAnimations += 2;
+            } else if (move.type === "impair") {
+                this.drawHand(this.table.players[move.playerId], false);
+                setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
+
+                moveAnimations += 2;
+            } else if (move.type === "repair") {
+                this.drawDiscardPile(false);
                 setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH);
 
                 moveAnimations += 2;
