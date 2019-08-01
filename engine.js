@@ -38,6 +38,13 @@ class Table {
         return this.players[index];
     }
 
+    processDestroyMove(player, move) {
+        player.hand = player.hand.filter(item => Math.abs(item) !== Math.abs(move.card));
+        let card = this.field.remove(move.a, move.b);
+        this.discardPile.push(move.card);
+        this.discardPile.push(card);
+    }
+
     processPlaceMove(player, move) {
         player.hand = player.hand.filter(item => Math.abs(item) !== Math.abs(move.card));
         this.field.place(move.card, move.a, move.b);
@@ -66,6 +73,8 @@ class Table {
             this.processPlaceMove(player, move);
         } else if (move.type === "discard") {
             this.processDiscardMove(player, move);
+        } else if (move.type === "destroy") {
+            this.processDestroyMove(player, move);
         }
         if (this.deck.length) {
             player.drawCard();
@@ -136,6 +145,13 @@ class Move {
             }
         }
         return true;
+    }
+
+    destroy(card, a, b) {
+        this.type = "destroy";
+        this.card = card;
+        this.a = a;
+        this.b = b;
     }
 }
 
@@ -247,5 +263,11 @@ class Field {
 
     place(card, a, b) {
         this.grid[a][b] = card;
+    }
+
+    remove(a, b) {
+        let card = this.grid[a][b];
+        delete this.grid[a][b];
+        return card;
     }
 }

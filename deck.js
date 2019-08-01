@@ -1,5 +1,8 @@
 "use strict"
-/* exported dirs finishCards cardIndices rolesN */
+/* exported dirs type finishCards cardIndices rolesN */
+
+const DESTROY_CARDS = 3;
+const MAP_CARDS = 6;
 
 let _dirs = [
     { up: "yes",  down: "yes",  left: "yes",  right: "yes"  },
@@ -50,8 +53,20 @@ let _dirs = [
 let finishCards = [1, 2, 3];
 
 let cardIndices = [];
-for (let i = 4; i < _dirs.length; ++i) {
+for (let i = 4; i < _dirs.length + DESTROY_CARDS + MAP_CARDS; ++i) {
     cardIndices.push(i);
+}
+
+function type(card) {
+    if (card < _dirs.length) {
+        return "path";
+    }
+    if (card < _dirs.length + DESTROY_CARDS) {
+        return "destroy";
+    }
+    if (card < _dirs.length + DESTROY_CARDS + MAP_CARDS) {
+        return "map";
+    }
 }
 
 function dirs(card) {

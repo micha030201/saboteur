@@ -1,5 +1,5 @@
 "use strict"
-/* global dirs Player Move shuffle symmetrical NetGame */
+/* global dirs type Player Move shuffle symmetrical NetGame */
 
 const ANIMATION_LENGTH = 600;  // in milliseconds
 
@@ -65,20 +65,21 @@ class BotPlayer extends Player {
 
         let move = new Move();
         let spaces = [], card;
-        for (card of this.hand) {
-            spaces = this.table.field.availableSpaces(card);
-        }
-        if (!spaces.length) {
-            move.discard(card);
-        } else {
-            let [a, b] = spaces.randomElement();
-            if (this.table.field.canBePlaced(card, a, b)) {
-                card = Math.abs(card);
-            } else {
-                card = -Math.abs(card);
-            }
-            move.placeCard(card, a, b);
-        }
+        move.destroy(this.hand[0], 0, 0);
+        //for (card of this.hand) {
+        //    spaces = this.table.field.availableSpaces(card);
+        //}
+        //if (!spaces.length) {
+        //    move.discard(card);
+        //} else {
+        //    let [a, b] = spaces.randomElement();
+        //    if (this.table.field.canBePlaced(card, a, b)) {
+        //        card = Math.abs(card);
+        //    } else {
+        //        card = -Math.abs(card);
+        //    }
+        //    move.placeCard(card, a, b);
+        //}
 
         this.netgame.sendMove(this, move);
         setTimeout(() => callback(move), 0);
@@ -139,62 +140,64 @@ class GUI {
             );
             elem.appendChild(rect);
 
-            if (dirs(card).up !== "no") {
-                let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                way.setAttribute("x", 4);
-                way.setAttribute("y", 0);
-                way.setAttribute("width", 2);
-                if (dirs(card).up === "yes") {
-                    way.setAttribute("height", 8.5);
-                } else {
-                    way.setAttribute("height", 2);
-                }
-                way.setAttribute("fill", "red");
-                elem.appendChild(way);
-            }
-
-            if (dirs(card).down !== "no") {
-                let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                way.setAttribute("x", 4);
-                way.setAttribute("width", 2);
-                if (dirs(card).down === "yes") {
-                    way.setAttribute("height", 8.5);
-                    way.setAttribute("y", 6.5);
-                } else {
-                    way.setAttribute("height", 2);
-                    way.setAttribute("y", 13);
-                }
-                way.setAttribute("fill", "red");
-                elem.appendChild(way);
-            }
-
-            if (dirs(card).left !== "no") {
-                let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                way.setAttribute("x", 0);
-                way.setAttribute("y", 6.5);
-                way.setAttribute("height", 2);
-                if (dirs(card).left === "yes") {
-                    way.setAttribute("width", 6);
-                } else {
-                    way.setAttribute("width", 2);
-                }
-                way.setAttribute("fill", "red");
-                elem.appendChild(way);
-            }
-
-            if (dirs(card).right !== "no") {
-                let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                way.setAttribute("y", 6.5);
-                way.setAttribute("height", 2);
-                if (dirs(card).right === "yes") {
-                    way.setAttribute("width", 6);
+            if (type(card) === "path") {
+                if (dirs(card).up !== "no") {
+                    let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                     way.setAttribute("x", 4);
-                } else {
+                    way.setAttribute("y", 0);
                     way.setAttribute("width", 2);
-                    way.setAttribute("x", 8);
+                    if (dirs(card).up === "yes") {
+                        way.setAttribute("height", 8.5);
+                    } else {
+                        way.setAttribute("height", 2);
+                    }
+                    way.setAttribute("fill", "red");
+                    elem.appendChild(way);
                 }
-                way.setAttribute("fill", "red");
-                elem.appendChild(way);
+
+                if (dirs(card).down !== "no") {
+                    let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    way.setAttribute("x", 4);
+                    way.setAttribute("width", 2);
+                    if (dirs(card).down === "yes") {
+                        way.setAttribute("height", 8.5);
+                        way.setAttribute("y", 6.5);
+                    } else {
+                        way.setAttribute("height", 2);
+                        way.setAttribute("y", 13);
+                    }
+                    way.setAttribute("fill", "red");
+                    elem.appendChild(way);
+                }
+
+                if (dirs(card).left !== "no") {
+                    let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    way.setAttribute("x", 0);
+                    way.setAttribute("y", 6.5);
+                    way.setAttribute("height", 2);
+                    if (dirs(card).left === "yes") {
+                        way.setAttribute("width", 6);
+                    } else {
+                        way.setAttribute("width", 2);
+                    }
+                    way.setAttribute("fill", "red");
+                    elem.appendChild(way);
+                }
+
+                if (dirs(card).right !== "no") {
+                    let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    way.setAttribute("y", 6.5);
+                    way.setAttribute("height", 2);
+                    if (dirs(card).right === "yes") {
+                        way.setAttribute("width", 6);
+                        way.setAttribute("x", 4);
+                    } else {
+                        way.setAttribute("width", 2);
+                        way.setAttribute("x", 8);
+                    }
+                    way.setAttribute("fill", "red");
+                    elem.appendChild(way);
+                }
             }
 
             let cover = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -471,14 +474,15 @@ class GUI {
                 this._drawRotateIcon(i, false);
                 continue;
             }
+            if (type(card) === "path") {
+                let canBePlacedAsIs = this.table.field.availableSpaces(card).length;
+                let canBePlacedReversed = this.table.field.availableSpaces(-card).length;
 
-            let canBePlacedAsIs = this.table.field.availableSpaces(card).length;
-            let canBePlacedReversed = this.table.field.availableSpaces(-card).length;
+                this._drawRotateIcon(i, this.ourTurn && canBePlacedAsIs && canBePlacedReversed && !symmetrical(card));
 
-            this._drawRotateIcon(i, this.ourTurn && canBePlacedAsIs && canBePlacedReversed && !symmetrical(card));
-
-            if (this.ourTurn && canBePlacedReversed && !canBePlacedAsIs) {
-                this.we.hand[i] = card = -card;
+                if (this.ourTurn && canBePlacedReversed && !canBePlacedAsIs) {
+                    this.we.hand[i] = card = -card;
+                }
             }
             this.drawCard(card, i + OUR_HAND_A, OUR_HAND_B, false, instant);
             this.createPickHandler(card);
@@ -547,6 +551,11 @@ class GUI {
         } else if (move.type === "discard") {
             this.drawCard(move.card, DISCARD_PILE_A, DISCARD_PILE_B);
             setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
+        } else if (move.type === "destroy") {
+            this.drawCard(move.card, move.a, move.b);
+            setTimeout(() => this.drawCard(move.card, DISCARD_PILE_A, DISCARD_PILE_B), ANIMATION_LENGTH * 2);
+            setTimeout(() => this.drawDiscardPile(false), ANIMATION_LENGTH * 2);
+            setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH * 3);
         }
 
         this.ourTurn = this.table.nextPlayer(player) === this.we;
