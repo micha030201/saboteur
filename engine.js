@@ -38,15 +38,18 @@ class Table {
         return this.players[index];
     }
 
+    processLookMove(player, move) {
+        player.seenFinishCards[move.index] = true;
+        this.discardPile.push(move.card);
+    }
+
     processDestroyMove(player, move) {
-        player.hand = player.hand.filter(item => Math.abs(item) !== Math.abs(move.card));
         let card = this.field.remove(move.a, move.b);
         this.discardPile.push(move.card);
         this.discardPile.push(card);
     }
 
     processPlaceMove(player, move) {
-        player.hand = player.hand.filter(item => Math.abs(item) !== Math.abs(move.card));
         this.field.place(move.card, move.a, move.b);
         for (let [a, b] of this.field.reachableSpaces()) {
             if (a === 8 && (b === 0 || b === 2 || b === -2)) {
@@ -64,17 +67,20 @@ class Table {
     }
 
     processDiscardMove(player, move) {
-        player.hand = player.hand.filter(item => Math.abs(item) !== Math.abs(move.card));
         this.discardPile.push(move.card);
     }
 
     processMove(player, move) {
+        player.hand = player.hand.filter(item => Math.abs(item) !== Math.abs(move.card));
+
         if (move.type === "place") {
             this.processPlaceMove(player, move);
         } else if (move.type === "discard") {
             this.processDiscardMove(player, move);
         } else if (move.type === "destroy") {
             this.processDestroyMove(player, move);
+        } else if (move.type === "look") {
+            this.processLookMove(player, move);
         }
         if (this.deck.length) {
             player.drawCard();
@@ -111,6 +117,7 @@ class Player {  // base class
         this.name = name;
         this.role = "[DATA EXPUNGED]";
         this.hand = [];
+        this.seenFinishCards = [false, false, false];
         //this.breakage
     }
 
@@ -152,6 +159,12 @@ class Move {
         this.card = card;
         this.a = a;
         this.b = b;
+    }
+
+    look(card, finishCardIndex) {
+        this.type = "look";
+        this.card = card;
+        this.index = finishCardIndex;
     }
 }
 

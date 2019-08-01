@@ -1,8 +1,9 @@
 "use strict"
-/* exported dirs type finishCards cardIndices rolesN */
+/* global DefaultDict */
+/* exported dirs type finishCards cardIndices rolesN finishCardAB finishCardIndex */
 
-const DESTROY_CARDS = 50;//3;
-const MAP_CARDS = 0;//6;
+const DESTROY_CARDS = 3;
+const MAP_CARDS = 6;
 
 let _dirs = [
     { up: "yes",  down: "yes",  left: "yes",  right: "yes"  },
@@ -94,3 +95,14 @@ let rolesN = [
     ["miner", "miner", "saboteur", "miner", "miner", "saboteur", "miner", "saboteur", "miner"],
     ["miner", "miner", "saboteur", "miner", "miner", "saboteur", "miner", "saboteur", "miner", "miner"],
 ];
+
+let finishCardAB = [
+    [8, -2],
+    [8, 0],
+    [8, 2],
+];
+
+let finishCardIndex = new DefaultDict(function () { return {}; });
+finishCardIndex[8][-2] = 0;
+finishCardIndex[8][0] = 1;
+finishCardIndex[8][2] = 2;

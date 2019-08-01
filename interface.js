@@ -1,5 +1,5 @@
 "use strict"
-/* global dirs type DefaultDict Player Move shuffle symmetrical NetGame */
+/* global dirs finishCardIndex finishCardAB type DefaultDict Player Move shuffle symmetrical NetGame */
 
 const ANIMATION_LENGTH = 600;  // in milliseconds
 
@@ -379,14 +379,10 @@ class GUI {
             c.width = this.cardWidth;
         }
 
-        if (this.table.finishCards[0] !== null) {
-            this.drawCard(this.table.finishCards[0], 8, -2, true, instant);
-        }
-        if (this.table.finishCards[1] !== null) {
-            this.drawCard(this.table.finishCards[1], 8, 0, true, instant);
-        }
-        if (this.table.finishCards[2] !== null) {
-            this.drawCard(this.table.finishCards[2], 8, 2, true, instant);
+        for (let [index, [a, b]] of finishCardAB.entries()) {
+            if (this.table.finishCards[index] !== null) {
+                this.drawCard(this.table.finishCards[index], a, b, !this.we.seenFinishCards[index], instant);
+            }
         }
 
         for (let [a, b, card] of this.table.field.cards()) {
@@ -401,6 +397,7 @@ class GUI {
         return (
             (a === DISCARD_PILE_A && b === DISCARD_PILE_B)
             || (type(card) === "destroy" && this.table.field.canBeRemoved(a, b))
+            || (type(card) === "map" && typeof finishCardIndex[a][b] !== "undefined" && !this.we.seenFinishCards[finishCardIndex[a][b]])
             || (type(card) === "path" && this.table.field.canBePlaced(card, a, b))
         );
     }
@@ -412,6 +409,8 @@ class GUI {
             move.discard(card);
         } else if (type(card) === "destroy" && this.table.field.canBeRemoved(a, b)) {
             move.destroy(card, a, b);
+        } else if (type(card) === "map" && typeof finishCardIndex[a][b] !== "undefined" && !this.we.seenFinishCards[finishCardIndex[a][b]]) {
+            move.look(card, finishCardIndex[a][b]);
         } else if (type(card) === "path" && this.table.field.canBePlaced(card, a, b)) {
             move.placeCard(card, a, b);
         }
@@ -520,6 +519,8 @@ class GUI {
                 if (this.ourTurn && canBePlacedReversed && !canBePlacedAsIs) {
                     this.we.hand[i] = card = -card;
                 }
+            } else {
+                this._drawRotateIcon(i, false);
             }
             this.drawCard(card, i + OUR_HAND_A, OUR_HAND_B, false, instant);
             this.createPickHandler(card);
@@ -601,10 +602,22 @@ class GUI {
                 setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH * 3);
 
                 moveAnimations += 4;
+            } else if (move.type === "look") {
+                this.drawCard(move.card, ...finishCardAB[move.index]);
+                setTimeout(() => this.drawCard(move.card, DISCARD_PILE_A, DISCARD_PILE_B), ANIMATION_LENGTH * 2);
+                setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH * 3);
+
+                moveAnimations += 4;
             }
         } else {
             if (move.type === "destroy") {
                 this.drawDiscardPile(false);
+                setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH);
+
+                moveAnimations += 2;
+            } else if (move.type === "look") {
+                this.drawDiscardPile(false);
+                this.drawField(true);
                 setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH);
 
                 moveAnimations += 2;
@@ -618,9 +631,7 @@ class GUI {
         setTimeout(callback, ANIMATION_LENGTH * moveAnimations);
 
         this.ourTurn = this.table.nextPlayer(player).name === this.we.name;
-        if (this.ourTurn) {
-            this.drawOurHand(true);
-        }
+        setTimeout(() => this.drawOurHand(true), ANIMATION_LENGTH * moveAnimations);
     }
 
     followEvent(e) {
