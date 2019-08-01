@@ -1,5 +1,5 @@
 "use strict"
-/* global dirs finishCardIndex finishCardAB type impairmentType DefaultDict Player Move shuffle symmetrical NetGame */
+/* global dirs finishCardIndex finishCardAB type impairmentType DefaultDict Player Move shuffle symmetrical NetGame roleOffsets */
 
 const ANIMATION_LENGTH = 600;  // in milliseconds
 
@@ -332,8 +332,8 @@ class GUI {
     }
 
     drawOtherHand(player, instant) {
-        // TODO draw allegiance
         let [a, b] = this._whereDrawOtherHand(player);
+        this.drawCard(roleOffsets[player.role] + player.id, a, b, true, instant);
         let [x, y] = this.ABtoXY(a, b);
         this._drawName(player, x, y - this.cardWidth / 5 - this.cardWidth * TEXTURE_HEIGHT_RATIO / 2);
         for (let [i, card] of player.hand.entries()) {
@@ -432,12 +432,13 @@ class GUI {
         if (card === null) {
             return false;
         }
+        let playerThere = this._whoseHandThere(a, b);
         return (
             (a === DISCARD_PILE_A && b === DISCARD_PILE_B)
             || (type(card) === "destroy" && this.table.field.canBeRemoved(a, b))
             || (type(card) === "map" && typeof finishCardIndex[a][b] !== "undefined" && !this.we.seenFinishCards[finishCardIndex[a][b]])
-            || (type(card) === "impair" && typeof this._whoseHandThere(a, b) !== "undefined" && this._whoseHandThere(a, b).impairments[impairmentType(card)] === null)
-            || (type(card) === "repair" && typeof this._whoseHandThere(a, b) !== "undefined" && this._whoseHandThere(a, b).impairments[impairmentType(card)] !== null)
+            || (type(card) === "impair" && typeof playerThere !== "undefined" && playerThere !== this.we && playerThere.impairments[impairmentType(card)] === null)
+            || (type(card) === "repair" && typeof playerThere !== "undefined" && playerThere.impairments[impairmentType(card)] !== null)
             || (type(card) === "path" && !this.we.impairments.any() && this.table.field.canBePlaced(card, a, b))
         );
     }
@@ -445,16 +446,17 @@ class GUI {
     _place(card, a, b) {
         let move = new Move();
 
+        let playerThere = this._whoseHandThere(a, b);
         if (a === DISCARD_PILE_A && b === DISCARD_PILE_B) {
             move.discard(card);
         } else if (type(card) === "destroy" && this.table.field.canBeRemoved(a, b)) {
             move.destroy(card, a, b);
         } else if (type(card) === "map" && typeof finishCardIndex[a][b] !== "undefined" && !this.we.seenFinishCards[finishCardIndex[a][b]]) {
             move.look(card, finishCardIndex[a][b]);
-        } else if (type(card) === "impair" && typeof this._whoseHandThere(a, b) !== "undefined" && this._whoseHandThere(a, b).impairments[impairmentType(card)] === null) {
-            move.impair(card, this._whoseHandThere(a, b));
-        } else if (type(card) === "repair" && typeof this._whoseHandThere(a, b) !== "undefined" && this._whoseHandThere(a, b).impairments[impairmentType(card)] !== null) {
-            move.repair(card, this._whoseHandThere(a, b));
+        } else if (type(card) === "impair" && typeof playerThere !== "undefined" && playerThere !== this.we && playerThere.impairments[impairmentType(card)] === null) {
+            move.impair(card, playerThere);
+        } else if (type(card) === "repair" && typeof playerThere !== "undefined" && playerThere.impairments[impairmentType(card)] !== null) {
+            move.repair(card, playerThere);
         } else if (type(card) === "path" && this.table.field.canBePlaced(card, a, b)) {
             move.placeCard(card, a, b);
         }
@@ -473,6 +475,7 @@ class GUI {
             for (let player of this.otherPlayers) {
                 possibleAvailableSpaces.push(this._whereDrawOtherHand(player));
             }
+            possibleAvailableSpaces.push([OUR_HAND_A, OUR_HAND_B]);
             possibleAvailableSpaces.push([DISCARD_PILE_A, DISCARD_PILE_B]);
 
             this.availableSpaces = new DefaultDict(function () { return {}; });
@@ -546,6 +549,7 @@ class GUI {
     drawOurHand(instant) {
         let [x, y] = this.ABtoXY(OUR_HAND_A, OUR_HAND_B + 1 + 1/3);  // FIXME
         this._drawName(this.we, x, y);
+        this.drawCard(roleOffsets[this.we.role] + this.we.id, OUR_HAND_A, OUR_HAND_B, false, instant);
         for (let i = 0; i < 6; ++i) {
             let card = this.we.hand[i];
             if (typeof card === "undefined") {

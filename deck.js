@@ -1,6 +1,6 @@
 "use strict"
 /* global DefaultDict */
-/* exported dirs type impairmentType finishCards cardIndices rolesN finishCardAB finishCardIndex */
+/* exported roleOffsets dirs type impairmentType finishCards cardIndices rolesN finishCardAB finishCardIndex */
 
 const DESTROY_CARDS = 3;
 const MAP_CARDS = 6;
@@ -76,6 +76,7 @@ function type(card) {
     if (card < _dirs.length + DESTROY_CARDS + MAP_CARDS + IMPAIR_CARDS + REPAIR_CARDS) {
         return "repair";
     }
+    return "role";
 }
 
 function dirs(card) {
@@ -118,3 +119,8 @@ let finishCardIndex = new DefaultDict(function () { return {}; });
 finishCardIndex[8][-2] = 0;
 finishCardIndex[8][0] = 1;
 finishCardIndex[8][2] = 2;
+
+let roleOffsets = {
+    "miner": 1000,
+    "saboteur": 2000
+};
