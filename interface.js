@@ -64,8 +64,8 @@ class BotPlayer extends Player {
         console.log(this.name);
 
         let move = new Move();
-        let spaces = [], card;
-        move.destroy(this.hand[0], 0, 0);
+        move.discard(this.hand[0]);
+        //let spaces = [], card;
         //for (card of this.hand) {
         //    spaces = this.table.field.availableSpaces(card);
         //}
@@ -578,27 +578,49 @@ class GUI {
         if (this.table.won || this.table.lost) {
             setTimeout(() => this.drawGameOver(this.table.won), ANIMATION_LENGTH * 2);
         }
-        // move cards manually so that they stay on top
-        if (move.type === "noop") {
-            this.redraw();
-        } else if (move.type === "place") {
-            this.drawCard(move.card, move.a, move.b, false, false);
-            setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
-            setTimeout(() => this.drawField(true), ANIMATION_LENGTH * (this.ourTurn ? 0 : 1));  // HACK
-        } else if (move.type === "discard") {
-            this.drawCard(move.card, DISCARD_PILE_A, DISCARD_PILE_B);
-            setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
-        } else if (move.type === "destroy") {
-            this.drawCard(move.card, move.a, move.b);
-            setTimeout(() => this.drawCard(move.card, DISCARD_PILE_A, DISCARD_PILE_B), ANIMATION_LENGTH * 2);
-            setTimeout(() => this.drawDiscardPile(false), ANIMATION_LENGTH * 2);
-            setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH * 3);
+
+        let moveAnimations = 0;
+        if (player.name !== this.we.name) {
+            // move cards manually so that they stay on top
+            if (move.type === "noop") {
+                this.redraw();
+            } else if (move.type === "place") {
+                this.drawCard(move.card, move.a, move.b, false, false);
+                setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
+
+                moveAnimations += 2;
+            } else if (move.type === "discard") {
+                this.drawCard(move.card, DISCARD_PILE_A, DISCARD_PILE_B);
+                setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
+
+                moveAnimations += 2;
+            } else if (move.type === "destroy") {
+                this.drawCard(move.card, move.a, move.b);
+                setTimeout(() => this.drawCard(move.card, DISCARD_PILE_A, DISCARD_PILE_B), ANIMATION_LENGTH * 2);
+                setTimeout(() => this.drawDiscardPile(false), ANIMATION_LENGTH * 2);
+                setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH * 3);
+
+                moveAnimations += 4;
+            }
+        } else {
+            if (move.type === "destroy") {
+                this.drawDiscardPile(false);
+                setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH);
+
+                moveAnimations += 2;
+            } else {
+                this.drawOurHand(false);
+
+                moveAnimations += 1;
+            }
         }
 
-        this.ourTurn = this.table.nextPlayer(player) === this.we;
-        setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH * (this.ourTurn ? 2 : 0));
+        setTimeout(callback, ANIMATION_LENGTH * moveAnimations);
 
-        setTimeout(callback, ANIMATION_LENGTH * ((player === this.we) ? 1 : 2));
+        this.ourTurn = this.table.nextPlayer(player).name === this.we.name;
+        if (this.ourTurn) {
+            this.drawOurHand(true);
+        }
     }
 
     followEvent(e) {
