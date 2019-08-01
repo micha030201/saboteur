@@ -202,8 +202,8 @@ class NetGame {
                 room.deck = cardIndices;
                 room.finishCards = finishCards;
 
-                let roles = shuffle(rolesN[Object.keys(room.users).length]);
-                for (let  user of Object.values(room.users)) {
+                let roles = shuffle(rolesN[Object.keys(room.users).length]).slice();
+                for (let user of Object.values(room.users)) {
                     user.role = roles.pop();
                 }
 
