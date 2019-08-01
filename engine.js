@@ -48,10 +48,7 @@ class Table {
                     this.won = true;
                 }
                 this.finishCards[(b + 2) / 2] = null;
-                if (
-                    this.field.canPlaceInPosition(-card, a, b).filter(x => x).length  // FIXME this logic is wrong actually
-                    > this.field.canPlaceInPosition(card, a, b).filter(x => x).length
-                ) {
+                if (this.field.evaluateOrientation(-card, a, b) > this.field.evaluateOrientation(card, a, b)) {
                     card = -card;
                 }
                 this.field.place(card, a, b);
@@ -205,6 +202,22 @@ class Field {
             fit(this.grid[a + 1][b], 'left', card, 'right'),
             fit(this.grid[a - 1][b], 'right', card, 'left'),
         ];
+    }
+
+    evaluateOrientation(card, a, b) {
+        let fit = function(neighbour, dir_n, card, dir_c) {
+            return (
+                typeof neighbour !== "undefined"
+                && (dirs(neighbour)[dir_n] !== "no" && dirs(card)[dir_c] !== "no")
+            ) ? 1 : 0;
+        };
+
+        return (
+            fit(this.grid[a][b + 1], 'up', card, 'down')
+            + fit(this.grid[a][b - 1], 'down', card, 'up')
+            + fit(this.grid[a + 1][b], 'left', card, 'right')
+            + fit(this.grid[a - 1][b], 'right', card, 'left')
+        );
     }
 
     static isInside(a, b) {
