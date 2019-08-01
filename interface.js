@@ -1,5 +1,5 @@
 "use strict"
-/* global dirs type Player Move shuffle symmetrical NetGame */
+/* global dirs type DefaultDict Player Move shuffle symmetrical NetGame */
 
 const ANIMATION_LENGTH = 600;  // in milliseconds
 
@@ -394,31 +394,68 @@ class GUI {
         }
     }
 
+    _canBePlaced(card, a, b) {
+        if (card === null) {
+            return false;
+        }
+        return (
+            (a === DISCARD_PILE_A && b === DISCARD_PILE_B)
+            || (type(card) === "destroy" && this.table.field.canBeRemoved(a, b))
+            || (type(card) === "path" && this.table.field.canBePlaced(card, a, b))
+        );
+    }
+
+    _place(card, a, b) {
+        let move = new Move();
+
+        if (a === DISCARD_PILE_A && b === DISCARD_PILE_B) {
+            move.discard(card);
+        } else if (type(card) === "destroy" && this.table.field.canBeRemoved(a, b)) {
+            move.destroy(card, a, b);
+        } else if (type(card) === "path" && this.table.field.canBePlaced(card, a, b)) {
+            move.placeCard(card, a, b);
+        }
+
+        setTimeout(() => this.we.moveDone(move));
+    }
+
     _drawAvailableSpaces(card) {
         if (this.availableSpaces === null) {
-            this.availableSpaces = {};
+            let possibleAvailableSpaces = [];
             for (let i = FIELD_A; i < FIELD_WIDTH + FIELD_A; ++i) {
-                let column = {};
                 for (let j = FIELD_B; j < FIELD_HEIGHT + FIELD_B; ++j) {
-                    let elem = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-                    elem.a("fill", "green");
-                    this.svg.appendChild(elem);
-                    column[j] = elem;
+                    possibleAvailableSpaces.push([i, j]);
                 }
-                this.availableSpaces[i] = column;
+            }
+            /*
+            for (let i = 0; i < this.table.players.length - 1; ++i) {
+                possibleAvailableSpaces.push([(i % 3) * 4 + OTHER_HANDS_A, OTHER_HANDS_B + (i > 4 ? 1 : 3)]);
+            }
+            */
+            possibleAvailableSpaces.push([DISCARD_PILE_A, DISCARD_PILE_B]);
+
+            this.availableSpaces = new DefaultDict(function () { return {}; });
+            for (let [a, b] of possibleAvailableSpaces) {
+                let elem = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+                elem.a("fill", "green");
+                this.availableSpaces[a][b] = elem;
             }
         }
-        for (let a = FIELD_A; a < FIELD_WIDTH + FIELD_A; ++a) {
-            for (let b = FIELD_B; b < FIELD_HEIGHT + FIELD_B; ++b) {
-                let elem = this.availableSpaces[a][b];
+
+        for (let [a, column] of Object.entries(this.availableSpaces)) {
+            for (let [b, elem] of Object.entries(column)) {
+                a = a * 1;
+                b = b * 1;
+
                 let [x, y] = this.ABtoXY(a, b);
                 elem.a(
                     "x", x,
                     "y", y,
                     "width", this.cardWidth,
                     "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
-                    "opacity", card !== null && this.table.field.canBePlaced(card, a, b) ? 0.3 : 0,
+                    "opacity", this._canBePlaced(card, a, b) ? 0.3 : 0,
                 );
+                this.svg.appendChild(elem);
             }
         }
     }
@@ -606,7 +643,7 @@ class GUI {
 
                     let [a, b] = this.followEvent(e);
 
-                    if (this.table.field.canBePlaced(card, Math.round(a), Math.round(b))) {
+                    if (this._canBePlaced(card, Math.round(a), Math.round(b))) {
                         a = Math.round(a);
                         b = Math.round(b);
                     }
@@ -632,18 +669,8 @@ class GUI {
                     a = Math.round(a);
                     b = Math.round(b);
 
-                    if (a === DISCARD_PILE_A && b === DISCARD_PILE_B) {
-                        this.drawCard(card, a, b, false, true);
-
-                        let move = new Move();
-                        move.discard(card);
-                        this.we.moveDone(move);
-                    }
-
-                    if (this.table.field.canBePlaced(card, a, b)) {
-                        let move = new Move();
-                        move.placeCard(card, a, b);
-                        this.we.moveDone(move);
+                    if (this._canBePlaced(card, a, b)) {
+                        this._place(card, a, b);
                     } else {
                         this.drawOurHand(false);
                     }

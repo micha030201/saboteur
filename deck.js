@@ -1,8 +1,8 @@
 "use strict"
 /* exported dirs type finishCards cardIndices rolesN */
 
-const DESTROY_CARDS = 3;
-const MAP_CARDS = 6;
+const DESTROY_CARDS = 50;//3;
+const MAP_CARDS = 0;//6;
 
 let _dirs = [
     { up: "yes",  down: "yes",  left: "yes",  right: "yes"  },

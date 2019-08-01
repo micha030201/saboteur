@@ -265,6 +265,16 @@ class Field {
         this.grid[a][b] = card;
     }
 
+    canBeRemoved(a, b) {
+        if (a === 0 && b === 0) {
+            return false;
+        }
+        if (typeof this.grid[a][b] !== "undefined") {
+            return true;
+        }
+        return false;
+    }
+
     remove(a, b) {
         let card = this.grid[a][b];
         delete this.grid[a][b];
