@@ -144,7 +144,6 @@ class NetGame {
     }
 
     addPlayer(player, callback) {
-        this._localPlayers[player.name] = player;
 
         let refRoom = firebase.database().ref(`/rooms/${this.roomCode}`);
 
@@ -162,6 +161,9 @@ class NetGame {
                     if (room.users.length >= 9) {
                         return;
                     }
+                    if (typeof room.users[player.name] !== "undefined") {
+                        return;
+                    }
                     room.users[player.name] = {
                         role: "[DATA EXPUNGED]",
                         lastMove: NOOP_MOVE,
@@ -169,7 +171,14 @@ class NetGame {
                     return room;
                 }
             },
-            (error, success) => callback((error === null) && success),
+            (error, success) => {
+                if ((error === null) && success) {
+                    this._localPlayers[player.name] = player;
+                    callback(true);
+                } else {
+                    callback(false);
+                }
+            },
             false
         );
     }
