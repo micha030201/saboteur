@@ -60,7 +60,8 @@ class NetGame {
                             player = new OnlinePlayer(this, this.table, snapshot.key);
                         }
                         player.role = snapshot.child("role").val();
-                        this.table.players.push(player);
+                        player.id = snapshot.child("id").val();
+                        this.table.players[player.id] = player;
                     });
                     this.table.deck = snapshot.child("deck").val();
                     this.table.finishCards = snapshot.child("finishCards").val();
@@ -202,9 +203,12 @@ class NetGame {
                 room.deck = cardIndices;
                 room.finishCards = finishCards;
 
-                let roles = shuffle(rolesN[Object.keys(room.users).length]).slice();
+                let userCount = Object.keys(room.users).length;
+                let ids = shuffle([...Array(userCount).keys()]);
+                let roles = shuffle(rolesN[userCount]).slice();
                 for (let user of Object.values(room.users)) {
                     user.role = roles.pop();
+                    user.id = ids.pop();
                 }
 
                 return room;
