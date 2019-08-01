@@ -1,5 +1,5 @@
 "use strict"
-/* global firebase Table Player Move shuffle cardIndices */
+/* global firebase Table Player Move shuffle cardIndices finishCards rolesN */
 /* exported NetGame */
 
 let firebaseConfig = {
@@ -59,6 +59,7 @@ class NetGame {
                         if (typeof player === "undefined") {
                             player = new OnlinePlayer(this, this.table, snapshot.key);
                         }
+                        player.role = snapshot.child("role").val();
                         this.table.players.push(player);
                     });
                     this.table.deck = snapshot.child("deck").val();
@@ -144,9 +145,7 @@ class NetGame {
     }
 
     addPlayer(player, callback) {
-
         let refRoom = firebase.database().ref(`/rooms/${this.roomCode}`);
-
         refRoom.transaction(
             (room) => {
                 if (room === null) {
@@ -184,7 +183,6 @@ class NetGame {
     }
 
     startGame() {
-        let finishCards = [1, 2, 3];
         shuffle(finishCards);
         shuffle(cardIndices);
         this.table.deck = cardIndices;
@@ -204,8 +202,9 @@ class NetGame {
                 room.deck = cardIndices;
                 room.finishCards = finishCards;
 
-                for (let user of Object.values(room.users)) {
-                    user.role = "some known value";
+                let roles = shuffle(rolesN[Object.keys(room.users).length]);
+                for (let  user of Object.values(room.users)) {
+                    user.role = roles.pop();
                 }
 
                 return room;

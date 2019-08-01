@@ -100,7 +100,7 @@ class Player {  // base class
     constructor(table, name) {
         this.table = table;
         this.name = name;
-        this.allegiance = "[DATA EXPUNGED]";
+        this.role = "[DATA EXPUNGED]";
         this.hand = [];
         //this.breakage
     }

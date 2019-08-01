@@ -1,5 +1,5 @@
 "use strict"
-/* exported dirs */
+/* exported dirs finishCards cardIndices rolesN */
 
 let _dirs = [
     { up: "yes",  down: "yes",  left: "yes",  right: "yes"  },
@@ -47,6 +47,8 @@ let _dirs = [
     { up: "dead", down: "dead", left: "dead", right: "dead" },
 ];
 
+let finishCards = [1, 2, 3];
+
 let cardIndices = [];
 for (let i = 4; i < _dirs.length; ++i) {
     cardIndices.push(i);
@@ -64,3 +66,16 @@ function dirs(card) {
         right: card < 0 ? c.left : c.right,
     }
 }
+
+let rolesN = [
+    null,
+    ["miner"],
+    ["miner", "miner", "saboteur"],
+    ["miner", "miner", "saboteur", "miner"],
+    ["miner", "miner", "saboteur", "miner", "miner"],
+    ["miner", "miner", "saboteur", "miner", "miner", "saboteur"],
+    ["miner", "miner", "saboteur", "miner", "miner", "saboteur", "miner"],
+    ["miner", "miner", "saboteur", "miner", "miner", "saboteur", "miner", "saboteur"],
+    ["miner", "miner", "saboteur", "miner", "miner", "saboteur", "miner", "saboteur", "miner"],
+    ["miner", "miner", "saboteur", "miner", "miner", "saboteur", "miner", "saboteur", "miner", "miner"],
+];
