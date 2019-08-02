@@ -244,7 +244,7 @@ class GUI {
         elem.a(
             "x", x,
             "y", y,
-            "style", `font: italic ${this.cardWidth / 3}px sans-serif;`,
+            "style", `font: italic ${this.cardWidth / 3}px sans-serif; fill: white;`,
         );
         elem.textContent = player.name;
     }
@@ -321,7 +321,8 @@ class GUI {
         if (this.fieldCache === null) {
             let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
             rect.a(
-                "fill", "gainsboro",
+                "fill", "#cea241",
+                "opacity", 0.8,
                 "rx", 5,
             );
 

@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <script src="https://www.gstatic.com/firebasejs/6.3.3/firebase.js"></script>
 
+    <link rel="stylesheet" href="style.css">
     <script type="text/javascript" src="utils.js"></script>
     <script type="text/javascript" src="deck.js"></script>
     <script type="text/javascript" src="engine.js"></script>
@@ -12,21 +13,29 @@
 </head>
 <body style="margin:0px;">
     <template id="loading">
-        uhhhhhh sec
+        <div class="wrapper">
+            <div id="loading">loading...</div>
+        </div>
     </template>
     <template id="lobby">
-        <button id="createPrivateGame">create private game</button>
-        <button id="joinPublicGame">join public game</button>
+        <div class="wrapper">
+            <button id="createPrivateGame">create private game</button>
+            <button id="joinPublicGame">join public game</button>
+        </div>
     </template>
     <template id="gameSelected">
-        <input id="nameInput" type="text" />
-        <button id="joinGame">join</button>
+        <div class="wrapper">
+            <input id="nameInput" type="text" placeholder="your name..."/>
+            <button id="joinGame">join</button>
+        </div>
     </template>
     <template id="gameJoined">
     </template>
     <template id="gameJoinedControls">
-        <button id="addBot">add bot</button>
-        <button id="startGame">start game</button>
+        <div class="wrapper">
+            <button id="addBot">add bot</button>
+            <button id="startGame">start game</button>
+        </div>
     </template>
     <template id="joinFail">
         heck
