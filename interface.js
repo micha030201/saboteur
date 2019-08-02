@@ -193,6 +193,7 @@ class GUI {
 
         let [x, y] = this.ABtoXY(a, b);
 
+        this.svg.appendChild(c.outerGroup);
         if (
             c.x !== x
             || c.y !== y
@@ -200,8 +201,6 @@ class GUI {
             || c.reversed !== reversed
             || c.width !== this.cardWidth
         ) {
-            this.svg.appendChild(c.outerGroup);  // HACK
-
             c.cover.a("opacity", hidden ? 1 : 0);
 
             if (c.a === null || c.b === null || instant) {
@@ -273,7 +272,6 @@ class GUI {
 
     drawOtherHand(player, instant) {
         let [a, b] = this._whereDrawOtherHand(player);
-        this.drawCard(roleOffsets[player.role] + player.id, a, b, !this.table.gameOver, instant);
         let [x, y] = this.ABtoXY(a, b);
         this._drawName(player, x, y - this.cardWidth / 5 - this.cardWidth * TEXTURE_HEIGHT_RATIO / 2);
         for (let [i, card] of player.hand.entries()) {
@@ -285,6 +283,7 @@ class GUI {
                 this.drawCard(card, a, b, false, instant);
             }
         }
+        this.drawCard(roleOffsets[player.role] + player.id, a, b, !this.table.gameOver, instant);
     }
 
     drawOtherHands(instant) {
