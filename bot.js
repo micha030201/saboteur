@@ -20,7 +20,7 @@ class CommonBot extends Player{
                 this.determineBadass();
             }
         }
-        this.bot.makeMove (callback, this.hand);
+        this.bot.makeMove (callback, this.hand, this.impairments, this.seenFinishCards);
     }
 
     determineBadass (){
@@ -42,9 +42,11 @@ class BotPlayer extends Player {
         super(...args);
     }
 
-    makeMove(callback) {
+    makeMove(callback, hand, impairments, seenFinish) {
         console.log(this.name);
-
+        this.impairments = impairments;
+        this.seenFinishCards = seenFinish;
+        this.hand = hand;
         let move = new Move();
         let spaces = [], card;
         for (card of this.hand) {
@@ -82,8 +84,10 @@ class SmartBot  extends Player{
         constructor(...args) {
         super(...args);
     }
-    makeMove(callback, hand) {
+    makeMove(callback, hand, impairments, seenFinish) {
 
+        this.impairments = impairments;
+        this.seenFinishCards = seenFinish;
         this.hand = hand;
         this.bestcard = undefined;
         console.log(this.name + " " + "smartbot");
@@ -240,8 +244,10 @@ class BotField extends Field{
 
 class MostDistantBot extends SmartBot{
 
-    makeMove(callback, hand) {
+    makeMove(callback, hand, impairments, seenFinish) {
 
+        this.impairments = impairments;
+        this.seenFinishCards = seenFinish;
         this.hand = hand;
         this.bestcard = undefined;
         console.log(this.name + " " + "mostDistantBot");
@@ -318,8 +324,10 @@ class DirectionBot extends Player{
         }
     }
 
-    makeMove(callback, hand) {
+    makeMove(callback, hand, impairments, seenFinish) {
 
+        this.impairments = impairments;
+        this.seenFinishCards = seenFinish;
         this.hand = hand;
         let turnComparisionValue = this.comparisionValue;
         console.log(this.name + "  directbot");
@@ -368,8 +376,10 @@ class DirectionBot extends Player{
 
 class SmartBadBot extends MostDistantBot{
 
-    makeMove(callback, hand) {
+    makeMove(callback, hand, impairments, seenFinish) {
 
+        this.impairments = impairments;
+        this.seenFinishCards = seenFinish;
         this.hand = hand;
         this.realBestCard = undefined;
         this.IsBestFound = false;
