@@ -1,18 +1,18 @@
 
 "use strict"
-/* global dirs Table Player Move shuffle cardIndices symmetrical */
+/* global dirs finishCardIndex finishCardAB type impairmentType DefaultDict Player Move shuffle symmetrical NetGame roleOffsets */
 
 const ANIMATION_LENGTH = 600;  // in milliseconds
 
 // has to correspond to assets/* image sizes
 const TEXTURE_WIDTH = 10;
-const TEXTURE_HEIGHT_RATIO = 538 / 380;
+const TEXTURE_HEIGHT_RATIO = 1.5;// 538 / 380;
 
 const TOTAL_CARDS_HORIZONTALLY = 18;
 const TOTAL_CARDS_VERTICALLY = 21;
 
 const ZERO_A = 4;
-const ZERO_B = 10;
+const ZERO_B = 11;
 
 // coordinates below relative to zero
 
@@ -25,6 +25,9 @@ const DECK_B = -10;
 const OUR_HAND_A = -3;
 const OUR_HAND_B = 8;
 
+const OUR_HAND_CARDS_OFFSET_A = 2;
+const OUR_HAND_IMPAIR_OFFSET_A = 9;
+
 const OTHER_HANDS_A = -4;
 const OTHER_HANDS_B = -10;
 
@@ -36,14 +39,21 @@ const FIELD_HEIGHT = 13;
 
 
 class OurPlayer extends Player {
-    constructor(...args) {
+    constructor(netgame, ...args) {
         super(...args);
-        this.moveDone = null;
+
+        this.netgame = netgame;
+        this._moveDone = null;
+    }
+
+    moveDone(move) {
+        this.netgame.sendMove(this, move);
+        this._moveDone(move);
     }
 
     makeMove(callback) {
-        console.log("player");
-        this.moveDone = callback;
+        console.log(this.name);
+        this._moveDone = callback;
     }
 }
 
@@ -70,8 +80,6 @@ class GUI {
 
         this.svg = svg;
         window.addEventListener('resize', this.redraw.bind(this));
-
-        this.redraw();
     }
 
     XYtoAB(x, y) {
@@ -86,6 +94,10 @@ class GUI {
             this.zeroX + a * this.cardWidth,
             this.zeroY + b * this.cardWidth * TEXTURE_HEIGHT_RATIO
         ];
+    }
+
+    get otherPlayers() {
+        return this.table.players.filter(p => p !== this.we);
     }
 
     cardCacheEntry(card) {
@@ -103,62 +115,64 @@ class GUI {
             );
             elem.appendChild(rect);
 
-            if (dirs(card).up !== "no") {
-                let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                way.setAttribute("x", 4);
-                way.setAttribute("y", 0);
-                way.setAttribute("width", 2);
-                if (dirs(card).up === "yes") {
-                    way.setAttribute("height", 8.5);
-                } else {
-                    way.setAttribute("height", 2);
-                }
-                way.setAttribute("fill", "red");
-                elem.appendChild(way);
-            }
-
-            if (dirs(card).down !== "no") {
-                let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                way.setAttribute("x", 4);
-                way.setAttribute("width", 2);
-                if (dirs(card).down === "yes") {
-                    way.setAttribute("height", 8.5);
-                    way.setAttribute("y", 6.5);
-                } else {
-                    way.setAttribute("height", 2);
-                    way.setAttribute("y", 13);
-                }
-                way.setAttribute("fill", "red");
-                elem.appendChild(way);
-            }
-
-            if (dirs(card).left !== "no") {
-                let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                way.setAttribute("x", 0);
-                way.setAttribute("y", 6.5);
-                way.setAttribute("height", 2);
-                if (dirs(card).left === "yes") {
-                    way.setAttribute("width", 6);
-                } else {
-                    way.setAttribute("width", 2);
-                }
-                way.setAttribute("fill", "red");
-                elem.appendChild(way);
-            }
-
-            if (dirs(card).right !== "no") {
-                let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                way.setAttribute("y", 6.5);
-                way.setAttribute("height", 2);
-                if (dirs(card).right === "yes") {
-                    way.setAttribute("width", 6);
+            if (type(card) === "path") {
+                if (dirs(card).up !== "no") {
+                    let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                     way.setAttribute("x", 4);
-                } else {
+                    way.setAttribute("y", 0);
                     way.setAttribute("width", 2);
-                    way.setAttribute("x", 8);
+                    if (dirs(card).up === "yes") {
+                        way.setAttribute("height", 8.5);
+                    } else {
+                        way.setAttribute("height", 2);
+                    }
+                    way.setAttribute("fill", "red");
+                    elem.appendChild(way);
                 }
-                way.setAttribute("fill", "red");
-                elem.appendChild(way);
+
+                if (dirs(card).down !== "no") {
+                    let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    way.setAttribute("x", 4);
+                    way.setAttribute("width", 2);
+                    if (dirs(card).down === "yes") {
+                        way.setAttribute("height", 8.5);
+                        way.setAttribute("y", 6.5);
+                    } else {
+                        way.setAttribute("height", 2);
+                        way.setAttribute("y", 13);
+                    }
+                    way.setAttribute("fill", "red");
+                    elem.appendChild(way);
+                }
+
+                if (dirs(card).left !== "no") {
+                    let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    way.setAttribute("x", 0);
+                    way.setAttribute("y", 6.5);
+                    way.setAttribute("height", 2);
+                    if (dirs(card).left === "yes") {
+                        way.setAttribute("width", 6);
+                    } else {
+                        way.setAttribute("width", 2);
+                    }
+                    way.setAttribute("fill", "red");
+                    elem.appendChild(way);
+                }
+
+                if (dirs(card).right !== "no") {
+                    let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    way.setAttribute("y", 6.5);
+                    way.setAttribute("height", 2);
+                    if (dirs(card).right === "yes") {
+                        way.setAttribute("width", 6);
+                        way.setAttribute("x", 4);
+                    } else {
+                        way.setAttribute("width", 2);
+                        way.setAttribute("x", 8);
+                    }
+                    way.setAttribute("fill", "red");
+                    elem.appendChild(way);
+                }
             }
 
             let cover = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -260,19 +274,50 @@ class GUI {
         elem.textContent = player.name;
     }
 
-    _drawOtherHand(player, a, b, instant) {
-        // TODO draw allegiance
-        let [x, y] = this.ABtoXY(a, b);
-        this._drawName(player, x, y - this.cardWidth / 5);
-        for (let [i, card] of player.hand.entries()) {
-            this.drawCard(card, a +  i * (2 / player.hand.length), b, true, instant);
+    _whereDrawOtherHand(player) {
+        let index = this.otherPlayers.indexOf(player);
+        return [OTHER_HANDS_A + (index % 4) * 4, OTHER_HANDS_B + (index > 5 ? 0 : 2)];
+    }
+
+    _whoseHandThere(a, b) {
+        if (a === OUR_HAND_A && b === OUR_HAND_B) {
+            return this.we;
         }
-        // TODO draw breakage
+        for (let player of this.otherPlayers) {
+            let [a_, b_] = this._whereDrawOtherHand(player);
+            if (a === a_ && b === b_) {
+                return player;
+            }
+        }
+    }
+
+    impairCardAB(player, index) {
+        if (player === this.we) {
+            return [OUR_HAND_A + OUR_HAND_IMPAIR_OFFSET_A + index, OUR_HAND_B];
+        }
+        let [a, b] = this._whereDrawOtherHand(player);
+        return [a + 0.5 + index, b];
+    }
+
+    drawOtherHand(player, instant) {
+        let [a, b] = this._whereDrawOtherHand(player);
+        this.drawCard(roleOffsets[player.role] + player.id, a, b, !this.table.gameOver, instant);
+        let [x, y] = this.ABtoXY(a, b);
+        this._drawName(player, x, y - this.cardWidth / 5 - this.cardWidth * TEXTURE_HEIGHT_RATIO / 2);
+        for (let [i, card] of player.hand.entries()) {
+            this.drawCard(card, a + 0.5 + i * (2 / player.hand.length), b - 0.5, true, instant);
+        }
+        for (let [i, card] of player.impairments.entries()) {
+            if (card !== null) {
+                let [a, b] = this.impairCardAB(player, i);
+                this.drawCard(card, a, b, false, instant);
+            }
+        }
     }
 
     drawOtherHands(instant) {
-        for (let [i, player] of Object.entries(this.table.players.filter(p => p !== this.we))) {
-            this._drawOtherHand(player, (i % 3) * 4 + OTHER_HANDS_A, OTHER_HANDS_B + (i > 4 ? 0 : 2), instant);
+        for (let player of this.otherPlayers) {
+            this.drawOtherHand(player, instant);
         }
     }
 
@@ -340,14 +385,10 @@ class GUI {
             c.width = this.cardWidth;
         }
 
-        if (this.table.finishCards[0] !== null) {
-            this.drawCard(this.table.finishCards[0], 8, -2, true, instant);
-        }
-        if (this.table.finishCards[1] !== null) {
-            this.drawCard(this.table.finishCards[1], 8, 0, true, instant);
-        }
-        if (this.table.finishCards[2] !== null) {
-            this.drawCard(this.table.finishCards[2], 8, 2, true, instant);
+        for (let [index, [a, b]] of finishCardAB.entries()) {
+            if (this.table.finishCards[index] !== null) {
+                this.drawCard(this.table.finishCards[index], a, b, !this.we.seenFinishCards[index], instant);
+            }
         }
 
         for (let [a, b, card] of this.table.field.cards()) {
@@ -355,31 +396,78 @@ class GUI {
         }
     }
 
+    _canBePlaced(card, a, b) {
+        if (card === null) {
+            return false;
+        }
+        let playerThere = this._whoseHandThere(a, b);
+        return (
+            (a === DISCARD_PILE_A && b === DISCARD_PILE_B)
+            || (type(card) === "destroy" && this.table.field.canBeRemoved(a, b))
+            || (type(card) === "map" && typeof finishCardIndex[a][b] !== "undefined" && !this.we.seenFinishCards[finishCardIndex[a][b]])
+            || (type(card) === "impair" && typeof playerThere !== "undefined" && playerThere !== this.we && playerThere.impairments[impairmentType(card)] === null)
+            || (type(card) === "repair" && typeof playerThere !== "undefined" && playerThere.impairments[impairmentType(card)] !== null)
+            || (type(card) === "path" && !this.we.impairments.any() && this.table.field.canBePlaced(card, a, b))
+        );
+    }
+
+    _place(card, a, b) {
+        let move = new Move();
+
+        let playerThere = this._whoseHandThere(a, b);
+        if (a === DISCARD_PILE_A && b === DISCARD_PILE_B) {
+            move.discard(card);
+        } else if (type(card) === "destroy" && this.table.field.canBeRemoved(a, b)) {
+            move.destroy(card, a, b);
+        } else if (type(card) === "map" && typeof finishCardIndex[a][b] !== "undefined" && !this.we.seenFinishCards[finishCardIndex[a][b]]) {
+            move.look(card, finishCardIndex[a][b]);
+        } else if (type(card) === "impair" && typeof playerThere !== "undefined" && playerThere !== this.we && playerThere.impairments[impairmentType(card)] === null) {
+            move.impair(card, playerThere);
+        } else if (type(card) === "repair" && typeof playerThere !== "undefined" && playerThere.impairments[impairmentType(card)] !== null) {
+            move.repair(card, playerThere);
+        } else if (type(card) === "path" && this.table.field.canBePlaced(card, a, b)) {
+            move.placeCard(card, a, b);
+        }
+
+        setTimeout(() => this.we.moveDone(move));
+    }
+
     _drawAvailableSpaces(card) {
         if (this.availableSpaces === null) {
-            this.availableSpaces = {};
+            let possibleAvailableSpaces = [];
             for (let i = FIELD_A; i < FIELD_WIDTH + FIELD_A; ++i) {
-                let column = {};
                 for (let j = FIELD_B; j < FIELD_HEIGHT + FIELD_B; ++j) {
-                    let elem = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-                    elem.a("fill", "green");
-                    this.svg.appendChild(elem);
-                    column[j] = elem;
+                    possibleAvailableSpaces.push([i, j]);
                 }
-                this.availableSpaces[i] = column;
+            }
+            for (let player of this.otherPlayers) {
+                possibleAvailableSpaces.push(this._whereDrawOtherHand(player));
+            }
+            possibleAvailableSpaces.push([OUR_HAND_A, OUR_HAND_B]);
+            possibleAvailableSpaces.push([DISCARD_PILE_A, DISCARD_PILE_B]);
+
+            this.availableSpaces = new DefaultDict(function () { return {}; });
+            for (let [a, b] of possibleAvailableSpaces) {
+                let elem = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+                elem.a("fill", "green");
+                this.availableSpaces[a][b] = elem;
             }
         }
-        for (let a = FIELD_A; a < FIELD_WIDTH + FIELD_A; ++a) {
-            for (let b = FIELD_B; b < FIELD_HEIGHT + FIELD_B; ++b) {
-                let elem = this.availableSpaces[a][b];
+
+        for (let [a, column] of Object.entries(this.availableSpaces)) {
+            for (let [b, elem] of Object.entries(column)) {
+                a = a * 1;
+                b = b * 1;
+
                 let [x, y] = this.ABtoXY(a, b);
                 elem.a(
                     "x", x,
                     "y", y,
                     "width", this.cardWidth,
                     "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
-                    "opacity", card !== null && this.table.field.canBePlaced(card, a, b) ? 0.3 : 0,
+                    "opacity", this._canBePlaced(card, a, b) ? 0.3 : 0,
                 );
+                this.svg.appendChild(elem);
             }
         }
     }
@@ -399,7 +487,7 @@ class GUI {
             elem = this.rotateIcons[index];
         }
         elem.a(
-            "x", this.zeroX + this.cardWidth * (OUR_HAND_A + index),
+            "x", this.zeroX + this.cardWidth * (OUR_HAND_A + OUR_HAND_CARDS_OFFSET_A + index),
             "y", this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * (OUR_HAND_B - 1),
             "width", this.cardWidth,
             "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
@@ -418,7 +506,7 @@ class GUI {
         }
         this.svg.appendChild(elem);  // HACK
         elem.a(
-            "x", this.zeroX + this.cardWidth * OUR_HAND_A,
+            "x", this.zeroX + this.cardWidth * (OUR_HAND_A + OUR_HAND_CARDS_OFFSET_A),
             "y", hide ? this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * OUR_HAND_B : -9999,
             "width", this.cardWidth * this.we.hand.length,
             "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
@@ -429,51 +517,46 @@ class GUI {
     drawOurHand(instant) {
         let [x, y] = this.ABtoXY(OUR_HAND_A, OUR_HAND_B + 1 + 1/3);  // FIXME
         this._drawName(this.we, x, y);
+        this.drawCard(roleOffsets[this.we.role] + this.we.id, OUR_HAND_A, OUR_HAND_B, false, instant);
         for (let i = 0; i < 6; ++i) {
             let card = this.we.hand[i];
             if (typeof card === "undefined") {
                 this._drawRotateIcon(i, false);
                 continue;
             }
+            if (type(card) === "path") {
+                let canBePlacedAsIs = this.table.field.availableSpaces(card).length;
+                let canBePlacedReversed = this.table.field.availableSpaces(-card).length;
 
-            let canBePlacedAsIs = this.table.field.availableSpaces(card).length;
-            let canBePlacedReversed = this.table.field.availableSpaces(-card).length;
+                this._drawRotateIcon(i, this.ourTurn && canBePlacedAsIs && canBePlacedReversed && !symmetrical(card));
 
-            this._drawRotateIcon(i, this.ourTurn && canBePlacedAsIs && canBePlacedReversed && !symmetrical(card));
-
-            if (this.ourTurn && canBePlacedReversed && !canBePlacedAsIs) {
-                this.we.hand[i] = card = -card;
+                if (this.ourTurn && canBePlacedReversed && !canBePlacedAsIs) {
+                    this.we.hand[i] = card = -card;
+                }
+            } else {
+                this._drawRotateIcon(i, false);
             }
-            this.drawCard(card, i + OUR_HAND_A, OUR_HAND_B, false, instant);
+            this.drawCard(card, OUR_HAND_A + OUR_HAND_CARDS_OFFSET_A + i, OUR_HAND_B, false, instant);
             this.createPickHandler(card);
+        }
+        for (let [i, card] of this.we.impairments.entries()) {
+            if (card !== null) {
+                let [a, b] = this.impairCardAB(this.we, i);
+                this.drawCard(card, a, b, false, instant);
+            }
         }
         this._drawCardsHider(!this.ourTurn);
     }
 
-    drawGameOver(won) {
-        // FIXME
-        let elem;
-        if (this.gameOverScreen === null) {
-            elem = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            this.gameOverScreen = elem;
+    drawHand(player, instant) {
+        if (player === this.we) {
+            this.drawOurHand(instant);
         } else {
-            elem = this.gameOverScreen;
+            this.drawOtherHand(player, instant);
         }
-        this.svg.appendChild(elem);  // HACK
-        elem.a(
-            "x", -500,
-            "y", -500,
-            "width", 99999,
-            "height", 99999,
-            "fill", won ? "green" : "red",
-        );
     }
 
     redraw() {
-        if (this.table.won || this.table.lost) {
-            this.drawGameOver(this.table.won);
-        }
-
         this.svg.a(
             "width", window.innerWidth,
             "height", window.innerHeight,
@@ -498,25 +581,92 @@ class GUI {
     }
 
     drawMove(move, player, callback) {
-        if (this.table.won || this.table.lost) {
-            setTimeout(() => this.drawGameOver(this.table.won), ANIMATION_LENGTH * 2);
-        }
-        // move cards manually so that they stay on top
-        if (move.type === "noop") {
-            this.redraw();
-        } else if (move.type === "place") {
-            this.drawCard(move.card, move.a, move.b, false, false);
-            setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
-            setTimeout(() => this.drawField(true), ANIMATION_LENGTH * (this.ourTurn ? 0 : 1));  // HACK
-        } else if (move.type === "discard") {
-            this.drawCard(move.card, DISCARD_PILE_A, DISCARD_PILE_B);
-            setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
+        if (this.table.gameOver) {
+            setTimeout(() => this.redraw(), ANIMATION_LENGTH * 2);
+            setTimeout(callback, ANIMATION_LENGTH * 2);
+            return;
         }
 
-        this.ourTurn = this.table.nextPlayer(player) === this.we;
-        setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH * (this.ourTurn ? 2 : 0));
+        let moveAnimations = 0;
+        if (player.name !== this.we.name) {
+            // move cards manually so that they stay on top
+            if (move.type === "noop") {
+                this.redraw();
+            } else if (move.type === "place") {
+                this.drawCard(move.card, move.a, move.b, false, false);
+                setTimeout(() => this.drawField(false), ANIMATION_LENGTH);
+                setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
 
-        setTimeout(callback, ANIMATION_LENGTH * ((player === this.we) ? 1 : 2));
+                moveAnimations += 2;
+            } else if (move.type === "discard") {
+                this.drawCard(move.card, DISCARD_PILE_A, DISCARD_PILE_B);
+                setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
+
+                moveAnimations += 2;
+            } else if (move.type === "destroy") {
+                this.drawCard(move.card, move.a, move.b);
+                setTimeout(() => this.drawCard(move.card, DISCARD_PILE_A, DISCARD_PILE_B), ANIMATION_LENGTH * 2);
+                setTimeout(() => this.drawDiscardPile(false), ANIMATION_LENGTH * 2);
+                setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH * 3);
+
+                moveAnimations += 4;
+            } else if (move.type === "look") {
+                this.drawCard(move.card, ...finishCardAB[move.index]);
+                setTimeout(() => this.drawCard(move.card, DISCARD_PILE_A, DISCARD_PILE_B), ANIMATION_LENGTH * 2);
+                setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH * 3);
+
+                moveAnimations += 4;
+            } else if (move.type === "impair") {
+                this.drawHand(this.table.players[move.playerId], false);
+                setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
+
+                moveAnimations += 2;
+            } else if (move.type === "repair") {
+                this.drawCard(move.card, ...this.impairCardAB(this.table.players[move.playerId], impairmentType(move.card)));
+                setTimeout(() => this.drawDiscardPile(false), ANIMATION_LENGTH * 2);
+
+                moveAnimations += 4;
+            }
+        } else {
+            if (move.type === "noop") {
+                this.redraw();
+            } else if (move.type === "place") {
+                this.drawField(false);
+                setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH);
+
+                moveAnimations += 1;
+            } else if (move.type === "discard") {
+                setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH);
+
+                moveAnimations += 1;
+            } else if (move.type === "destroy") {
+                this.drawDiscardPile(false);
+                setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH);
+
+                moveAnimations += 2;
+            } else if (move.type === "look") {
+                this.drawDiscardPile(false);
+                this.drawField(true);
+                setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH);
+
+                moveAnimations += 2;
+            } else if (move.type === "impair") {
+                this.drawHand(this.table.players[move.playerId], false);
+                setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
+
+                moveAnimations += 2;
+            } else if (move.type === "repair") {
+                this.drawDiscardPile(false);
+                setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH);
+
+                moveAnimations += 2;
+            }
+        }
+
+        setTimeout(callback, ANIMATION_LENGTH * moveAnimations);
+
+        this.ourTurn = !this.table.gameOver && this.table.nextPlayer(player).name === this.we.name;
+        setTimeout(() => this.drawOurHand(true), ANIMATION_LENGTH * moveAnimations);
     }
 
     followEvent(e) {
@@ -561,7 +711,7 @@ class GUI {
 
                     let [a, b] = this.followEvent(e);
 
-                    if (this.table.field.canBePlaced(card, Math.round(a), Math.round(b))) {
+                    if (this._canBePlaced(card, Math.round(a), Math.round(b))) {
                         a = Math.round(a);
                         b = Math.round(b);
                     }
@@ -587,18 +737,8 @@ class GUI {
                     a = Math.round(a);
                     b = Math.round(b);
 
-                    if (a === DISCARD_PILE_A && b === DISCARD_PILE_B) {
-                        this.drawCard(card, a, b, false, true);
-
-                        let move = new Move();
-                        move.discard(card);
-                        this.we.moveDone(move);
-                    }
-
-                    if (this.table.field.canBePlaced(card, a, b)) {
-                        let move = new Move();
-                        move.placeCard(card, a, b);
-                        this.we.moveDone(move);
+                    if (this._canBePlaced(card, a, b)) {
+                        this._place(card, a, b);
                     } else {
                         this.drawOurHand(false);
                     }
@@ -639,22 +779,70 @@ class GUI {
 }
 
 window.addEventListener("load", function() {
-    let svg = document.getElementById("gamearea");
+    let screens = {};
+    for (let screenElem of document.querySelectorAll("template")) {
+        screens[screenElem.id] = document.importNode(screenElem.content, true);
+    }
 
-    let table = new Table();
+    let switchScreens = function(newScreen) {
+        while (document.body.lastChild) {
+            document.body.removeChild(document.body.lastChild);
+        }
+        document.body.appendChild(screens[newScreen]);
+    };
 
-    let names = shuffle(["Shinji", "Rei", "Asuka", "Misato"]);
+    if (window.location.hash) {
+        // TODO parse
+    }
 
-    let we = new OurPlayer (table, names.pop());
-    let bot = new CommonBot ("badass", table, names.pop());
-    let bo1 = new CommonBot ("miner", table, names.pop());
+    switchScreens("lobby");
 
+    let netgame = new NetGame();
 
-    table.players = [bot, bo1,we];
-    table.deck = shuffle(cardIndices);
-    table.finishCards = shuffle([1, 2, 3]);
+    let proceedWithGameCreation = () => {
+        window.location.hash = "#" + netgame.roomCode;
+        switchScreens("gameSelected");
 
-    let gui = new GUI(table, we, svg);
+        netgame.onPlayerAdd = console.log;
 
-    table.startGame();
+        let names = shuffle(["Shinji", "Rei", "Asuka"]);
+
+        document.getElementById("joinGame").onclick = () => {
+            let name = document.getElementById("nameInput").value;
+            if (name.length === 0) {
+                return;
+            }
+            let we = new OurPlayer(netgame, netgame.table, name);
+            netgame.onGameStart = function(table) {
+                switchScreens("gameStarted");
+                let svg = document.getElementById("gamearea");
+
+                let gui = new GUI(netgame.table, we, svg);
+                gui.redraw();
+
+                table.startGame();
+            };
+            netgame.addPlayer(we, (success) => {
+                if (!success) {
+                    switchScreens("joinFail");
+                } else {
+                    switchScreens("gameJoinedControls");
+
+                    document.getElementById("addBot").onclick = () => {
+                        let bot = new BotPlayer(netgame, netgame.table, names.pop());
+                        netgame.addPlayer(bot, () => {});
+                    };
+                    document.getElementById("startGame").onclick = () => netgame.startGame();
+                }
+            });
+        };
+    };
+
+    document.getElementById("createPrivateGame").onclick = () => {
+        netgame.createGame(false, proceedWithGameCreation);
+    };
+
+    document.getElementById("joinPublicGame").onclick = () => {
+        netgame.joinPublicGame(proceedWithGameCreation);
+    };
 });

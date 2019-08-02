@@ -1,5 +1,5 @@
 "use strict"
-/* exported doesIncludeArray DefaultDict shuffle sleep */
+/* exported doesIncludeArray DefaultDict shuffle Join */
 
 function doesIncludeArray(haystack, needle){
     let i, j, current;

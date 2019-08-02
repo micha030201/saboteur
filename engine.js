@@ -1,5 +1,5 @@
 "use strict"
-/* global dirs DefaultDict doesIncludeArray */
+/* global dirs impairmentType finishCardIndex DefaultDict doesIncludeArray */
 /* exported symmetrical Table Player Move */
 
 function symmetrical(card) {
@@ -15,12 +15,16 @@ class Table {
         this.discardPile = [];
         this.moveCallback = () => {};
 
-        this.won = false;
+        this.goldFound = false;
 
         this.field = new Field();
     }
 
-    get lost() {
+    get gameOver() {
+        if (this.goldFound) {
+            return true;
+        }
+
         let cardsHeld = 0;
         for (let player of this.players) {
             cardsHeld += player.hand.length;
@@ -38,20 +42,43 @@ class Table {
         return this.players[index];
     }
 
+    processRepairMove(player, move) {
+        let affectedPlayer = this.players[move.playerId];
+
+        let impairmentCard = affectedPlayer.impairments[impairmentType(move.card)];
+        affectedPlayer.impairments[impairmentType(move.card)] = null;
+
+        this.discardPile.push(impairmentCard);
+        this.discardPile.push(move.card);
+    }
+
+    processImpairMove(player, move) {
+        let affectedPlayer = this.players[move.playerId];
+        affectedPlayer.impairments[impairmentType(move.card)] = move.card;
+    }
+
+    processLookMove(player, move) {
+        player.seenFinishCards[move.index] = true;
+        this.discardPile.push(move.card);
+    }
+
+    processDestroyMove(player, move) {
+        let card = this.field.remove(move.a, move.b);
+        this.discardPile.push(move.card);
+        this.discardPile.push(card);
+    }
+
     processPlaceMove(player, move) {
-        player.hand = player.hand.filter(item => Math.abs(item) !== Math.abs(move.card));
         this.field.place(move.card, move.a, move.b);
         for (let [a, b] of this.field.reachableSpaces()) {
-            if (a === 8 && (b === 0 || b === 2 || b === -2)) {
-                let card = Math.abs(this.finishCards[(b + 2) / 2]);
+            let index = finishCardIndex[a][b];
+            if (typeof index !== "undefined") {
+                let card = this.finishCards[index];
                 if (Math.abs(card) === 1) {
-                    this.won = true;
+                    this.goldFound = true;
                 }
-                this.finishCards[(b + 2) / 2] = null;
-                if (
-                    this.field.canPlaceInPosition(-card, a, b).filter(x => x).length  // FIXME this logic is wrong actually
-                    > this.field.canPlaceInPosition(card, a, b).filter(x => x).length
-                ) {
+                this.finishCards[index] = null;
+                if (this.field.evaluateOrientation(-card, a, b) > this.field.evaluateOrientation(card, a, b)) {
                     card = -card;
                 }
                 this.field.place(card, a, b);
@@ -60,15 +87,24 @@ class Table {
     }
 
     processDiscardMove(player, move) {
-        player.hand = player.hand.filter(item => Math.abs(item) !== Math.abs(move.card));
         this.discardPile.push(move.card);
     }
 
     processMove(player, move) {
+        player.hand = player.hand.filter(item => Math.abs(item) !== Math.abs(move.card));
+
         if (move.type === "place") {
             this.processPlaceMove(player, move);
         } else if (move.type === "discard") {
             this.processDiscardMove(player, move);
+        } else if (move.type === "destroy") {
+            this.processDestroyMove(player, move);
+        } else if (move.type === "look") {
+            this.processLookMove(player, move);
+        } else if (move.type === "impair") {
+            this.processImpairMove(player, move);
+        } else if (move.type === "repair") {
+            this.processRepairMove(player, move);
         }
         if (this.deck.length) {
             player.drawCard();
@@ -93,8 +129,8 @@ class Table {
         move.noop();
 
         // ready player minus one, i guess
-        let nextPlayer = this.nextPlayer();
-        this.moveCallback(move, nextPlayer);
+        let nextPlayer = this.nextPlayer(this.players[0]);
+        this.moveCallback(move, this.players[0]);
         nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
     }
 }
@@ -103,9 +139,10 @@ class Player {  // base class
     constructor(table, name) {
         this.table = table;
         this.name = name;
-        this.allegiance = "[DATA EXPUNGED]";
+        this.role = "[DATA EXPUNGED]";
         this.hand = [];
-        //this.breakage
+        this.seenFinishCards = [false, false, false];
+        this.impairments = [null, null, null];
     }
 
     drawCard() {
@@ -139,6 +176,31 @@ class Move {
             }
         }
         return true;
+    }
+
+    destroy(card, a, b) {
+        this.type = "destroy";
+        this.card = card;
+        this.a = a;
+        this.b = b;
+    }
+
+    look(card, finishCardIndex) {
+        this.type = "look";
+        this.card = card;
+        this.index = finishCardIndex;
+    }
+
+    impair(card, player) {
+        this.type = "impair";
+        this.card = card;
+        this.playerId = player.id;
+    }
+
+    repair(card, player) {
+        this.type = "repair";
+        this.card = card;
+        this.playerId = player.id;
     }
 }
 
@@ -210,6 +272,22 @@ class Field {
         ];
     }
 
+    evaluateOrientation(card, a, b) {
+        let fit = function(neighbour, dir_n, card, dir_c) {
+            return (
+                typeof neighbour !== "undefined"
+                && (dirs(neighbour)[dir_n] !== "no" && dirs(card)[dir_c] !== "no")
+            ) ? 1 : 0;
+        };
+
+        return (
+            fit(this.grid[a][b + 1], 'up', card, 'down')
+            + fit(this.grid[a][b - 1], 'down', card, 'up')
+            + fit(this.grid[a + 1][b], 'left', card, 'right')
+            + fit(this.grid[a - 1][b], 'right', card, 'left')
+        );
+    }
+
     static isInside(a, b) {
         return (
             (-5 < a && a < 13) &&
@@ -237,5 +315,21 @@ class Field {
 
     place(card, a, b) {
         this.grid[a][b] = card;
+    }
+
+    canBeRemoved(a, b) {
+        if (a === 0 && b === 0) {
+            return false;
+        }
+        if (typeof this.grid[a][b] !== "undefined") {
+            return true;
+        }
+        return false;
+    }
+
+    remove(a, b) {
+        let card = this.grid[a][b];
+        delete this.grid[a][b];
+        return card;
     }
 }
