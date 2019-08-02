@@ -436,7 +436,7 @@ class GUI {
                     "y", y,
                     "width", this.cardWidth,
                     "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
-                    "opacity", this._canBePlaced(card, a, b) ? 0.3 : 0,
+                    "opacity", this._canBePlaced(card, a, b) ? 0.6 : 0,
                 );
                 this.svg.appendChild(elem);
             }
