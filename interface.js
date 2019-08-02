@@ -251,7 +251,11 @@ class GUI {
             "y", y,
             "style", `font: italic ${this.cardWidth / 3}px sans-serif; fill: white;`,
         );
-        elem.textContent = player.name;
+        if (player === this.we || this.table.gameOver) {
+            elem.textContent = `${player.name} (${player.role})`;
+        } else {
+            elem.textContent = player.name;
+        }
     }
 
     _whereDrawOtherHand(player) {
