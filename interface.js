@@ -725,18 +725,18 @@ class GUI {
         };
 
         let pick = (e) => {
+            e.stopPropagation();
+            if (!this.correctEventType(e)) {
+                return;
+            }
             if (this.we.moveDone !== null) {
-                if (!this.correctEventType(e)) {
-                    return;
-                }
-                e.stopPropagation();
-
                 let [a, b] = this.followEvent(e);
                 this._drawAvailableSpaces(card);
                 this._drawRotateIcon(this.we.hand.indexOf(card), false);
                 this.drawCard(card, a, b, false, true);
 
-                let noPick = () => {
+                let noPick = (e) => {
+                    e.stopPropagation();
                     if (!this.correctEventType(e)) {
                         return;
                     }
@@ -746,9 +746,11 @@ class GUI {
                 };
 
                 let enlarge = (e) => {
+                    e.stopPropagation();
                     if (!this.correctEventType(e)) {
                         return;
                     }
+
                     this.drawOurHand(true);
                     this.drawCardEnlarged(card);
 
@@ -762,6 +764,7 @@ class GUI {
                 };
 
                 let drag = (e) => {
+                    e.stopPropagation();
                     if (!this.correctEventType(e)) {
                         return;
                     }
@@ -786,6 +789,7 @@ class GUI {
                 };
 
                 let drop = (e) => {
+                    e.stopPropagation();
                     if (!this.correctEventType(e)) {
                         return;
                     }
