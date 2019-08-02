@@ -1,11 +1,11 @@
 "use strict"
-/* global dirs finishCardIndex finishCardAB type impairmentType DefaultDict Player Move shuffle symmetrical NetGame roleOffsets */
+/* global finishCardIndex finishCardAB type impairmentType DefaultDict Player Move shuffle symmetrical NetGame roleOffsets sprite cover */
 
 const ANIMATION_LENGTH = 600;  // in milliseconds
 
 // has to correspond to assets/* image sizes
 const TEXTURE_WIDTH = 10;
-const TEXTURE_HEIGHT_RATIO = 1.5;// 538 / 380;
+const TEXTURE_HEIGHT_RATIO = 538 / 380;
 
 const TOTAL_CARDS_HORIZONTALLY = 18;
 const TOTAL_CARDS_VERTICALLY = 21;
@@ -138,81 +138,21 @@ class GUI {
         if (typeof this.drawnCardsCache[card] === "undefined") {
             let elem = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
-            let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            rect.a(
-                "fill", "black",
-                "rx", 1,
+            let image = document.createElementNS("http://www.w3.org/2000/svg", "image");
+            image.setAttributeNS("http://www.w3.org/1999/xlink", "href", `assets/sprites/${sprite(card)}.png`);
+            image.a(
                 "width", TEXTURE_WIDTH,
-                "height", 15,
+                "height", TEXTURE_WIDTH * TEXTURE_HEIGHT_RATIO,
             );
-            elem.appendChild(rect);
+            elem.appendChild(image);
 
-            if (type(card) === "path") {
-                if (dirs(card).up !== "no") {
-                    let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                    way.setAttribute("x", 4);
-                    way.setAttribute("y", 0);
-                    way.setAttribute("width", 2);
-                    if (dirs(card).up === "yes") {
-                        way.setAttribute("height", 8.5);
-                    } else {
-                        way.setAttribute("height", 2);
-                    }
-                    way.setAttribute("fill", "red");
-                    elem.appendChild(way);
-                }
-
-                if (dirs(card).down !== "no") {
-                    let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                    way.setAttribute("x", 4);
-                    way.setAttribute("width", 2);
-                    if (dirs(card).down === "yes") {
-                        way.setAttribute("height", 8.5);
-                        way.setAttribute("y", 6.5);
-                    } else {
-                        way.setAttribute("height", 2);
-                        way.setAttribute("y", 13);
-                    }
-                    way.setAttribute("fill", "red");
-                    elem.appendChild(way);
-                }
-
-                if (dirs(card).left !== "no") {
-                    let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                    way.setAttribute("x", 0);
-                    way.setAttribute("y", 6.5);
-                    way.setAttribute("height", 2);
-                    if (dirs(card).left === "yes") {
-                        way.setAttribute("width", 6);
-                    } else {
-                        way.setAttribute("width", 2);
-                    }
-                    way.setAttribute("fill", "red");
-                    elem.appendChild(way);
-                }
-
-                if (dirs(card).right !== "no") {
-                    let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                    way.setAttribute("y", 6.5);
-                    way.setAttribute("height", 2);
-                    if (dirs(card).right === "yes") {
-                        way.setAttribute("width", 6);
-                        way.setAttribute("x", 4);
-                    } else {
-                        way.setAttribute("width", 2);
-                        way.setAttribute("x", 8);
-                    }
-                    way.setAttribute("fill", "red");
-                    elem.appendChild(way);
-                }
-            }
-
-            let cover = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            cover.setAttribute("fill", "black");
-            cover.setAttribute("rx", 1);
-            cover.setAttribute("width", TEXTURE_WIDTH);
-            cover.setAttribute("height", 15);
-            elem.appendChild(cover);
+            let back = document.createElementNS("http://www.w3.org/2000/svg", "image");
+            back.setAttributeNS("http://www.w3.org/1999/xlink", "href", `assets/sprites/${cover(card)}.png`);
+            back.a(
+                "width", TEXTURE_WIDTH,
+                "height", TEXTURE_WIDTH * TEXTURE_HEIGHT_RATIO,
+            );
+            elem.appendChild(back);
 
 
             let gt = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -231,7 +171,7 @@ class GUI {
             gt.appendChild(anim);
 
             this.drawnCardsCache[card] = {
-                cover: cover,
+                cover: back,
                 outerGroup: gt,
                 animateTransform: anim,
                 innerGroup: elem,
