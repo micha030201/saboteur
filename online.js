@@ -82,9 +82,6 @@ class NetGame {
     }
 
     _onPlayerAdd(snapshot) {
-        if (typeof this._localPlayers[snapshot.key] !== "undefined") {
-            return;
-        }
         this.onPlayerAdd(snapshot.key);
     }
 

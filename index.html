@@ -1,7 +1,12 @@
 <html lang="en">
 
 <head>
+    <link rel="shortcut icon" href="assets/ico.jpg" type="image/x-icon">
     <meta charset="utf-8" />
+    <meta
+        name='viewport'
+        content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0'
+    />
     <script src="https://www.gstatic.com/firebasejs/6.3.3/firebase.js"></script>
 
     <link rel="stylesheet" href="style.css">
@@ -11,8 +16,6 @@
     <script type="text/javascript" src="bot.js"></script>
     <script type="text/javascript" src="online.js"></script>
     <script type="text/javascript" src="interface.js"></script>
-    <script type="text/javascript" src="test.js"></script>
-
 </head>
 <body style="margin:0px;">
     <template id="loading">
@@ -41,13 +44,14 @@
         </div>
     </template>
     <template id="joinFail">
-        heck
+        <div class="wrapper">
+            <div id="error">Error. Return to <a href="https://micha030201.github.io/saboteur/">lobby</a></div>
+        </div>
     </template>
     <template id="gameStarted">
         <svg id="gamearea" width="1000" height="1000" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 1000">
             <image id="discardPile" xlink:href="assets/discard.svg" />
             <image id="leave" xlink:href="assets/leave.svg" />
-            <image xlink:href="assets/rotate.svg" />
             <defs>
                 <clipPath id="spriteClip">
                     <rect x="0" y="0" width="10" height="14.157894737" rx="1.8" />

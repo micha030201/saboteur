@@ -1,6 +1,6 @@
 
 "use strict"
-/* global finishCardIndex finishCardAB type impairmentType DefaultDict Player Move shuffle symmetrical NetGame roleOffsets sprite cover */
+/* global finishCardIndex finishCardAB type impairmentType DefaultDict Player Move shuffle symmetrical NetGame roleOffsets sprite cover CommonBot */
 
 const ANIMATION_LENGTH = 600;  // in milliseconds
 
@@ -113,7 +113,7 @@ class GUI {
             let elem = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
             let image = document.createElementNS("http://www.w3.org/2000/svg", "image");
-            image.setAttributeNS("http://www.w3.org/1999/xlink", "href", `assets/sprites/${sprite(card)}.png`);
+            image.setAttributeNS("http://www.w3.org/1999/xlink", "href", `assets/sprites/${sprite(card)}.jpg`);
             image.a(
                 "clip-path", "url(#spriteClip)",
                 "width", SPRITE_WIDTH,
@@ -122,7 +122,7 @@ class GUI {
             elem.appendChild(image);
 
             let back = document.createElementNS("http://www.w3.org/2000/svg", "image");
-            back.setAttributeNS("http://www.w3.org/1999/xlink", "href", `assets/sprites/${cover(card)}.png`);
+            back.setAttributeNS("http://www.w3.org/1999/xlink", "href", `assets/sprites/${cover(card)}.jpg`);
             back.a(
                 "clip-path", "url(#spriteClip)",
                 "width", SPRITE_WIDTH,
@@ -218,7 +218,11 @@ class GUI {
             "y", y,
             "style", `font: italic ${this.cardWidth / 3}px sans-serif; fill: white;`,
         );
-        elem.textContent = player.name;
+        if (player === this.we || this.table.gameOver) {
+            elem.textContent = `${player.name} (${player.role})`;
+        } else {
+            elem.textContent = player.name;
+        }
     }
 
     _whereDrawOtherHand(player) {
@@ -599,8 +603,9 @@ class GUI {
             } else if (move.type === "repair") {
                 this.drawCard(move.card, ...this.impairCardAB(this.table.players[move.playerId], impairmentType(move.card)));
                 setTimeout(() => this.drawDiscardPile(false), ANIMATION_LENGTH * 2);
+                setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH * 3);
 
-                moveAnimations += 4;
+                moveAnimations += 5;
             }
         } else {
             if (move.type === "noop") {
@@ -754,6 +759,10 @@ class GUI {
 }
 
 window.addEventListener("load", function() {
+    let randomBotName = () => {
+        return shuffle(["Shinji", "Rei", "Asuka"])[0];
+    };
+
     let screens = {};
     for (let screenElem of document.querySelectorAll("template")) {
         screens[screenElem.id] = document.importNode(screenElem.content, true);
@@ -767,7 +776,6 @@ window.addEventListener("load", function() {
         document.body.appendChild(screens[newScreen].cloneNode(true));
         if (newScreen !== "gameStarted") {
             for (let playerName of playerNames) {
-                console.log(playerName);
                 let elem = document.createElement("div");
                 elem.a("class", "playerName");
                 elem.textContent = playerName;
@@ -806,8 +814,6 @@ window.addEventListener("load", function() {
         window.location.hash = `#${netgame.roomCode}`;
         switchScreens("gameSelected");
 
-        let names = shuffle(["Shinji", "Rei", "Asuka"]);
-
         document.getElementById("joinGame").onclick = () => {
             let name = document.getElementById("nameInput").value;
             if (name.length === 0) {
@@ -824,7 +830,7 @@ window.addEventListener("load", function() {
                     window.location.hash = `#${netgame.roomCode}/${we.name}`;
 
                     document.getElementById("addBot").onclick = () => {
-                        let bot = new CommonBot(netgame, netgame.table, names.pop());
+                        let bot = new CommonBot(netgame, netgame.table, randomBotName());
                         window.location.hash += "+" + bot.name;
                         netgame.addPlayer(bot, () => {});
                     };
@@ -834,7 +840,7 @@ window.addEventListener("load", function() {
         };
     };
 
-    let joinGame = () => {
+    let selectGame = () => {
         switchScreens("gameSelected");
 
         document.getElementById("joinGame").onclick = () => {
@@ -848,10 +854,28 @@ window.addEventListener("load", function() {
                 if (!success) {
                     switchScreens("joinFail");
                 } else {
-                    switchScreens("gameJoined");
+                    switchScreens("gameJoinedControls");
+
+                    document.getElementById("addBot").onclick = () => {
+                        let bot = new CommonBot(netgame, netgame.table, randomBotName());
+                        window.location.hash += "+" + bot.name;
+                        netgame.addPlayer(bot, () => {});
+                    };
+                    document.getElementById("startGame").onclick = () => netgame.startGame();
                 }
             });
         };
+    };
+
+    let joinGame = () => {
+        switchScreens("gameJoinedControls");
+
+        document.getElementById("addBot").onclick = () => {
+            let bot = new CommonBot(netgame, netgame.table, randomBotName());
+            window.location.hash += "+" + bot.name;
+            netgame.addPlayer(bot, () => {});
+        };
+        document.getElementById("startGame").onclick = () => netgame.startGame();
     };
 
     if (window.location.hash) {
@@ -867,9 +891,12 @@ window.addEventListener("load", function() {
                         netgame._localPlayers[botname] = bot;
                     }
                 }
+                switchScreens("loading");
+                netgame.joinGame(match[1], joinGame);
+            } else {
+                switchScreens("loading");
+                netgame.joinGame(match[1], selectGame);
             }
-            switchScreens("loading");
-            netgame.joinGame(match[1], joinGame);
         }
     } else {
         switchScreens("lobby");
