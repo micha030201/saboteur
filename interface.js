@@ -8,34 +8,109 @@ const ANIMATION_LENGTH = 600;  // in milliseconds
 const SPRITE_WIDTH = 10;
 const SPRITE_HEIGHT_RATIO = 538 / 380;
 
-const TOTAL_CARDS_HORIZONTALLY = 18;
-const TOTAL_CARDS_VERTICALLY = 21;
+const COORDINATES_TALL = {
+    TOTAL_CARDS_HORIZONTALLY: 18,
+    TOTAL_CARDS_VERTICALLY: 21,
 
-const ZERO_A = 4;
-const ZERO_B = 11;
+    ZERO_A: 4,
+    ZERO_B: 11,
 
-// coordinates below relative to zero
+    // coordinates below relative to zero
 
-const BACKGROUND_A = -4.5;
-const BACKGROUND_B = -11.5;
+    BACKGROUND_A: -4.5,
+    BACKGROUND_B: -11.5,
 
-const LEAVE_A = 12;
-const LEAVE_B = -11;
+    LEAVE_A: 12,
+    LEAVE_B: -11,
 
-const DISCARD_PILE_A = 12;
-const DISCARD_PILE_B = -8;
+    DISCARD_PILE_A: 12,
+    DISCARD_PILE_B: -8,
 
-const DECK_A = 12;
-const DECK_B = -10;
+    DECK_A: 12,
+    DECK_B: -10,
 
-const OUR_HAND_A = -3;
-const OUR_HAND_B = 8;
+    OUR_HAND_A: -3,
+    OUR_HAND_B: 8,
 
-const OUR_HAND_CARDS_OFFSET_A = 2;
-const OUR_HAND_IMPAIR_OFFSET_A = 9;
+    OUR_HAND_CARDS_OFFSET_A: 2,
+    OUR_HAND_CARDS_OFFSET_B: 0,
 
-const OTHER_HANDS_A = -4;
-const OTHER_HANDS_B = -10;
+    OUR_HAND_IMPAIR_OFFSET_A: 9,
+    OUR_HAND_IMPAIR_OFFSET_B: 0,
+
+    OUR_HAND_NEXT_CARD_OFFSET_A: 1,
+    OUR_HAND_NEXT_CARD_OFFSET_B: 0,
+
+    OUR_HAND_ROTATE_ICON_OFFSET_A: 0,
+    OUR_HAND_ROTATE_ICON_OFFSET_B: -1,
+
+    OTHER_HANDS_A: -4,
+    OTHER_HANDS_B: -10,
+
+    OTHER_HANDS_NEXT_HAND_OFFSET_A: 4,
+    OTHER_HANDS_NEXT_HAND_OFFSET_B: 0,
+
+    OTHER_HANDS_IN_ROW: 4,
+
+    OTHER_HANDS_NEXT_ROW_OFFSET_A: 0,
+    OTHER_HANDS_NEXT_ROW_OFFSET_B: -2,
+
+    CARD_ENLARGED_A: 2,
+    CARD_ENLARGED_B: 2,
+    CARD_ENLARGED_WIDTH: 5,
+};
+
+const COORDINATES_WIDE = {
+    TOTAL_CARDS_HORIZONTALLY: 28,
+    TOTAL_CARDS_VERTICALLY: 14,
+
+    ZERO_A: 12,
+    ZERO_B: 6,
+
+    // coordinates below relative to zero
+
+    BACKGROUND_A: -12.5,
+    BACKGROUND_B: -6.5,
+
+    LEAVE_A: -10,
+    LEAVE_B: -6,
+
+    DISCARD_PILE_A: -6,
+    DISCARD_PILE_B: -6,
+
+    DECK_A: -8,
+    DECK_B: -6,
+
+    OUR_HAND_A: 14,
+    OUR_HAND_B: -6,
+
+    OUR_HAND_CARDS_OFFSET_A: 0,
+    OUR_HAND_CARDS_OFFSET_B: 2,
+
+    OUR_HAND_IMPAIR_OFFSET_A: 0,
+    OUR_HAND_IMPAIR_OFFSET_B: 9,
+
+    OUR_HAND_NEXT_CARD_OFFSET_A: 0,
+    OUR_HAND_NEXT_CARD_OFFSET_B: 1,
+
+    OUR_HAND_ROTATE_ICON_OFFSET_A: -1,
+    OUR_HAND_ROTATE_ICON_OFFSET_B: 0,
+
+    OTHER_HANDS_A: -8,
+    OTHER_HANDS_B: -3,
+
+    OTHER_HANDS_NEXT_HAND_OFFSET_A: 0,
+    OTHER_HANDS_NEXT_HAND_OFFSET_B: 3,
+
+    OTHER_HANDS_IN_ROW: 4,
+
+    OTHER_HANDS_NEXT_ROW_OFFSET_A: -4,
+    OTHER_HANDS_NEXT_ROW_OFFSET_B: 0,
+
+    CARD_ENLARGED_A: 7,
+    CARD_ENLARGED_B: 1,
+    CARD_ENLARGED_WIDTH: 5,
+};
 
 // has to corespond to the actual field limits
 const FIELD_A = -4;
@@ -43,9 +118,6 @@ const FIELD_B = -6;
 const FIELD_WIDTH = 17;
 const FIELD_HEIGHT = 13;
 
-const CARD_ENLARGED_A = 2;
-const CARD_ENLARGED_B = 2;
-const CARD_ENLARGED_WIDTH = 5;
 
 
 class OurPlayer extends Player {
@@ -212,7 +284,7 @@ class GUI {
         let reversed = card < 0;
         let c = this.cardCacheEntry(card);
 
-        let [x, y] = this.ABtoXY(CARD_ENLARGED_A, CARD_ENLARGED_B);
+        let [x, y] = this.ABtoXY(this.c.CARD_ENLARGED_A, this.c.CARD_ENLARGED_B);
 
         this.svg.appendChild(c.outerGroup);
         if (
@@ -220,7 +292,7 @@ class GUI {
             || c.y !== y
             || c.hidden !== false
             || c.reversed !== reversed
-            || c.width !== this.cardWidth * CARD_ENLARGED_WIDTH
+            || c.width !== this.cardWidth * this.c.CARD_ENLARGED_WIDTH
         ) {
             c.cover.a("opacity", 0);
 
@@ -230,7 +302,7 @@ class GUI {
 
             c.innerGroup.a(
                 "transform",
-                `scale(${this.cardWidth * CARD_ENLARGED_WIDTH / SPRITE_WIDTH})
+                `scale(${this.cardWidth * this.c.CARD_ENLARGED_WIDTH / SPRITE_WIDTH})
                  rotate(${reversed ? 180 : 0} ${SPRITE_WIDTH / 2} ${SPRITE_WIDTH * SPRITE_HEIGHT_RATIO / 2})`
             );
 
@@ -265,11 +337,14 @@ class GUI {
 
     _whereDrawOtherHand(player) {
         let index = this.otherPlayers.indexOf(player);
-        return [OTHER_HANDS_A + (index % 4) * 4, OTHER_HANDS_B + (index > 5 ? 0 : 2)];
+        return [
+            this.c.OTHER_HANDS_A + (index % this.c.OTHER_HANDS_IN_ROW) * this.c.OTHER_HANDS_NEXT_HAND_OFFSET_A + (index > this.c.OTHER_HANDS_IN_ROW ? this.c.OTHER_HANDS_NEXT_ROW_OFFSET_A : 0),
+            this.c.OTHER_HANDS_B + (index % this.c.OTHER_HANDS_IN_ROW) * this.c.OTHER_HANDS_NEXT_HAND_OFFSET_B + (index > this.c.OTHER_HANDS_IN_ROW ? this.c.OTHER_HANDS_NEXT_ROW_OFFSET_B : 0),
+        ];
     }
 
     _whoseHandThere(a, b) {
-        if (a === OUR_HAND_A && b === OUR_HAND_B) {
+        if (a === this.c.OUR_HAND_A && b === this.c.OUR_HAND_B) {
             return this.we;
         }
         for (let player of this.otherPlayers) {
@@ -282,7 +357,10 @@ class GUI {
 
     impairCardAB(player, index) {
         if (player === this.we) {
-            return [OUR_HAND_A + OUR_HAND_IMPAIR_OFFSET_A + index, OUR_HAND_B];
+            return [
+                this.c.OUR_HAND_A + this.c.OUR_HAND_IMPAIR_OFFSET_A + index * this.c.OUR_HAND_NEXT_CARD_OFFSET_A,
+                this.c.OUR_HAND_B + this.c.OUR_HAND_IMPAIR_OFFSET_B + index * this.c.OUR_HAND_NEXT_CARD_OFFSET_B,
+            ];
         }
         let [a, b] = this._whereDrawOtherHand(player);
         return [a + 0.5 + index, b];
@@ -312,21 +390,21 @@ class GUI {
 
     drawDeck(instant) {
         for (let card of this.table.deck) {
-            this.drawCard(card, DECK_A, DECK_B, true, instant);
+            this.drawCard(card, this.c.DECK_A, this.c.DECK_B, true, instant);
         }
     }
 
     drawDiscardPile(instant) {
         let elem = document.getElementById("discardPile");
         elem.a(
-            "x", this.zeroX + this.cardWidth * DISCARD_PILE_A,
-            "y", this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * DISCARD_PILE_B,
+            "x", this.zeroX + this.cardWidth * this.c.DISCARD_PILE_A,
+            "y", this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * this.c.DISCARD_PILE_B,
             "width", this.cardWidth,
             "height", this.cardWidth * SPRITE_HEIGHT_RATIO,
         );
 
         for (let card of this.table.discardPile) {
-            this.drawCard(card, DISCARD_PILE_A, DISCARD_PILE_B, false, instant);
+            this.drawCard(card, this.c.DISCARD_PILE_A, this.c.DISCARD_PILE_B, false, instant);
         }
     }
 
@@ -391,7 +469,7 @@ class GUI {
         }
         let playerThere = this._whoseHandThere(a, b);
         return (
-            (a === DISCARD_PILE_A && b === DISCARD_PILE_B)
+            (a === this.c.DISCARD_PILE_A && b === this.c.DISCARD_PILE_B)
             || (type(card) === "destroy" && this.table.field.canBeRemoved(a, b))
             || (type(card) === "map" && typeof finishCardIndex[a][b] !== "undefined" && !this.we.seenFinishCards[finishCardIndex[a][b]])
             || (type(card) === "impair" && typeof playerThere !== "undefined" && playerThere !== this.we && playerThere.impairments[impairmentType(card)] === null)
@@ -404,7 +482,7 @@ class GUI {
         let move = new Move();
 
         let playerThere = this._whoseHandThere(a, b);
-        if (a === DISCARD_PILE_A && b === DISCARD_PILE_B) {
+        if (a === this.c.DISCARD_PILE_A && b === this.c.DISCARD_PILE_B) {
             move.discard(card);
         } else if (type(card) === "destroy" && this.table.field.canBeRemoved(a, b)) {
             move.destroy(card, a, b);
@@ -432,8 +510,8 @@ class GUI {
             for (let player of this.otherPlayers) {
                 possibleAvailableSpaces.push(this._whereDrawOtherHand(player));
             }
-            possibleAvailableSpaces.push([OUR_HAND_A, OUR_HAND_B]);
-            possibleAvailableSpaces.push([DISCARD_PILE_A, DISCARD_PILE_B]);
+            possibleAvailableSpaces.push([this.c.OUR_HAND_A, this.c.OUR_HAND_B]);
+            possibleAvailableSpaces.push([this.c.DISCARD_PILE_A, this.c.DISCARD_PILE_B]);
 
             this.availableSpaces = new DefaultDict(function () { return {}; });
             for (let [a, b] of possibleAvailableSpaces) {
@@ -476,8 +554,8 @@ class GUI {
             elem = this.rotateIcons[index];
         }
         elem.a(
-            "x", this.zeroX + this.cardWidth * (OUR_HAND_A + OUR_HAND_CARDS_OFFSET_A + index),
-            "y", this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * (OUR_HAND_B - 1),
+            "x", this.zeroX + this.cardWidth * (this.c.OUR_HAND_A + this.c.OUR_HAND_CARDS_OFFSET_A + index * this.c.OUR_HAND_NEXT_CARD_OFFSET_A + this.c.OUR_HAND_ROTATE_ICON_OFFSET_A),
+            "y", this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * (this.c.OUR_HAND_B + this.c.OUR_HAND_CARDS_OFFSET_B + index * this.c.OUR_HAND_NEXT_CARD_OFFSET_B + this.c.OUR_HAND_ROTATE_ICON_OFFSET_B),
             "width", this.cardWidth,
             "height", this.cardWidth * SPRITE_HEIGHT_RATIO,
             "opacity", visible ? 1 : 0,
@@ -495,18 +573,18 @@ class GUI {
         }
         this.svg.appendChild(elem);
         elem.a(
-            "x", this.zeroX + this.cardWidth * (OUR_HAND_A + OUR_HAND_CARDS_OFFSET_A),
-            "y", hide ? this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * OUR_HAND_B : -9999,
-            "width", this.cardWidth * this.we.hand.length,
-            "height", this.cardWidth * SPRITE_HEIGHT_RATIO,
+            "x", this.zeroX + this.cardWidth * (this.c.OUR_HAND_A + this.c.OUR_HAND_CARDS_OFFSET_A),
+            "y", hide ? this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * this.c.OUR_HAND_B : -9999,
+            "width", this.cardWidth * this.we.hand.length * this.c.OUR_HAND_NEXT_CARD_OFFSET_A,
+            "height", this.cardWidth * SPRITE_HEIGHT_RATIO * this.we.hand.length * this.c.OUR_HAND_NEXT_CARD_OFFSET_B,
             "opacity", 0.5,
         );
     }
 
     drawOurHand(instant) {
-        let [x, y] = this.ABtoXY(OUR_HAND_A, OUR_HAND_B + 1 + 1/3);
+        let [x, y] = this.ABtoXY(this.c.OUR_HAND_A, this.c.OUR_HAND_B + 1 + 1/3);
         this._drawName(this.we, x, y);
-        this.drawCard(roleOffsets[this.we.role] + this.we.id, OUR_HAND_A, OUR_HAND_B, false, instant);
+        this.drawCard(roleOffsets[this.we.role] + this.we.id, this.c.OUR_HAND_A, this.c.OUR_HAND_B, false, instant);
         for (let i = 0; i < 6; ++i) {
             let card = this.we.hand[i];
             if (typeof card === "undefined") {
@@ -525,7 +603,13 @@ class GUI {
             } else {
                 this._drawRotateIcon(i, false);
             }
-            this.drawCard(card, OUR_HAND_A + OUR_HAND_CARDS_OFFSET_A + i, OUR_HAND_B, false, instant);
+            this.drawCard(
+                card,
+                this.c.OUR_HAND_A + this.c.OUR_HAND_CARDS_OFFSET_A + i * this.c.OUR_HAND_NEXT_CARD_OFFSET_A,
+                this.c.OUR_HAND_B + this.c.OUR_HAND_CARDS_OFFSET_B + i * this.c.OUR_HAND_NEXT_CARD_OFFSET_B,
+                false,
+                instant
+            );
             this.createPickHandler(card);
         }
         for (let [i, card] of this.we.impairments.entries()) {
@@ -552,14 +636,20 @@ class GUI {
             "viewBox", `0 0 ${window.innerWidth} ${window.innerHeight}`,
         );
 
-        if (window.innerHeight / TOTAL_CARDS_VERTICALLY / SPRITE_HEIGHT_RATIO <= window.innerWidth / TOTAL_CARDS_HORIZONTALLY) {
-            this.cardWidth = window.innerHeight / TOTAL_CARDS_VERTICALLY / SPRITE_HEIGHT_RATIO;
-            this.zeroX = (window.innerWidth - this.cardWidth * (TOTAL_CARDS_HORIZONTALLY - 1)) / 2 + this.cardWidth * ZERO_A;
-            this.zeroY = this.cardWidth * SPRITE_HEIGHT_RATIO * (ZERO_B + 0.5);
+        if (window.innerWidth < window.innerHeight) {
+            this.c = COORDINATES_TALL;
         } else {
-            this.cardWidth = window.innerWidth / TOTAL_CARDS_HORIZONTALLY;
-            this.zeroX = this.cardWidth * (ZERO_A + 0.5);
-            this.zeroY = (window.innerHeight - this.cardWidth * SPRITE_HEIGHT_RATIO * (TOTAL_CARDS_VERTICALLY - 1)) / 2 + this.cardWidth * SPRITE_HEIGHT_RATIO * ZERO_B;
+            this.c = COORDINATES_WIDE;
+        }
+
+        if (window.innerHeight / this.c.TOTAL_CARDS_VERTICALLY / SPRITE_HEIGHT_RATIO <= window.innerWidth / this.c.TOTAL_CARDS_HORIZONTALLY) {
+            this.cardWidth = window.innerHeight / this.c.TOTAL_CARDS_VERTICALLY / SPRITE_HEIGHT_RATIO;
+            this.zeroX = (window.innerWidth - this.cardWidth * (this.c.TOTAL_CARDS_HORIZONTALLY - 1)) / 2 + this.cardWidth * this.c.ZERO_A;
+            this.zeroY = this.cardWidth * SPRITE_HEIGHT_RATIO * (this.c.ZERO_B + 0.5);
+        } else {
+            this.cardWidth = window.innerWidth / this.c.TOTAL_CARDS_HORIZONTALLY;
+            this.zeroX = this.cardWidth * (this.c.ZERO_A + 0.5);
+            this.zeroY = (window.innerHeight - this.cardWidth * SPRITE_HEIGHT_RATIO * (this.c.TOTAL_CARDS_VERTICALLY - 1)) / 2 + this.cardWidth * SPRITE_HEIGHT_RATIO * this.c.ZERO_B;
         }
 
         if (this.background === null) {
@@ -571,16 +661,16 @@ class GUI {
             this.svg.appendChild(this.background);
         }
         this.background.a(
-            "x", this.zeroX + BACKGROUND_A * this.cardWidth,
-            "y", this.zeroY + BACKGROUND_B * this.cardWidth * SPRITE_HEIGHT_RATIO,
-            "width", TOTAL_CARDS_HORIZONTALLY * this.cardWidth,
-            "height", TOTAL_CARDS_VERTICALLY * this.cardWidth * SPRITE_HEIGHT_RATIO,
+            "x", this.zeroX + this.c.BACKGROUND_A * this.cardWidth,
+            "y", this.zeroY + this.c.BACKGROUND_B * this.cardWidth * SPRITE_HEIGHT_RATIO,
+            "width", this.c.TOTAL_CARDS_HORIZONTALLY * this.cardWidth,
+            "height", this.c.TOTAL_CARDS_VERTICALLY * this.cardWidth * SPRITE_HEIGHT_RATIO,
         );
 
         let leave = document.getElementById("leave");
         leave.a(
-            "x", this.zeroX + this.cardWidth * LEAVE_A,
-            "y", this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * LEAVE_B,
+            "x", this.zeroX + this.cardWidth * this.c.LEAVE_A,
+            "y", this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * this.c.LEAVE_B,
             "width", this.cardWidth,
             "height", this.cardWidth * SPRITE_HEIGHT_RATIO,
         );
@@ -616,20 +706,20 @@ class GUI {
 
                 moveAnimations += 2;
             } else if (move.type === "discard") {
-                this.drawCard(move.card, DISCARD_PILE_A, DISCARD_PILE_B);
+                this.drawCard(move.card, this.c.DISCARD_PILE_A, this.c.DISCARD_PILE_B);
                 setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH);
 
                 moveAnimations += 2;
             } else if (move.type === "destroy") {
                 this.drawCard(move.card, move.a, move.b);
-                setTimeout(() => this.drawCard(move.card, DISCARD_PILE_A, DISCARD_PILE_B), ANIMATION_LENGTH * 2);
+                setTimeout(() => this.drawCard(move.card, this.c.DISCARD_PILE_A, this.c.DISCARD_PILE_B), ANIMATION_LENGTH * 2);
                 setTimeout(() => this.drawDiscardPile(false), ANIMATION_LENGTH * 2);
                 setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH * 3);
 
                 moveAnimations += 4;
             } else if (move.type === "look") {
                 this.drawCard(move.card, ...finishCardAB[move.index]);
-                setTimeout(() => this.drawCard(move.card, DISCARD_PILE_A, DISCARD_PILE_B), ANIMATION_LENGTH * 2);
+                setTimeout(() => this.drawCard(move.card, this.c.DISCARD_PILE_A, this.c.DISCARD_PILE_B), ANIMATION_LENGTH * 2);
                 setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH * 3);
 
                 moveAnimations += 4;
