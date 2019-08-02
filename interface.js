@@ -145,6 +145,7 @@ class GUI {
             let image = document.createElementNS("http://www.w3.org/2000/svg", "image");
             image.setAttributeNS("http://www.w3.org/1999/xlink", "href", `assets/sprites/${sprite(card)}.png`);
             image.a(
+                "clip-path", "url(#spriteClip)",
                 "width", TEXTURE_WIDTH,
                 "height", TEXTURE_WIDTH * TEXTURE_HEIGHT_RATIO,
             );
@@ -153,6 +154,7 @@ class GUI {
             let back = document.createElementNS("http://www.w3.org/2000/svg", "image");
             back.setAttributeNS("http://www.w3.org/1999/xlink", "href", `assets/sprites/${cover(card)}.png`);
             back.a(
+                "clip-path", "url(#spriteClip)",
                 "width", TEXTURE_WIDTH,
                 "height", TEXTURE_WIDTH * TEXTURE_HEIGHT_RATIO,
             );
