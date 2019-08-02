@@ -1,0 +1,38 @@
+body {
+    background: url(https://pp.userapi.com/c858216/v858216220/2ff76/j5EHiwlrNwA.jpg) no-repeat center center fixed;
+    background-size: cover;
+}
+
+.wrapper {
+    text-align: center;
+    margin-top: 10%;
+    margin-bottom: 1%;
+}
+
+button {
+    background-color: #555555;
+    border: none;
+    color: white;
+    padding: 1% 4%;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 90%;
+}
+
+#nameInput {
+    padding: 0.9% 4%;
+    display: inline-block;
+    box-sizing: border-box;
+}
+
+#loading {
+    display: inline-block;
+    color: rgba(168, 167, 164, 0.9);
+}
+
+.playerName {
+    color: rgba(221, 220, 215, 0.9);
+    text-align:center;
+    margin: 0 32% 0 32%;
+    background: rgba(124, 123, 123, 0.7);
+}
