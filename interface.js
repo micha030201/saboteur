@@ -18,6 +18,9 @@ const ZERO_B = 11;
 const BACKGROUND_A = -4.5;
 const BACKGROUND_B = -11.5;
 
+const LEAVE_A = 12;
+const LEAVE_B = -11;
+
 const DISCARD_PILE_A = 12;
 const DISCARD_PILE_B = -8;
 
@@ -563,6 +566,19 @@ class GUI {
             "width", TOTAL_CARDS_HORIZONTALLY * this.cardWidth,
             "height", TOTAL_CARDS_VERTICALLY * this.cardWidth * SPRITE_HEIGHT_RATIO,
         );
+
+        let leave = document.getElementById("leave");
+        leave.a(
+            "x", this.zeroX + this.cardWidth * LEAVE_A,
+            "y", this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * LEAVE_B,
+            "width", this.cardWidth,
+            "height", this.cardWidth * SPRITE_HEIGHT_RATIO,
+        );
+        leave.onclick = () => {
+            window.location.hash = "";
+            window.location.reload(true);
+        };
+        this.svg.appendChild(leave);
 
         this.drawOtherHands(true);
         this.drawDeck(true);
