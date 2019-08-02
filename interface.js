@@ -612,11 +612,11 @@ class GUI {
                 this.redraw();
             } else if (move.type === "place") {
                 this.drawField(false);
-                setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH);
+                this.drawOurHand(false);
 
                 moveAnimations += 1;
             } else if (move.type === "discard") {
-                setTimeout(() => this.drawOurHand(false), ANIMATION_LENGTH);
+                this.drawOurHand(false);
 
                 moveAnimations += 1;
             } else if (move.type === "destroy") {

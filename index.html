@@ -20,7 +20,7 @@
 <body style="margin:0px;">
     <template id="loading">
         <div class="wrapper">
-            <div id="loading">loading...</div>
+            <div class="message">loading...</div>
         </div>
     </template>
     <template id="lobby">
@@ -33,6 +33,7 @@
         <div class="wrapper">
             <input id="nameInput" type="text" placeholder="your name..."/>
             <button id="joinGame">join</button>
+            <div class="message">already joined:</div>
         </div>
     </template>
     <template id="gameJoined">
@@ -41,6 +42,7 @@
         <div class="wrapper">
             <button id="addBot">add bot</button>
             <button id="startGame">start game</button>
+            <div class="message">already joined:</div>
         </div>
     </template>
     <template id="joinFail">

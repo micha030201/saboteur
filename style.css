@@ -1,39 +1,53 @@
 body {
+    font-size: calc(17px + 0.34vw);
+    font-family: sans-serif;
+
     background: url(assets/backGround.jpg) no-repeat center center fixed;
     background-size: cover;
+
+    color: white;
+}
+
+* { margin: 0px; }
+* + * {
+    margin-top: 0.5em;
 }
 
 .wrapper {
     text-align: center;
-    margin-top: 10%;
-    margin-bottom: 1%;
+    margin-top: 5em;
 }
 
 button {
     background-color: #555555;
     border: none;
-    color: white;
-    padding: 1% 4%;
     text-decoration: none;
     display: inline-block;
-    font-size: 90%;
+
+    padding: 0.7em;
+    color: inherit;
+    font-size: inherit;
 }
 
 #nameInput {
-    padding: 0.9% 4%;
     display: inline-block;
     box-sizing: border-box;
+
+    border: none;
+
+    padding: 0.7em;
+    font-size: inherit;
 }
 
-#loading, #error {
-    display: inline-block;
-    color: rgba(168, 167, 164, 0.9);
+.message {
+    display: block;
 }
 
 .playerName {
-    color: rgba(221, 220, 215, 0.9);
     font-family: sans-serif;
     text-align: center;
-    margin: 5px 40% 0 40%;
-    background: rgba(124, 123, 123, 0.7);
+    display: table;
+    margin: 0.3em auto;
+    padding: 0.3em;
+    background-color: #555555;
 }
