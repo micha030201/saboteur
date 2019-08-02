@@ -15,6 +15,9 @@ const ZERO_B = 11;
 
 // coordinates below relative to zero
 
+const BACKGROUND_A = -4.5;
+const BACKGROUND_B = -11.5;
+
 const DISCARD_PILE_A = 12;
 const DISCARD_PILE_B = -8;
 
@@ -107,6 +110,7 @@ class GUI {
         this.discardPile = null;
         this.playerNames = {};
         this.drawnCardsCache = {};
+        this.background = null;
 
         this.touch = false;
 
@@ -543,6 +547,21 @@ class GUI {
             this.zeroX = this.cardWidth * (ZERO_A + 0.5);
             this.zeroY = (window.innerHeight - this.cardWidth * TEXTURE_HEIGHT_RATIO * (TOTAL_CARDS_VERTICALLY - 1)) / 2 + this.cardWidth * TEXTURE_HEIGHT_RATIO * ZERO_B;
         }
+
+        if (this.background === null) {
+            this.background = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+            this.background.a(
+                "fill", "gainsboro",
+                "opacity", 0.2,
+            );
+            this.svg.appendChild(this.background);
+        }
+        this.background.a(
+            "x", this.zeroX + BACKGROUND_A * this.cardWidth,
+            "y", this.zeroY + BACKGROUND_B * this.cardWidth * TEXTURE_HEIGHT_RATIO,
+            "width", TOTAL_CARDS_HORIZONTALLY * this.cardWidth,
+            "height", TOTAL_CARDS_VERTICALLY * this.cardWidth * TEXTURE_HEIGHT_RATIO,
+        );
 
         this.drawOtherHands(true);
         this.drawDeck(true);
