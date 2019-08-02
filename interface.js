@@ -834,6 +834,7 @@ window.addEventListener("load", function() {
 
                     document.getElementById("addBot").onclick = () => {
                         let bot = new BotPlayer(netgame, netgame.table, names.pop());
+                        window.location.hash += "+" + bot.name;
                         netgame.addPlayer(bot, () => {});
                     };
                     document.getElementById("startGame").onclick = () => netgame.startGame();
@@ -865,12 +866,18 @@ window.addEventListener("load", function() {
     };
 
     if (window.location.hash) {
-        let match = window.location.hash.match(/#([A-Za-z0-9_-]*)(?:\/(.*))?/);
+        let match = window.location.hash.match(/#([A-Za-z0-9_-]*)(?:\/([^+]*))?(?:\+(.*))?/);
         if (typeof match[1] !== "undefined") {
             if (typeof match[2] !== "undefined") {
                 let name = match[2];
                 we = new OurPlayer(netgame, netgame.table, name);
                 netgame._localPlayers[name] = we;
+                if (typeof match[3] !== "undefined") {
+                    for (let botname of match[3].split("+")) {
+                        let bot = new BotPlayer(netgame, netgame.table, botname);
+                        netgame._localPlayers[botname] = bot;
+                    }
+                }
             }
             switchScreens("loading");
             netgame.joinGame(match[1], joinGame);
