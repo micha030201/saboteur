@@ -1,1 +1,54 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2.646 3.969" height="15" width="10"><path d="M1.322865 1.82944a.772808.772808 0 0 0-.772808.772808h.386404a.387135.387135 0 0 1 .386404-.386404zM1.71 2.602248a.387135.387135 0 0 1-.387135.387135v.386404a.772808.772808 0 0 0 .772078-.773539h-.386404zm-.387135.966376v-.772078l-.387134.387134zm0-1.159213v-.774269L1.71 2.022277z"/></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   viewBox="0 0 2.646 3.969"
+   height="15"
+   width="10"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="rotate.svg"
+   inkscape:version="0.92.4 5da689c313, 2019-01-14">
+  <metadata
+     id="metadata10">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs8" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1016"
+     id="namedview6"
+     showgrid="false"
+     inkscape:zoom="15.733333"
+     inkscape:cx="5"
+     inkscape:cy="7.5"
+     inkscape:window-x="0"
+     inkscape:window-y="32"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4" />
+  <path
+     d="M1.322865 1.82944a.772808.772808 0 0 0-.772808.772808h.386404a.387135.387135 0 0 1 .386404-.386404zM1.71 2.602248a.387135.387135 0 0 1-.387135.387135v.386404a.772808.772808 0 0 0 .772078-.773539h-.386404zm-.387135.966376v-.772078l-.387134.387134zm0-1.159213v-.774269L1.71 2.022277z"
+     id="path2"
+     style="fill:#ffffff;fill-opacity:1" />
+</svg>
