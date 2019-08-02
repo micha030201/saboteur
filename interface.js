@@ -151,6 +151,7 @@ class GUI {
         this.availableSpaces = null;
         this.fieldCache = null;
         this.ourTurn = false;
+        this.whoseTurn = null;
         this.cardsHider = null;
         this.gameOverScreen = null;
         this.discardPile = null;
@@ -692,6 +693,9 @@ class GUI {
         this.drawDiscardPile(true);
         this.drawField(true);
         this.drawOurHand(true);
+        if (this.table.gameOver) {
+            this.drawCardEnlarged(this.table.goldFound ? 1100 : 2100);
+        }
     }
 
     drawMove(move, player, callback) {
@@ -780,6 +784,7 @@ class GUI {
 
         setTimeout(callback, ANIMATION_LENGTH * moveAnimations);
 
+        this.whoseTurn = this.table.nextPlayer(player).name;
         this.ourTurn = !this.table.gameOver && this.table.nextPlayer(player).name === this.we.name;
         setTimeout(() => this.drawOurHand(true), ANIMATION_LENGTH * moveAnimations);
     }
