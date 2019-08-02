@@ -4,8 +4,8 @@
 const ANIMATION_LENGTH = 600;  // in milliseconds
 
 // has to correspond to assets/* image sizes
-const TEXTURE_WIDTH = 10;
-const TEXTURE_HEIGHT_RATIO = 538 / 380;
+const SPRITE_WIDTH = 10;
+const SPRITE_HEIGHT_RATIO = 538 / 380;
 
 const TOTAL_CARDS_HORIZONTALLY = 18;
 const TOTAL_CARDS_VERTICALLY = 21;
@@ -121,14 +121,14 @@ class GUI {
     XYtoAB(x, y) {
         return [
             (x - this.zeroX) / this.cardWidth,
-            (y - this.zeroY) / (this.cardWidth * TEXTURE_HEIGHT_RATIO)
+            (y - this.zeroY) / (this.cardWidth * SPRITE_HEIGHT_RATIO)
         ];
     }
 
     ABtoXY(a, b) {
         return [
             this.zeroX + a * this.cardWidth,
-            this.zeroY + b * this.cardWidth * TEXTURE_HEIGHT_RATIO
+            this.zeroY + b * this.cardWidth * SPRITE_HEIGHT_RATIO
         ];
     }
 
@@ -146,8 +146,8 @@ class GUI {
             image.setAttributeNS("http://www.w3.org/1999/xlink", "href", `assets/sprites/${sprite(card)}.png`);
             image.a(
                 "clip-path", "url(#spriteClip)",
-                "width", TEXTURE_WIDTH,
-                "height", TEXTURE_WIDTH * TEXTURE_HEIGHT_RATIO,
+                "width", SPRITE_WIDTH,
+                "height", SPRITE_WIDTH * SPRITE_HEIGHT_RATIO,
             );
             elem.appendChild(image);
 
@@ -155,8 +155,8 @@ class GUI {
             back.setAttributeNS("http://www.w3.org/1999/xlink", "href", `assets/sprites/${cover(card)}.png`);
             back.a(
                 "clip-path", "url(#spriteClip)",
-                "width", TEXTURE_WIDTH,
-                "height", TEXTURE_WIDTH * TEXTURE_HEIGHT_RATIO,
+                "width", SPRITE_WIDTH,
+                "height", SPRITE_WIDTH * SPRITE_HEIGHT_RATIO,
             );
             elem.appendChild(back);
 
@@ -222,8 +222,8 @@ class GUI {
 
             c.innerGroup.a(
                 "transform",
-                `scale(${this.cardWidth / TEXTURE_WIDTH})
-                 rotate(${reversed ? 180 : 0} ${TEXTURE_WIDTH / 2} ${TEXTURE_WIDTH * TEXTURE_HEIGHT_RATIO / 2})`  // FIXME
+                `scale(${this.cardWidth / SPRITE_WIDTH})
+                 rotate(${reversed ? 180 : 0} ${SPRITE_WIDTH / 2} ${SPRITE_WIDTH * SPRITE_HEIGHT_RATIO / 2})`  // FIXME
             );
 
             c.x = x;
@@ -279,7 +279,7 @@ class GUI {
     drawOtherHand(player, instant) {
         let [a, b] = this._whereDrawOtherHand(player);
         let [x, y] = this.ABtoXY(a, b);
-        this._drawName(player, x, y - this.cardWidth / 5 - this.cardWidth * TEXTURE_HEIGHT_RATIO / 2);
+        this._drawName(player, x, y - this.cardWidth / 5 - this.cardWidth * SPRITE_HEIGHT_RATIO / 2);
         for (let [i, card] of player.hand.entries()) {
             this.drawCard(card, a + 0.5 + i * (2 / player.hand.length), b - 0.5, true, instant);
         }
@@ -309,9 +309,9 @@ class GUI {
         let elem = document.getElementById("discardPile");
         elem.a(
             "x", this.zeroX + this.cardWidth * DISCARD_PILE_A,
-            "y", this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * DISCARD_PILE_B,
+            "y", this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * DISCARD_PILE_B,
             "width", this.cardWidth,
-            "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
+            "height", this.cardWidth * SPRITE_HEIGHT_RATIO,
         );
 
         for (let card of this.table.discardPile) {
@@ -354,7 +354,7 @@ class GUI {
                 "y", y,
 
                 "width", this.cardWidth * FIELD_WIDTH,
-                "height", this.cardWidth * TEXTURE_HEIGHT_RATIO * FIELD_HEIGHT,
+                "height", this.cardWidth * SPRITE_HEIGHT_RATIO * FIELD_HEIGHT,
             );
 
             c.x = x;
@@ -441,7 +441,7 @@ class GUI {
                     "x", x,
                     "y", y,
                     "width", this.cardWidth,
-                    "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
+                    "height", this.cardWidth * SPRITE_HEIGHT_RATIO,
                     "opacity", this._canBePlaced(card, a, b) ? 0.6 : 0,
                 );
                 this.svg.appendChild(elem);
@@ -465,9 +465,9 @@ class GUI {
         }
         elem.a(
             "x", this.zeroX + this.cardWidth * (OUR_HAND_A + OUR_HAND_CARDS_OFFSET_A + index),
-            "y", this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * (OUR_HAND_B - 1),
+            "y", this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * (OUR_HAND_B - 1),
             "width", this.cardWidth,
-            "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
+            "height", this.cardWidth * SPRITE_HEIGHT_RATIO,
             "opacity", visible ? 1 : 0,
         );
     }
@@ -484,9 +484,9 @@ class GUI {
         this.svg.appendChild(elem);  // HACK
         elem.a(
             "x", this.zeroX + this.cardWidth * (OUR_HAND_A + OUR_HAND_CARDS_OFFSET_A),
-            "y", hide ? this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * OUR_HAND_B : -9999,
+            "y", hide ? this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * OUR_HAND_B : -9999,
             "width", this.cardWidth * this.we.hand.length,
-            "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
+            "height", this.cardWidth * SPRITE_HEIGHT_RATIO,
             "opacity", 0.5,
         );
     }
@@ -540,14 +540,14 @@ class GUI {
             "viewBox", `0 0 ${window.innerWidth} ${window.innerHeight}`,
         );
 
-        if (window.innerHeight / TOTAL_CARDS_VERTICALLY / TEXTURE_HEIGHT_RATIO <= window.innerWidth / TOTAL_CARDS_HORIZONTALLY) {
-            this.cardWidth = window.innerHeight / TOTAL_CARDS_VERTICALLY / TEXTURE_HEIGHT_RATIO;
+        if (window.innerHeight / TOTAL_CARDS_VERTICALLY / SPRITE_HEIGHT_RATIO <= window.innerWidth / TOTAL_CARDS_HORIZONTALLY) {
+            this.cardWidth = window.innerHeight / TOTAL_CARDS_VERTICALLY / SPRITE_HEIGHT_RATIO;
             this.zeroX = (window.innerWidth - this.cardWidth * (TOTAL_CARDS_HORIZONTALLY - 1)) / 2 + this.cardWidth * ZERO_A;
-            this.zeroY = this.cardWidth * TEXTURE_HEIGHT_RATIO * (ZERO_B + 0.5);
+            this.zeroY = this.cardWidth * SPRITE_HEIGHT_RATIO * (ZERO_B + 0.5);
         } else {
             this.cardWidth = window.innerWidth / TOTAL_CARDS_HORIZONTALLY;
             this.zeroX = this.cardWidth * (ZERO_A + 0.5);
-            this.zeroY = (window.innerHeight - this.cardWidth * TEXTURE_HEIGHT_RATIO * (TOTAL_CARDS_VERTICALLY - 1)) / 2 + this.cardWidth * TEXTURE_HEIGHT_RATIO * ZERO_B;
+            this.zeroY = (window.innerHeight - this.cardWidth * SPRITE_HEIGHT_RATIO * (TOTAL_CARDS_VERTICALLY - 1)) / 2 + this.cardWidth * SPRITE_HEIGHT_RATIO * ZERO_B;
         }
 
         if (this.background === null) {
@@ -560,9 +560,9 @@ class GUI {
         }
         this.background.a(
             "x", this.zeroX + BACKGROUND_A * this.cardWidth,
-            "y", this.zeroY + BACKGROUND_B * this.cardWidth * TEXTURE_HEIGHT_RATIO,
+            "y", this.zeroY + BACKGROUND_B * this.cardWidth * SPRITE_HEIGHT_RATIO,
             "width", TOTAL_CARDS_HORIZONTALLY * this.cardWidth,
-            "height", TOTAL_CARDS_VERTICALLY * this.cardWidth * TEXTURE_HEIGHT_RATIO,
+            "height", TOTAL_CARDS_VERTICALLY * this.cardWidth * SPRITE_HEIGHT_RATIO,
         );
 
         this.drawOtherHands(true);
@@ -665,10 +665,10 @@ class GUI {
         let x, y;
         if (typeof e.changedTouches !== "undefined") {
             x = e.changedTouches[0].clientX - this.cardWidth;
-            y = e.changedTouches[0].clientY - this.cardWidth * TEXTURE_HEIGHT_RATIO;
+            y = e.changedTouches[0].clientY - this.cardWidth * SPRITE_HEIGHT_RATIO;
         } else {
             x = e.clientX - this.cardWidth / 2;
-            y = e.clientY - this.cardWidth * TEXTURE_HEIGHT_RATIO / 2;
+            y = e.clientY - this.cardWidth * SPRITE_HEIGHT_RATIO / 2;
         }
         return this.XYtoAB(x, y);
     }
