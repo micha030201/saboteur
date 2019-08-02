@@ -66,7 +66,16 @@ class NetGame {
                     this.table.deck = snapshot.child("deck").val();
                     this.table.finishCards = snapshot.child("finishCards").val();
 
-                    this.onGameStart(this.table);
+                    this.table.initializeGame();
+                    let player = this.table.players[0];
+                    snapshot.child("allMoves").forEach(snapshot => {
+                        let move = NetGame._parseMove(snapshot);
+                        player = this.table.nextPlayer(player);
+                        player.lastMove = move;
+                        this.table.processMove(player, move, true);
+                    });
+
+                    this.onGameStart(this.table, player);
                 }
             );
         }

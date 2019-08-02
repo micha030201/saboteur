@@ -788,19 +788,29 @@ window.addEventListener("load", function() {
         while (document.body.lastChild) {
             document.body.removeChild(document.body.lastChild);
         }
-        document.body.appendChild(screens[newScreen]);
+        document.body.appendChild(screens[newScreen].cloneNode(true));
     };
-
-    if (window.location.hash) {
-        // TODO parse
-    }
-
-    switchScreens("lobby");
 
     let netgame = new NetGame();
 
+    let we = null;
+
+    netgame.onGameStart = function(table, player) {
+        if (we === null || !table.players.includes(we)) {
+            switchScreens("joinFail");
+        } else {
+            switchScreens("gameStarted");
+            let svg = document.getElementById("gamearea");
+
+            let gui = new GUI(netgame.table, we, svg);
+            gui.redraw();
+
+            table.resumeGame(player);
+        }
+    };
+
     let proceedWithGameCreation = () => {
-        window.location.hash = "#" + netgame.roomCode;
+        window.location.hash = `#${netgame.roomCode}`;
         switchScreens("gameSelected");
 
         netgame.onPlayerAdd = console.log;
@@ -812,21 +822,15 @@ window.addEventListener("load", function() {
             if (name.length === 0) {
                 return;
             }
-            let we = new OurPlayer(netgame, netgame.table, name);
-            netgame.onGameStart = function(table) {
-                switchScreens("gameStarted");
-                let svg = document.getElementById("gamearea");
-
-                let gui = new GUI(netgame.table, we, svg);
-                gui.redraw();
-
-                table.startGame();
-            };
+            switchScreens("loading");
+            we = new OurPlayer(netgame, netgame.table, name);
             netgame.addPlayer(we, (success) => {
                 if (!success) {
                     switchScreens("joinFail");
                 } else {
                     switchScreens("gameJoinedControls");
+
+                    window.location.hash = `#${netgame.roomCode}/${we.name}`;
 
                     document.getElementById("addBot").onclick = () => {
                         let bot = new BotPlayer(netgame, netgame.table, names.pop());
@@ -838,11 +842,50 @@ window.addEventListener("load", function() {
         };
     };
 
-    document.getElementById("createPrivateGame").onclick = () => {
-        netgame.createGame(false, proceedWithGameCreation);
+    let joinGame = () => {
+        switchScreens("gameSelected");
+
+        netgame.onPlayerAdd = console.log;
+
+        document.getElementById("joinGame").onclick = () => {
+            let name = document.getElementById("nameInput").value;
+            if (name.length === 0) {
+                return;
+            }
+            switchScreens("loading");
+            we = new OurPlayer(netgame, netgame.table, name);
+            netgame.addPlayer(we, (success) => {
+                if (!success) {
+                    switchScreens("joinFail");
+                } else {
+                    switchScreens("gameJoined");
+                }
+            });
+        };
     };
 
-    document.getElementById("joinPublicGame").onclick = () => {
-        netgame.joinPublicGame(proceedWithGameCreation);
-    };
+    if (window.location.hash) {
+        let match = window.location.hash.match(/#([A-Za-z0-9_-]*)(?:\/(.*))?/);
+        if (typeof match[1] !== "undefined") {
+            if (typeof match[2] !== "undefined") {
+                let name = match[2];
+                we = new OurPlayer(netgame, netgame.table, name);
+                netgame._localPlayers[name] = we;
+            }
+            switchScreens("loading");
+            netgame.joinGame(match[1], joinGame);
+        }
+    } else {
+        switchScreens("lobby");
+
+        document.getElementById("createPrivateGame").onclick = () => {
+            switchScreens("loading");
+            netgame.createGame(false, proceedWithGameCreation);
+        };
+
+        document.getElementById("joinPublicGame").onclick = () => {
+            switchScreens("loading");
+            netgame.joinPublicGame(proceedWithGameCreation);
+        };
+    }
 });
