@@ -710,6 +710,20 @@ class GUI {
     createPickHandler(card) {
         let elem = this.cardCacheEntry(card).outerGroup;
 
+        let detachCallbacks = () => {
+            this.svg.onmousedown = null;
+            this.svg.onmouseup = null;
+            this.svg.onmousemove = null;
+            this.svg.ontouchstart = null;
+            this.svg.ontouchend = null;
+            this.svg.ontouchcancel = null;
+
+            elem.onmousedown = null;
+            elem.ontouchstart = null;
+            elem.ontouchend = null;
+            elem.ontouchcancel = null;
+        };
+
         let pick = (e) => {
             if (this.we.moveDone !== null) {
                 if (!this.correctEventType(e)) {
@@ -722,6 +736,15 @@ class GUI {
                 this._drawRotateIcon(this.we.hand.indexOf(card), false);
                 this.drawCard(card, a, b, false, true);
 
+                let noPick = () => {
+                    if (!this.correctEventType(e)) {
+                        return;
+                    }
+
+                    detachCallbacks();
+                    this.drawOurHand(true);
+                };
+
                 let enlarge = (e) => {
                     if (!this.correctEventType(e)) {
                         return;
@@ -729,14 +752,24 @@ class GUI {
                     this.drawOurHand(true);
                     this.drawCardEnlarged(card);
 
-                    this.svg.ontouchend = null;
-                    this.svg.ontouchstart = drop;
+                    detachCallbacks();
+
+                    elem.onmousedown = drag;
+                    elem.ontouchstart = drag;
+
+                    this.svg.onmousedown = noPick;
+                    this.svg.ontouchstart = noPick;
                 };
 
                 let drag = (e) => {
                     if (!this.correctEventType(e)) {
                         return;
                     }
+
+                    detachCallbacks();
+
+                    this.svg.onmousemove = drag;
+                    this.svg.ontouchmove = drag;
 
                     elem.onmousedown = drop;
                     elem.ontouchend = drop;
@@ -757,13 +790,7 @@ class GUI {
                         return;
                     }
 
-                    this.svg.ontouchstart = null;
-                    this.svg.onmousemove = null;
-                    this.svg.ontouchmove = null;
-
-                    elem.onmousedown = null;
-                    elem.ontouchend = null;
-                    elem.ontouchcancel = null;
+                    detachCallbacks();
 
                     this._drawAvailableSpaces(null);
 
@@ -778,8 +805,10 @@ class GUI {
                     }
                 };
 
+                detachCallbacks();
+
                 this.svg.ontouchend = enlarge;
-                this.svg.ontouchstart = null;
+                this.svg.ontouchcancel = enlarge;
 
                 this.svg.onmousemove = drag;
                 this.svg.ontouchmove = drag;
