@@ -787,6 +787,10 @@ class GUI {
 }
 
 window.addEventListener("load", function() {
+    let randomBotName = () => {
+        return shuffle(["Shinji", "Rei", "Asuka"])[0];
+    };
+
     let screens = {};
     for (let screenElem of document.querySelectorAll("template")) {
         screens[screenElem.id] = document.importNode(screenElem.content, true);
@@ -800,7 +804,6 @@ window.addEventListener("load", function() {
         document.body.appendChild(screens[newScreen].cloneNode(true));
         if (newScreen !== "gameStarted") {
             for (let playerName of playerNames) {
-                console.log(playerName);
                 let elem = document.createElement("div");
                 elem.a("class", "playerName");
                 elem.textContent = playerName;
@@ -839,8 +842,6 @@ window.addEventListener("load", function() {
         window.location.hash = `#${netgame.roomCode}`;
         switchScreens("gameSelected");
 
-        let names = shuffle(["Shinji", "Rei", "Asuka"]);
-
         document.getElementById("joinGame").onclick = () => {
             let name = document.getElementById("nameInput").value;
             if (name.length === 0) {
@@ -857,7 +858,7 @@ window.addEventListener("load", function() {
                     window.location.hash = `#${netgame.roomCode}/${we.name}`;
 
                     document.getElementById("addBot").onclick = () => {
-                        let bot = new BotPlayer(netgame, netgame.table, names.pop());
+                        let bot = new BotPlayer(netgame, netgame.table, randomBotName());
                         window.location.hash += "+" + bot.name;
                         netgame.addPlayer(bot, () => {});
                     };
@@ -867,7 +868,7 @@ window.addEventListener("load", function() {
         };
     };
 
-    let joinGame = () => {
+    let selectGame = () => {
         switchScreens("gameSelected");
 
         document.getElementById("joinGame").onclick = () => {
@@ -881,10 +882,28 @@ window.addEventListener("load", function() {
                 if (!success) {
                     switchScreens("joinFail");
                 } else {
-                    switchScreens("gameJoined");
+                    switchScreens("gameJoinedControls");
+
+                    document.getElementById("addBot").onclick = () => {
+                        let bot = new BotPlayer(netgame, netgame.table, randomBotName());
+                        window.location.hash += "+" + bot.name;
+                        netgame.addPlayer(bot, () => {});
+                    };
+                    document.getElementById("startGame").onclick = () => netgame.startGame();
                 }
             });
         };
+    };
+
+    let joinGame = () => {
+        switchScreens("gameJoinedControls");
+
+        document.getElementById("addBot").onclick = () => {
+            let bot = new BotPlayer(netgame, netgame.table, randomBotName());
+            window.location.hash += "+" + bot.name;
+            netgame.addPlayer(bot, () => {});
+        };
+        document.getElementById("startGame").onclick = () => netgame.startGame();
     };
 
     if (window.location.hash) {
@@ -900,9 +919,12 @@ window.addEventListener("load", function() {
                         netgame._localPlayers[botname] = bot;
                     }
                 }
+                switchScreens("loading");
+                netgame.joinGame(match[1], joinGame);
+            } else {
+                switchScreens("loading");
+                netgame.joinGame(match[1], selectGame);
             }
-            switchScreens("loading");
-            netgame.joinGame(match[1], joinGame);
         }
     } else {
         switchScreens("lobby");
