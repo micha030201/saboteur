@@ -43,6 +43,10 @@ const FIELD_B = -6;
 const FIELD_WIDTH = 17;
 const FIELD_HEIGHT = 13;
 
+const CARD_ENLARGED_A = 2;
+const CARD_ENLARGED_B = 2;
+const CARD_ENLARGED_WIDTH = 5;
+
 
 class OurPlayer extends Player {
     constructor(netgame, ...args) {
@@ -199,6 +203,40 @@ class GUI {
             c.x = x;
             c.y = y;
             c.hidden = hidden;
+            c.reversed = reversed;
+            c.width = this.cardWidth;
+        }
+    }
+
+    drawCardEnlarged(card) {
+        let reversed = card < 0;
+        let c = this.cardCacheEntry(card);
+
+        let [x, y] = this.ABtoXY(CARD_ENLARGED_A, CARD_ENLARGED_B);
+
+        this.svg.appendChild(c.outerGroup);
+        if (
+            c.x !== x
+            || c.y !== y
+            || c.hidden !== false
+            || c.reversed !== reversed
+            || c.width !== this.cardWidth * CARD_ENLARGED_WIDTH
+        ) {
+            c.cover.a("opacity", 0);
+
+            c.animateTransform.a("from", `${x}, ${y}`);
+            c.animateTransform.a("to", `${x}, ${y}`);
+            c.animateTransform.beginElement();
+
+            c.innerGroup.a(
+                "transform",
+                `scale(${this.cardWidth * CARD_ENLARGED_WIDTH / SPRITE_WIDTH})
+                 rotate(${reversed ? 180 : 0} ${SPRITE_WIDTH / 2} ${SPRITE_WIDTH * SPRITE_HEIGHT_RATIO / 2})`
+            );
+
+            c.x = x;
+            c.y = y;
+            c.hidden = false;
             c.reversed = reversed;
             c.width = this.cardWidth;
         }
@@ -672,7 +710,7 @@ class GUI {
     createPickHandler(card) {
         let elem = this.cardCacheEntry(card).outerGroup;
 
-        let pick = function(e) {
+        let pick = (e) => {
             if (this.we.moveDone !== null) {
                 if (!this.correctEventType(e)) {
                     return;
@@ -684,10 +722,24 @@ class GUI {
                 this._drawRotateIcon(this.we.hand.indexOf(card), false);
                 this.drawCard(card, a, b, false, true);
 
-                let drag = function(e) {
+                let enlarge = (e) => {
                     if (!this.correctEventType(e)) {
                         return;
                     }
+                    this.drawOurHand(true);
+                    this.drawCardEnlarged(card);
+
+                    this.svg.ontouchstart = drop;
+                };
+
+                let drag = (e) => {
+                    if (!this.correctEventType(e)) {
+                        return;
+                    }
+
+                    elem.onmousedown = drop;
+                    elem.ontouchend = drop;
+                    elem.ontouchcancel = drop;
 
                     let [a, b] = this.followEvent(e);
 
@@ -699,7 +751,7 @@ class GUI {
                     this.drawCard(card, a, b, false, true);
                 };
 
-                let drop = function(e) {
+                let drop = (e) => {
                     if (!this.correctEventType(e)) {
                         return;
                     }
@@ -724,17 +776,16 @@ class GUI {
                     }
                 };
 
-                this.svg.onmousemove = drag.bind(this);
-                this.svg.ontouchmove = drag.bind(this);
+                this.svg.ontouchend = enlarge;
+                this.svg.ontouchstart = null;
 
-                elem.onmousedown = drop.bind(this);
-                elem.ontouchend = drop.bind(this);
-                elem.ontouchcancel = drop.bind(this);
+                this.svg.onmousemove = drag;
+                this.svg.ontouchmove = drag;
             }
         };
 
-        elem.onmousedown = pick.bind(this);
-        elem.ontouchstart = pick.bind(this);
+        elem.onmousedown = pick;
+        elem.ontouchstart = pick;
     }
 
     createRotateHandler(elem, index) {
