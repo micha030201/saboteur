@@ -1,5 +1,5 @@
 body {
-    background: url(https://pp.userapi.com/c858216/v858216220/2ff76/j5EHiwlrNwA.jpg) no-repeat center center fixed;
+    background: url(assets/backGround.jpg) no-repeat center center fixed;
     background-size: cover;
 }
 
@@ -25,14 +25,15 @@ button {
     box-sizing: border-box;
 }
 
-#loading {
+#loading, #error {
     display: inline-block;
     color: rgba(168, 167, 164, 0.9);
 }
 
 .playerName {
     color: rgba(221, 220, 215, 0.9);
-    text-align:center;
-    margin: 0 32% 0 32%;
+    font-family: sans-serif;
+    text-align: center;
+    margin: 5px 40% 0 40%;
     background: rgba(124, 123, 123, 0.7);
 }
