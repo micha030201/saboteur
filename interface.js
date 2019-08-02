@@ -575,9 +575,9 @@ class GUI {
         this.svg.appendChild(elem);
         elem.a(
             "x", this.zeroX + this.cardWidth * (this.c.OUR_HAND_A + this.c.OUR_HAND_CARDS_OFFSET_A),
-            "y", hide ? this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * this.c.OUR_HAND_B : -9999,
-            "width", this.cardWidth * this.we.hand.length * this.c.OUR_HAND_NEXT_CARD_OFFSET_A,
-            "height", this.cardWidth * SPRITE_HEIGHT_RATIO * this.we.hand.length * this.c.OUR_HAND_NEXT_CARD_OFFSET_B,
+            "y", hide ? this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * (this.c.OUR_HAND_B + this.c.OUR_HAND_CARDS_OFFSET_B) : -9999,
+            "width", this.cardWidth * (this.we.hand.length * this.c.OUR_HAND_NEXT_CARD_OFFSET_A || 1),
+            "height", this.cardWidth * SPRITE_HEIGHT_RATIO * (this.we.hand.length * this.c.OUR_HAND_NEXT_CARD_OFFSET_B || 1),
             "opacity", 0.5,
         );
     }
@@ -625,7 +625,7 @@ class GUI {
                 this.drawCard(card, a, b, false, instant);
             }
         }
-        this._drawCardsHider(!this.ourTurn);
+        this._drawCardsHider(this.table.gameOver || !this.ourTurn);
     }
 
     drawHand(player, instant) {
