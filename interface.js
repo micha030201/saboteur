@@ -774,11 +774,21 @@ window.addEventListener("load", function() {
         screens[screenElem.id] = document.importNode(screenElem.content, true);
     }
 
+    let playerNames = [];
     let switchScreens = function(newScreen) {
         while (document.body.lastChild) {
             document.body.removeChild(document.body.lastChild);
         }
         document.body.appendChild(screens[newScreen].cloneNode(true));
+        if (newScreen !== "gameStarted") {
+            for (let playerName of playerNames) {
+                console.log(playerName);
+                let elem = document.createElement("div");
+                elem.a("class", "playerName");
+                elem.textContent = playerName;
+                document.body.appendChild(elem);
+            }
+        }
     };
 
     let netgame = new NetGame();
@@ -799,11 +809,17 @@ window.addEventListener("load", function() {
         }
     };
 
+    netgame.onPlayerAdd = function(playerName) {
+        playerNames.push(playerName);
+        let elem = document.createElement("div");
+        elem.a("class", "playerName");
+        elem.textContent = playerName;
+        document.body.appendChild(elem);
+    };
+
     let proceedWithGameCreation = () => {
         window.location.hash = `#${netgame.roomCode}`;
         switchScreens("gameSelected");
-
-        netgame.onPlayerAdd = console.log;
 
         let names = shuffle(["Shinji", "Rei", "Asuka"]);
 
@@ -835,8 +851,6 @@ window.addEventListener("load", function() {
 
     let joinGame = () => {
         switchScreens("gameSelected");
-
-        netgame.onPlayerAdd = console.log;
 
         document.getElementById("joinGame").onclick = () => {
             let name = document.getElementById("nameInput").value;
