@@ -652,8 +652,8 @@ class GUI {
     followEvent(e) {
         let x, y;
         if (typeof e.changedTouches !== "undefined") {
-            x = e.changedTouches[0].clientX - this.cardWidth;
-            y = e.changedTouches[0].clientY - this.cardWidth * SPRITE_HEIGHT_RATIO;
+            x = e.changedTouches[0].clientX - this.cardWidth * 1.8;
+            y = e.changedTouches[0].clientY - this.cardWidth * SPRITE_HEIGHT_RATIO - this.cardWidth * 0.8;
         } else {
             x = e.clientX - this.cardWidth / 2;
             y = e.clientY - this.cardWidth * SPRITE_HEIGHT_RATIO / 2;
