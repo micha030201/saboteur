@@ -98,7 +98,9 @@ class SmartBot  extends Player{
         this.bestcard = undefined;
         console.log(this.name + " smartbot");
         let move = new Move();
-        this.Bfs();
+        if (!canPlayPath (this.impairments)){
+            this.Bfs();
+        }
 
         if (this.bestcard === undefined) {
             let isPlayed = false;
@@ -259,7 +261,9 @@ class MostDistantBot extends SmartBot{
         this.bestcard = undefined;
         console.log(this.name + "  mostDistantBot");
         let move = new Move();
-        this.Bfs();
+        if (!canPlayPath (this.impairments)){
+            this.Bfs();
+        }
 
         if (this.bestcard === undefined) {
             let isPlayed = false;
@@ -397,7 +401,9 @@ class SmartBadBot extends MostDistantBot{
         this.worstCard = undefined;
         console.log(this.name + " MostDistantBot");
         let move = new Move();
-        this.Bfs();
+        if (!canPlayPath (this.impairments)){
+            this.Bfs();
+        }
 
         if (this.bestcard === undefined && this.worstCard == undefined) {
             let isPlayed = false;
@@ -430,7 +436,7 @@ class SmartBadBot extends MostDistantBot{
             }
             if (this.bestcard !== undefined){
                 if (!canPlayPath (this.impairments)){
-                move.discard(this.hand[0]);
+                    move.discard(this.hand[0]);
                 } else{
                     move.placeCard(this.bestcard, this.x, this.y);
                 }
@@ -470,14 +476,16 @@ function trySpecal (bot, card){
     let move = new Move();
     switch (type(card)){
         case "destroy" :
-            let x = getRandomInt(19) - 5;
-            let y = getRandomInt(15) - 7;
-            if (bot.table.field.canBeRemoved (x, y)){
-                move.destroy(card, x, y);
+            if (bot.role === "saboteur"){
+                let adjToCenter = [[1, 0], [0, 1], [0, -1], [-1, 0]];
+                for (let [x, y] of adjToCenter){
+                    if (bot.table.field.canBeRemoved (x, y)){
+                        move.destroy(card, x, y);
+                        return move;
+                    }
+                }
             }
-            else{
-                move.discard(card);
-            }
+            move.discard(card);
             break;
 
         case "map" :
