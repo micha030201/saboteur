@@ -90,7 +90,7 @@ class Table {
         this.discardPile.push(move.card);
     }
 
-    processMove(player, move) {
+    processMove(player, move, fastForward) {
         player.hand = player.hand.filter(item => Math.abs(item) !== Math.abs(move.card));
 
         if (move.type === "place") {
@@ -111,26 +111,29 @@ class Table {
         }
 
         let nextPlayer = this.nextPlayer(player);
-        this.moveCallback(move, player, () => {
-            if (nextPlayer.hand.length && !(this.won || this.lost)) {
-                nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
-            }
-        });
+        if (!fastForward) {
+            this.moveCallback(move, player, () => {
+                if (nextPlayer.hand.length && !this.gameOver) {
+                    nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
+                }
+            });
+        }
     }
 
-    startGame() {
+    initializeGame() {
         for (let player of this.players) {
             for (let i = 0; i < 5; ++i) {
                 player.drawCard();
             }
         }
+    }
 
+    resumeGame(lastPlayer) {
         let move = new Move();
         move.noop();
 
-        // ready player minus one, i guess
-        let nextPlayer = this.nextPlayer(this.players[0]);
-        this.moveCallback(move, this.players[0]);
+        let nextPlayer = this.nextPlayer(lastPlayer);
+        this.moveCallback(move, lastPlayer);
         nextPlayer.makeMove(this.processMove.bind(this, nextPlayer));
     }
 }
