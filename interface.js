@@ -212,8 +212,8 @@ class GUI {
             if (c.a === null || c.b === null || instant) {
                 c.animateTransform.a("from", `${x}, ${y}`);
             } else {
-                if (!c.animateTransform.getAttribute("to")) {  // FIXME
-                    throw new Error();
+                if (!c.animateTransform.getAttribute("to")) {
+                    throw new Error("cannot move card that doesn't exist");
                 }
                 c.animateTransform.a("from", c.animateTransform.getAttribute("to"));
             }
@@ -223,7 +223,7 @@ class GUI {
             c.innerGroup.a(
                 "transform",
                 `scale(${this.cardWidth / SPRITE_WIDTH})
-                 rotate(${reversed ? 180 : 0} ${SPRITE_WIDTH / 2} ${SPRITE_WIDTH * SPRITE_HEIGHT_RATIO / 2})`  // FIXME
+                 rotate(${reversed ? 180 : 0} ${SPRITE_WIDTH / 2} ${SPRITE_WIDTH * SPRITE_HEIGHT_RATIO / 2})`
             );
 
             c.x = x;
@@ -299,7 +299,6 @@ class GUI {
     }
 
     drawDeck(instant) {
-        // TODO some indication if there are no cards
         for (let card of this.table.deck) {
             this.drawCard(card, DECK_A, DECK_B, true, instant);
         }
@@ -476,12 +475,12 @@ class GUI {
         let elem;
         if (this.cardsHider === null) {
             elem = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            elem.a("fill", "white");  // FIXME
+            elem.a("fill", "white");
             this.cardsHider = elem;
         } else {
             elem = this.cardsHider;
         }
-        this.svg.appendChild(elem);  // HACK
+        this.svg.appendChild(elem);
         elem.a(
             "x", this.zeroX + this.cardWidth * (OUR_HAND_A + OUR_HAND_CARDS_OFFSET_A),
             "y", hide ? this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * OUR_HAND_B : -9999,
@@ -492,7 +491,7 @@ class GUI {
     }
 
     drawOurHand(instant) {
-        let [x, y] = this.ABtoXY(OUR_HAND_A, OUR_HAND_B + 1 + 1/3);  // FIXME
+        let [x, y] = this.ABtoXY(OUR_HAND_A, OUR_HAND_B + 1 + 1/3);
         this._drawName(this.we, x, y);
         this.drawCard(roleOffsets[this.we.role] + this.we.id, OUR_HAND_A, OUR_HAND_B, false, instant);
         for (let i = 0; i < 6; ++i) {
@@ -693,7 +692,7 @@ class GUI {
 
                 let [a, b] = this.followEvent(e);
                 this._drawAvailableSpaces(card);
-                this._drawRotateIcon(this.we.hand.indexOf(card), false);  // FIXME
+                this._drawRotateIcon(this.we.hand.indexOf(card), false);
                 this.drawCard(card, a, b, false, true);
 
                 let drag = function(e) {

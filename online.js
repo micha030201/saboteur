@@ -123,7 +123,6 @@ class NetGame {
     }
 
     joinGame(roomCode, foundCallback) {
-        // FIXME what if the supplied room code has a forward-slash?
         this.roomCode = roomCode;
 
         let refRoom = firebase.database().ref(`/rooms/${roomCode}`);
@@ -155,6 +154,10 @@ class NetGame {
     }
 
     addPlayer(player, callback) {
+        if (!player.name.match(/[A-Za-z]+/)) {
+            callback(false);
+            return;
+        }
         let refRoom = firebase.database().ref(`/rooms/${this.roomCode}`);
         refRoom.transaction(
             (room) => {
