@@ -45,7 +45,7 @@ const COORDINATES_TALL = {
     OUR_HAND_ROTATE_ICON_OFFSET_B: -1,
 
     OTHER_HANDS_A: -4,
-    OTHER_HANDS_B: -10,
+    OTHER_HANDS_B: -8,
 
     OTHER_HANDS_NEXT_HAND_OFFSET_A: 4,
     OTHER_HANDS_NEXT_HAND_OFFSET_B: 0,
@@ -314,7 +314,7 @@ class GUI {
         }
     }
 
-    _drawName(player, x, y) {
+    _drawName(player, x, y, anchorEnd) {
         let elem;
         if (typeof this.playerNames[player.name] === "undefined") {
             elem = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -327,6 +327,7 @@ class GUI {
             "x", x,
             "y", y,
             "style", `font: italic ${this.cardWidth / 3}px sans-serif; fill: white;`,
+            "text-anchor", anchorEnd ? "end" : "start",
         );
         if (player === this.we || this.table.gameOver) {
             elem.textContent = `${player.name} (${player.role})`;
@@ -582,8 +583,14 @@ class GUI {
     }
 
     drawOurHand(instant) {
-        let [x, y] = this.ABtoXY(this.c.OUR_HAND_A, this.c.OUR_HAND_B + 1 + 1/3);
-        this._drawName(this.we, x, y);
+        if (this.c === COORDINATES_TALL) {
+            let [x, y] = this.ABtoXY(this.c.OUR_HAND_A, this.c.OUR_HAND_B + 1 + 1/3);
+            this._drawName(this.we, x, y);
+        } else {
+            let [x, y] = this.ABtoXY(this.c.OUR_HAND_A + 1, this.c.OUR_HAND_B - 1/5);
+            this._drawName(this.we, x, y, true);
+        }
+
         this.drawCard(roleOffsets[this.we.role] + this.we.id, this.c.OUR_HAND_A, this.c.OUR_HAND_B, false, instant);
         for (let i = 0; i < 6; ++i) {
             let card = this.we.hand[i];
@@ -780,7 +787,7 @@ class GUI {
     followEvent(e) {
         let x, y;
         if (typeof e.changedTouches !== "undefined") {
-            x = e.changedTouches[0].clientX - this.cardWidth * 1.8;
+            x = e.changedTouches[0].clientX - this.cardWidth * 1.2;
             y = e.changedTouches[0].clientY - this.cardWidth * SPRITE_HEIGHT_RATIO - this.cardWidth * 0.8;
         } else {
             x = e.clientX - this.cardWidth / 2;
