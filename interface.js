@@ -39,10 +39,9 @@ const FIELD_HEIGHT = 13;
 
 
 class OurPlayer extends Player {
-    constructor(netgame, ...args) {
+    constructor(...args) {
         super(...args);
 
-        this.netgame = netgame;
         this._moveDone = null;
     }
 
@@ -833,7 +832,7 @@ window.addEventListener("load", function() {
                     window.location.hash = `#${netgame.roomCode}/${we.name}`;
 
                     document.getElementById("addBot").onclick = () => {
-                        let bot = new BotPlayer(netgame, netgame.table, names.pop());
+                        let bot = new CommonBot(netgame, netgame.table, names.pop());
                         window.location.hash += "+" + bot.name;
                         netgame.addPlayer(bot, () => {});
                     };
@@ -874,7 +873,7 @@ window.addEventListener("load", function() {
                 netgame._localPlayers[name] = we;
                 if (typeof match[3] !== "undefined") {
                     for (let botname of match[3].split("+")) {
-                        let bot = new BotPlayer(netgame, netgame.table, botname);
+                        let bot = new CommonBot(netgame, netgame.table, botname);
                         netgame._localPlayers[botname] = bot;
                     }
                 }

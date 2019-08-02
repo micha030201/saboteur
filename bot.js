@@ -1,9 +1,8 @@
 class CommonBot extends Player{
 
-    constructor (role, ...args){
+    constructor (...args){
 
         super(...args);
-        this.role = role;
         this.bot = undefined;
     }
 
@@ -13,9 +12,9 @@ class CommonBot extends Player{
             if (this.role === "miner"){
                 let type = Math.floor(Math.random() * 2);
                 if (type){
-                    this.bot = new SmartBot (this.table, this.name);
+                    this.bot = new SmartBot (this.netgame, this.table, this.name);
                 } else{
-                    this.bot = new DirectionBot (this.table, this.name, "right");
+                    this.bot = new DirectionBot (this.netgame, this.table, this.name, "right");
                 }
             } else{
                 this.determineBadass();
@@ -29,43 +28,51 @@ class CommonBot extends Player{
         let types = [MostDistantBot, SmartBadBot, BotPlayer, DirectionBot];
         let type = Math.floor(Math.random() * 4);
         if (type !== 3){
-            this.bot = new types[type] (this.table, this.name);
+            this.bot = new types[type] (this.netgame, this.table, this.name);
         } else {
             let sides  = ["right", "left", "up", "down"];
             let side = Math.floor(Math.random() * 4);
-            this.bot = new types[type] (this.table, this.name, sides[side]);
+            this.bot = new types[type] (this.netgame, this.table, this.name, sides[side]);
         }
     }
 }
 
 class BotPlayer extends Player {
-    makeMove(callback, hand) {
-        this.hand = hand;
-        console.log(this.name + "BotPlayer");
+    constructor(...args) {
+        super(...args);
+    }
+
+    makeMove(callback) {
+        console.log(this.name);
 
         let move = new Move();
-        let spaces = [], card;
-        for (card of this.hand) {
-            spaces = this.table.field.availableSpaces(card);
-        }
-        if (!spaces.length) {
-            move.discard(card);
-        } else {
-            let [a, b] = spaces.randomElement();
-            if (this.table.field.canBePlaced(card, a, b)) {
-                card = Math.abs(card);
-            } else {
-                card = -Math.abs(card);
-            }
-            move.placeCard(card, a, b);
-        }
+        move.discard(this.hand[0]);
+        //let spaces = [], card;
+        //for (card of this.hand) {
+        //    spaces = this.table.field.availableSpaces(card);
+        //}
+        //if (!spaces.length) {
+        //    move.discard(card);
+        //} else {
+        //    let [a, b] = spaces.randomElement();
+        //    if (this.table.field.canBePlaced(card, a, b)) {
+        //        card = Math.abs(card);
+        //    } else {
+        //        card = -Math.abs(card);
+        //    }
+        //    move.placeCard(card, a, b);
+        //}
 
+        this.netgame.sendMove(this, move);
         setTimeout(() => callback(move), 0);
     }
 }
 
 class SmartBot  extends Player{
 
+        constructor(...args) {
+        super(...args);
+    }
     makeMove(callback, hand) {
 
         this.hand = hand;
@@ -79,6 +86,7 @@ class SmartBot  extends Player{
         } else {
             move.placeCard(this.bestcard, this.x, this.y);
         }
+         this.netgame.sendMove(this, move);
         setTimeout(() => callback(move), 0);
     }
 
@@ -146,7 +154,10 @@ class SmartBot  extends Player{
             return false;
         }
         for (let card of this.hand) {
-            let [notreversed, reversed]= this.table.field.canPlaceInPosition(card, vertex.x, vertex.y);
+            if (type(card) !== "path"){
+                continue;
+            }
+            let [notreversed, reversed] = this.table.field.canPlaceInPosition(card, vertex.x, vertex.y);
             if (!notreversed && !reversed){
                      continue;
                 }
@@ -220,6 +231,7 @@ class MostDistantBot extends SmartBot{
         } else {
             move.placeCard(this.bestcard, this.x, this.y);
         }
+         this.netgame.sendMove(this, move);
         setTimeout(() => callback(move), 0);
     }
 
@@ -229,6 +241,9 @@ class MostDistantBot extends SmartBot{
             return false;
         }
         for (let card of this.hand) {
+            if (type(card) !== "path"){
+                continue;
+            }
             let [notreversed, reversed]= this.table.field.canPlaceInPosition(card, vertex.x, vertex.y);
             if (!notreversed && !reversed){
                      continue;
@@ -254,14 +269,14 @@ class MostDistantBot extends SmartBot{
 
 class DirectionBot extends Player{
 
-    constructor(table, name, direct) {
-        super(table, name);
+    constructor(netgame, table, name, direct) {
+        super(netgame, table, name);
         let tableDirect = [["right", -3, 0, ">"], ["left", 13, 0, "<"], ["up", 4, 1, "<"], ["down", -4, 1, ">"]];
         for (let [a, b, c, d] of tableDirect){
             if (a === direct){
                 this.comparisionValue = b;
                 this.side = c;
-                this. direct = direct;
+                this.direct = direct;
                 this.sign = d;
             }
         }
@@ -275,6 +290,9 @@ class DirectionBot extends Player{
         let move = new Move();
         let placmentCoord;
         for (let card of this.hand){
+            if (type(card) !== "path"){
+                continue;
+            }
             let spaces = this.table.field.availableSpaces(card);
             for (let i of spaces){
                 if (this.sign === ">"){
@@ -299,6 +317,7 @@ class DirectionBot extends Player{
         } else {
             move.placeCard(this.bestcard, placmentCoord[0], placmentCoord[1]);
         }
+         this.netgame.sendMove(this, move);
         setTimeout(() => callback(move), 0);
     }
 
@@ -319,6 +338,7 @@ class SmartBadBot extends MostDistantBot{
 
         if (this.bestcard === undefined && this.worstCard == undefined) {
             move.discard(this.hand[0]);
+            this.netgame.sendMove(this, move);
             setTimeout(() => callback(move), 0);
         } else {
             if (this.worstCard !== undefined){
@@ -326,6 +346,7 @@ class SmartBadBot extends MostDistantBot{
                 for (let [x, y] of finishPoints){
                     if (Math.sqrt(Math.pow(x - this.realX) + Math.pow(y - this.realY)) <= 3){
                         move.placeCard(this.worstCard, this.badX, this.badY);
+                        this.netgame.sendMove(this, move);
                         setTimeout(() => callback(move), 0);
                         return;
                     }
@@ -333,9 +354,11 @@ class SmartBadBot extends MostDistantBot{
             }
             if (this.bestcard !== undefined){
                 move.placeCard(this.bestcard, this.x, this.y);
+                this.netgame.sendMove(this, move);
                 setTimeout(() => callback(move), 0);
             }else{
                 move.discard(this.hand[0]);
+                this.netgame.sendMove(this, move);
                 setTimeout(() => callback(move), 0);
             }
         }

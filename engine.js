@@ -139,7 +139,8 @@ class Table {
 }
 
 class Player {  // base class
-    constructor(table, name) {
+    constructor(netgame, table, name) {
+        this.netgame = netgame;
         this.table = table;
         this.name = name;
         this.role = "[DATA EXPUNGED]";
