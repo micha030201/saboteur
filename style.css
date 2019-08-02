@@ -32,7 +32,8 @@ button {
 
 .playerName {
     color: rgba(221, 220, 215, 0.9);
-    text-align:center;
-    margin: 0 32% 0 32%;
+    font-family: sans-serif;
+    text-align: center;
+    margin: 5px 40% 0 40%;
     background: rgba(124, 123, 123, 0.7);
 }
