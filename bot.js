@@ -21,7 +21,7 @@ class CommonBot extends Player{
                 this.determineBadBot();
             }
         }
-        this.bot.makeMove (callback, this.hand, this.impairments, this.seenFinishCards);
+        this.bot.makeMove (this.role, callback, this.hand, this.impairments, this.seenFinishCards);
     }
 
     determineBadBot (){
@@ -44,8 +44,10 @@ class BotPlayer extends Player {
         this.netgame = netgame;
     }
 
-    makeMove(callback, hand, impairments, seenFinish) {
+    makeMove(role, callback, hand, impairments, seenFinish) {
+
         console.log(this.name + " RandomBot");
+            this.role = role;
         this.impairments = impairments;
         this.seenFinishCards = seenFinish;
         this.hand = hand;
@@ -87,8 +89,9 @@ class SmartBot  extends Player{
         super(...args);
         this.netgame = netgame;
     }
-    makeMove(callback, hand, impairments, seenFinish) {
+    makeMove(role, callback, hand, impairments, seenFinish) {
 
+        this.role = role;
         this.impairments = impairments;
         this.seenFinishCards = seenFinish;
         this.hand = hand;
@@ -115,7 +118,7 @@ class SmartBot  extends Player{
                 move.placeCard(this.bestcard, this.x, this.y);
             }
         }
-         this.netgame.sendMove(this, move);
+        this.netgame.sendMove(this, move);
         setTimeout(() => callback(move), 0);
     }
 
@@ -247,8 +250,9 @@ class BotField extends Field{
 
 class MostDistantBot extends SmartBot{
 
-    makeMove(callback, hand, impairments, seenFinish) {
+    makeMove(role, callback, hand, impairments, seenFinish) {
 
+        this.role = role;
         this.impairments = impairments;
         this.seenFinishCards = seenFinish;
         this.hand = hand;
@@ -328,8 +332,9 @@ class DirectionBot extends Player{
         }
     }
 
-    makeMove(callback, hand, impairments, seenFinish) {
+    makeMove(role, callback, hand, impairments, seenFinish) {
 
+        this.role = role;
         this.impairments = impairments;
         this.seenFinishCards = seenFinish;
         this.hand = hand;
@@ -380,8 +385,9 @@ class DirectionBot extends Player{
 
 class SmartBadBot extends MostDistantBot{
 
-    makeMove(callback, hand, impairments, seenFinish) {
+    makeMove(role, callback, hand, impairments, seenFinish) {
 
+        this.role = role;
         this.impairments = impairments;
         this.seenFinishCards = seenFinish;
         this.hand = hand;
@@ -488,7 +494,7 @@ function trySpecal (bot, card){
 
         case "impair" :
             for (let player of bot.table.players){
-                if (player.name !== bot.name){
+                if (player.name !== bot.name && player.role !== bot.role){
                     let imprType = impairmentType(card);
                     if (player.impairments[imprType] === null){
                         move.impair(card, player);
@@ -503,7 +509,7 @@ function trySpecal (bot, card){
 
             for (let player of bot.table.players){
                     let imprType = impairmentType(card);
-                    if (player.impairments[imprType] !== null){
+                    if (player.impairments[imprType] !== null && player.role === bot.role){
                         move.repair(card, player);
                         return move;
                     }
