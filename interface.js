@@ -729,6 +729,7 @@ class GUI {
                     this.drawOurHand(true);
                     this.drawCardEnlarged(card);
 
+                    this.svg.ontouchend = null;
                     this.svg.ontouchstart = drop;
                 };
 
@@ -756,6 +757,7 @@ class GUI {
                         return;
                     }
 
+                    this.svg.ontouchstart = null;
                     this.svg.onmousemove = null;
                     this.svg.ontouchmove = null;
 
