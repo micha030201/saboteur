@@ -1,12 +1,12 @@
 
 "use strict"
-/* global dirs finishCardIndex finishCardAB type impairmentType DefaultDict Player Move shuffle symmetrical NetGame roleOffsets */
+/* global finishCardIndex finishCardAB type impairmentType DefaultDict Player Move shuffle symmetrical NetGame roleOffsets sprite cover */
 
 const ANIMATION_LENGTH = 600;  // in milliseconds
 
 // has to correspond to assets/* image sizes
-const TEXTURE_WIDTH = 10;
-const TEXTURE_HEIGHT_RATIO = 1.5;// 538 / 380;
+const SPRITE_WIDTH = 10;
+const SPRITE_HEIGHT_RATIO = 538 / 380;
 
 const TOTAL_CARDS_HORIZONTALLY = 18;
 const TOTAL_CARDS_VERTICALLY = 21;
@@ -15,6 +15,12 @@ const ZERO_A = 4;
 const ZERO_B = 11;
 
 // coordinates below relative to zero
+
+const BACKGROUND_A = -4.5;
+const BACKGROUND_B = -11.5;
+
+const LEAVE_A = 12;
+const LEAVE_B = -11;
 
 const DISCARD_PILE_A = 12;
 const DISCARD_PILE_B = -8;
@@ -74,6 +80,7 @@ class GUI {
         this.discardPile = null;
         this.playerNames = {};
         this.drawnCardsCache = {};
+        this.background = null;
 
         this.touch = false;
 
@@ -84,14 +91,14 @@ class GUI {
     XYtoAB(x, y) {
         return [
             (x - this.zeroX) / this.cardWidth,
-            (y - this.zeroY) / (this.cardWidth * TEXTURE_HEIGHT_RATIO)
+            (y - this.zeroY) / (this.cardWidth * SPRITE_HEIGHT_RATIO)
         ];
     }
 
     ABtoXY(a, b) {
         return [
             this.zeroX + a * this.cardWidth,
-            this.zeroY + b * this.cardWidth * TEXTURE_HEIGHT_RATIO
+            this.zeroY + b * this.cardWidth * SPRITE_HEIGHT_RATIO
         ];
     }
 
@@ -105,81 +112,23 @@ class GUI {
         if (typeof this.drawnCardsCache[card] === "undefined") {
             let elem = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
-            let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            rect.a(
-                "fill", "black",
-                "rx", 1,
-                "width", TEXTURE_WIDTH,
-                "height", 15,
+            let image = document.createElementNS("http://www.w3.org/2000/svg", "image");
+            image.setAttributeNS("http://www.w3.org/1999/xlink", "href", `assets/sprites/${sprite(card)}.png`);
+            image.a(
+                "clip-path", "url(#spriteClip)",
+                "width", SPRITE_WIDTH,
+                "height", SPRITE_WIDTH * SPRITE_HEIGHT_RATIO,
             );
-            elem.appendChild(rect);
+            elem.appendChild(image);
 
-            if (type(card) === "path") {
-                if (dirs(card).up !== "no") {
-                    let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                    way.setAttribute("x", 4);
-                    way.setAttribute("y", 0);
-                    way.setAttribute("width", 2);
-                    if (dirs(card).up === "yes") {
-                        way.setAttribute("height", 8.5);
-                    } else {
-                        way.setAttribute("height", 2);
-                    }
-                    way.setAttribute("fill", "red");
-                    elem.appendChild(way);
-                }
-
-                if (dirs(card).down !== "no") {
-                    let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                    way.setAttribute("x", 4);
-                    way.setAttribute("width", 2);
-                    if (dirs(card).down === "yes") {
-                        way.setAttribute("height", 8.5);
-                        way.setAttribute("y", 6.5);
-                    } else {
-                        way.setAttribute("height", 2);
-                        way.setAttribute("y", 13);
-                    }
-                    way.setAttribute("fill", "red");
-                    elem.appendChild(way);
-                }
-
-                if (dirs(card).left !== "no") {
-                    let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                    way.setAttribute("x", 0);
-                    way.setAttribute("y", 6.5);
-                    way.setAttribute("height", 2);
-                    if (dirs(card).left === "yes") {
-                        way.setAttribute("width", 6);
-                    } else {
-                        way.setAttribute("width", 2);
-                    }
-                    way.setAttribute("fill", "red");
-                    elem.appendChild(way);
-                }
-
-                if (dirs(card).right !== "no") {
-                    let way = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                    way.setAttribute("y", 6.5);
-                    way.setAttribute("height", 2);
-                    if (dirs(card).right === "yes") {
-                        way.setAttribute("width", 6);
-                        way.setAttribute("x", 4);
-                    } else {
-                        way.setAttribute("width", 2);
-                        way.setAttribute("x", 8);
-                    }
-                    way.setAttribute("fill", "red");
-                    elem.appendChild(way);
-                }
-            }
-
-            let cover = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            cover.setAttribute("fill", "black");
-            cover.setAttribute("rx", 1);
-            cover.setAttribute("width", TEXTURE_WIDTH);
-            cover.setAttribute("height", 15);
-            elem.appendChild(cover);
+            let back = document.createElementNS("http://www.w3.org/2000/svg", "image");
+            back.setAttributeNS("http://www.w3.org/1999/xlink", "href", `assets/sprites/${cover(card)}.png`);
+            back.a(
+                "clip-path", "url(#spriteClip)",
+                "width", SPRITE_WIDTH,
+                "height", SPRITE_WIDTH * SPRITE_HEIGHT_RATIO,
+            );
+            elem.appendChild(back);
 
 
             let gt = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -198,7 +147,7 @@ class GUI {
             gt.appendChild(anim);
 
             this.drawnCardsCache[card] = {
-                cover: cover,
+                cover: back,
                 outerGroup: gt,
                 animateTransform: anim,
                 innerGroup: elem,
@@ -220,6 +169,7 @@ class GUI {
 
         let [x, y] = this.ABtoXY(a, b);
 
+        this.svg.appendChild(c.outerGroup);
         if (
             c.x !== x
             || c.y !== y
@@ -227,15 +177,13 @@ class GUI {
             || c.reversed !== reversed
             || c.width !== this.cardWidth
         ) {
-            this.svg.appendChild(c.outerGroup);  // HACK
-
             c.cover.a("opacity", hidden ? 1 : 0);
 
             if (c.a === null || c.b === null || instant) {
                 c.animateTransform.a("from", `${x}, ${y}`);
             } else {
-                if (!c.animateTransform.getAttribute("to")) {  // FIXME
-                    throw new Error();
+                if (!c.animateTransform.getAttribute("to")) {
+                    throw new Error("cannot move card that doesn't exist");
                 }
                 c.animateTransform.a("from", c.animateTransform.getAttribute("to"));
             }
@@ -244,8 +192,8 @@ class GUI {
 
             c.innerGroup.a(
                 "transform",
-                `scale(${this.cardWidth / TEXTURE_WIDTH})
-                 rotate(${reversed ? 180 : 0} ${TEXTURE_WIDTH / 2} ${TEXTURE_WIDTH * TEXTURE_HEIGHT_RATIO / 2})`  // FIXME
+                `scale(${this.cardWidth / SPRITE_WIDTH})
+                 rotate(${reversed ? 180 : 0} ${SPRITE_WIDTH / 2} ${SPRITE_WIDTH * SPRITE_HEIGHT_RATIO / 2})`
             );
 
             c.x = x;
@@ -268,7 +216,7 @@ class GUI {
         elem.a(
             "x", x,
             "y", y,
-            "style", `font: italic ${this.cardWidth / 3}px sans-serif;`,
+            "style", `font: italic ${this.cardWidth / 3}px sans-serif; fill: white;`,
         );
         elem.textContent = player.name;
     }
@@ -300,9 +248,8 @@ class GUI {
 
     drawOtherHand(player, instant) {
         let [a, b] = this._whereDrawOtherHand(player);
-        this.drawCard(roleOffsets[player.role] + player.id, a, b, !this.table.gameOver, instant);
         let [x, y] = this.ABtoXY(a, b);
-        this._drawName(player, x, y - this.cardWidth / 5 - this.cardWidth * TEXTURE_HEIGHT_RATIO / 2);
+        this._drawName(player, x, y - this.cardWidth / 5 - this.cardWidth * SPRITE_HEIGHT_RATIO / 2);
         for (let [i, card] of player.hand.entries()) {
             this.drawCard(card, a + 0.5 + i * (2 / player.hand.length), b - 0.5, true, instant);
         }
@@ -312,6 +259,7 @@ class GUI {
                 this.drawCard(card, a, b, false, instant);
             }
         }
+        this.drawCard(roleOffsets[player.role] + player.id, a, b, !this.table.gameOver, instant);
     }
 
     drawOtherHands(instant) {
@@ -321,7 +269,6 @@ class GUI {
     }
 
     drawDeck(instant) {
-        // TODO some indication if there are no cards
         for (let card of this.table.deck) {
             this.drawCard(card, DECK_A, DECK_B, true, instant);
         }
@@ -331,9 +278,9 @@ class GUI {
         let elem = document.getElementById("discardPile");
         elem.a(
             "x", this.zeroX + this.cardWidth * DISCARD_PILE_A,
-            "y", this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * DISCARD_PILE_B,
+            "y", this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * DISCARD_PILE_B,
             "width", this.cardWidth,
-            "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
+            "height", this.cardWidth * SPRITE_HEIGHT_RATIO,
         );
 
         for (let card of this.table.discardPile) {
@@ -345,7 +292,8 @@ class GUI {
         if (this.fieldCache === null) {
             let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
             rect.a(
-                "fill", "gainsboro",
+                "fill", "#cea241",
+                "opacity", 0.8,
                 "rx", 5,
             );
 
@@ -376,7 +324,7 @@ class GUI {
                 "y", y,
 
                 "width", this.cardWidth * FIELD_WIDTH,
-                "height", this.cardWidth * TEXTURE_HEIGHT_RATIO * FIELD_HEIGHT,
+                "height", this.cardWidth * SPRITE_HEIGHT_RATIO * FIELD_HEIGHT,
             );
 
             c.x = x;
@@ -463,8 +411,8 @@ class GUI {
                     "x", x,
                     "y", y,
                     "width", this.cardWidth,
-                    "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
-                    "opacity", this._canBePlaced(card, a, b) ? 0.3 : 0,
+                    "height", this.cardWidth * SPRITE_HEIGHT_RATIO,
+                    "opacity", this._canBePlaced(card, a, b) ? 0.6 : 0,
                 );
                 this.svg.appendChild(elem);
             }
@@ -487,9 +435,9 @@ class GUI {
         }
         elem.a(
             "x", this.zeroX + this.cardWidth * (OUR_HAND_A + OUR_HAND_CARDS_OFFSET_A + index),
-            "y", this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * (OUR_HAND_B - 1),
+            "y", this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * (OUR_HAND_B - 1),
             "width", this.cardWidth,
-            "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
+            "height", this.cardWidth * SPRITE_HEIGHT_RATIO,
             "opacity", visible ? 1 : 0,
         );
     }
@@ -498,23 +446,23 @@ class GUI {
         let elem;
         if (this.cardsHider === null) {
             elem = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            elem.a("fill", "white");  // FIXME
+            elem.a("fill", "white");
             this.cardsHider = elem;
         } else {
             elem = this.cardsHider;
         }
-        this.svg.appendChild(elem);  // HACK
+        this.svg.appendChild(elem);
         elem.a(
             "x", this.zeroX + this.cardWidth * (OUR_HAND_A + OUR_HAND_CARDS_OFFSET_A),
-            "y", hide ? this.zeroY + this.cardWidth * TEXTURE_HEIGHT_RATIO * OUR_HAND_B : -9999,
+            "y", hide ? this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * OUR_HAND_B : -9999,
             "width", this.cardWidth * this.we.hand.length,
-            "height", this.cardWidth * TEXTURE_HEIGHT_RATIO,
+            "height", this.cardWidth * SPRITE_HEIGHT_RATIO,
             "opacity", 0.5,
         );
     }
 
     drawOurHand(instant) {
-        let [x, y] = this.ABtoXY(OUR_HAND_A, OUR_HAND_B + 1 + 1/3);  // FIXME
+        let [x, y] = this.ABtoXY(OUR_HAND_A, OUR_HAND_B + 1 + 1/3);
         this._drawName(this.we, x, y);
         this.drawCard(roleOffsets[this.we.role] + this.we.id, OUR_HAND_A, OUR_HAND_B, false, instant);
         for (let i = 0; i < 6; ++i) {
@@ -562,15 +510,43 @@ class GUI {
             "viewBox", `0 0 ${window.innerWidth} ${window.innerHeight}`,
         );
 
-        if (window.innerHeight / TOTAL_CARDS_VERTICALLY / TEXTURE_HEIGHT_RATIO <= window.innerWidth / TOTAL_CARDS_HORIZONTALLY) {
-            this.cardWidth = window.innerHeight / TOTAL_CARDS_VERTICALLY / TEXTURE_HEIGHT_RATIO;
+        if (window.innerHeight / TOTAL_CARDS_VERTICALLY / SPRITE_HEIGHT_RATIO <= window.innerWidth / TOTAL_CARDS_HORIZONTALLY) {
+            this.cardWidth = window.innerHeight / TOTAL_CARDS_VERTICALLY / SPRITE_HEIGHT_RATIO;
             this.zeroX = (window.innerWidth - this.cardWidth * (TOTAL_CARDS_HORIZONTALLY - 1)) / 2 + this.cardWidth * ZERO_A;
-            this.zeroY = this.cardWidth * TEXTURE_HEIGHT_RATIO * (ZERO_B + 0.5);
+            this.zeroY = this.cardWidth * SPRITE_HEIGHT_RATIO * (ZERO_B + 0.5);
         } else {
             this.cardWidth = window.innerWidth / TOTAL_CARDS_HORIZONTALLY;
             this.zeroX = this.cardWidth * (ZERO_A + 0.5);
-            this.zeroY = (window.innerHeight - this.cardWidth * TEXTURE_HEIGHT_RATIO * (TOTAL_CARDS_VERTICALLY - 1)) / 2 + this.cardWidth * TEXTURE_HEIGHT_RATIO * ZERO_B;
+            this.zeroY = (window.innerHeight - this.cardWidth * SPRITE_HEIGHT_RATIO * (TOTAL_CARDS_VERTICALLY - 1)) / 2 + this.cardWidth * SPRITE_HEIGHT_RATIO * ZERO_B;
         }
+
+        if (this.background === null) {
+            this.background = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+            this.background.a(
+                "fill", "gainsboro",
+                "opacity", 0.2,
+            );
+            this.svg.appendChild(this.background);
+        }
+        this.background.a(
+            "x", this.zeroX + BACKGROUND_A * this.cardWidth,
+            "y", this.zeroY + BACKGROUND_B * this.cardWidth * SPRITE_HEIGHT_RATIO,
+            "width", TOTAL_CARDS_HORIZONTALLY * this.cardWidth,
+            "height", TOTAL_CARDS_VERTICALLY * this.cardWidth * SPRITE_HEIGHT_RATIO,
+        );
+
+        let leave = document.getElementById("leave");
+        leave.a(
+            "x", this.zeroX + this.cardWidth * LEAVE_A,
+            "y", this.zeroY + this.cardWidth * SPRITE_HEIGHT_RATIO * LEAVE_B,
+            "width", this.cardWidth,
+            "height", this.cardWidth * SPRITE_HEIGHT_RATIO,
+        );
+        leave.onclick = () => {
+            window.location.hash = "";
+            window.location.reload(true);
+        };
+        this.svg.appendChild(leave);
 
         this.drawOtherHands(true);
         this.drawDeck(true);
@@ -672,10 +648,10 @@ class GUI {
         let x, y;
         if (typeof e.changedTouches !== "undefined") {
             x = e.changedTouches[0].clientX - this.cardWidth;
-            y = e.changedTouches[0].clientY - this.cardWidth * TEXTURE_HEIGHT_RATIO;
+            y = e.changedTouches[0].clientY - this.cardWidth * SPRITE_HEIGHT_RATIO;
         } else {
             x = e.clientX - this.cardWidth / 2;
-            y = e.clientY - this.cardWidth * TEXTURE_HEIGHT_RATIO / 2;
+            y = e.clientY - this.cardWidth * SPRITE_HEIGHT_RATIO / 2;
         }
         return this.XYtoAB(x, y);
     }
@@ -700,7 +676,7 @@ class GUI {
 
                 let [a, b] = this.followEvent(e);
                 this._drawAvailableSpaces(card);
-                this._drawRotateIcon(this.we.hand.indexOf(card), false);  // FIXME
+                this._drawRotateIcon(this.we.hand.indexOf(card), false);
                 this.drawCard(card, a, b, false, true);
 
                 let drag = function(e) {
@@ -783,11 +759,21 @@ window.addEventListener("load", function() {
         screens[screenElem.id] = document.importNode(screenElem.content, true);
     }
 
+    let playerNames = [];
     let switchScreens = function(newScreen) {
         while (document.body.lastChild) {
             document.body.removeChild(document.body.lastChild);
         }
         document.body.appendChild(screens[newScreen].cloneNode(true));
+        if (newScreen !== "gameStarted") {
+            for (let playerName of playerNames) {
+                console.log(playerName);
+                let elem = document.createElement("div");
+                elem.a("class", "playerName");
+                elem.textContent = playerName;
+                document.body.appendChild(elem);
+            }
+        }
     };
 
     let netgame = new NetGame();
@@ -808,11 +794,17 @@ window.addEventListener("load", function() {
         }
     };
 
+    netgame.onPlayerAdd = function(playerName) {
+        playerNames.push(playerName);
+        let elem = document.createElement("div");
+        elem.a("class", "playerName");
+        elem.textContent = playerName;
+        document.body.appendChild(elem);
+    };
+
     let proceedWithGameCreation = () => {
         window.location.hash = `#${netgame.roomCode}`;
         switchScreens("gameSelected");
-
-        netgame.onPlayerAdd = console.log;
 
         let names = shuffle(["Shinji", "Rei", "Asuka"]);
 
@@ -844,8 +836,6 @@ window.addEventListener("load", function() {
 
     let joinGame = () => {
         switchScreens("gameSelected");
-
-        netgame.onPlayerAdd = console.log;
 
         document.getElementById("joinGame").onclick = () => {
             let name = document.getElementById("nameInput").value;

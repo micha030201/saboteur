@@ -46,22 +46,31 @@ class BotPlayer extends Player {
         console.log(this.name);
 
         let move = new Move();
-        move.discard(this.hand[0]);
-        //let spaces = [], card;
-        //for (card of this.hand) {
-        //    spaces = this.table.field.availableSpaces(card);
-        //}
-        //if (!spaces.length) {
-        //    move.discard(card);
-        //} else {
-        //    let [a, b] = spaces.randomElement();
-        //    if (this.table.field.canBePlaced(card, a, b)) {
-        //        card = Math.abs(card);
-        //    } else {
-        //        card = -Math.abs(card);
-        //    }
-        //    move.placeCard(card, a, b);
-        //}
+        let spaces = [], card;
+        for (card of this.hand) {
+            if (type(card) !== "path"){
+                move = trySpecal(this, card);
+                this.netgame.sendMove(this, move);
+                setTimeout(() => callback(move), 0);
+                return;
+            }
+           spaces = this.table.field.availableSpaces(card);
+        }
+        if (!spaces.length) {
+           move.discard(card);
+        } else {
+           let [a, b] = spaces.randomElement();
+           if (this.table.field.canBePlaced(card, a, b)) {
+               card = Math.abs(card);
+           } else {
+               card = -Math.abs(card);
+           }
+           if (!canPlayPath (this.impairments)){
+                move.discard(this.hand[0]);
+           } else{
+                move.placeCard(card, a, b);
+           }
+        }
 
         this.netgame.sendMove(this, move);
         setTimeout(() => callback(move), 0);
@@ -82,9 +91,22 @@ class SmartBot  extends Player{
         this.Bfs();
 
         if (this.bestcard === undefined) {
-            move.discard(this.hand[0]);
+            let isPlayed = false;
+            for (let card of this.hand){
+                if (type(card) !== "path"){
+                    isPlayed = true;
+                    move = trySpecal(this, card);
+                }
+            }
+            if (!isPlayed){
+                move.discard(hand[0]);
+            }
         } else {
-            move.placeCard(this.bestcard, this.x, this.y);
+            if (!canPlayPath (this.impairments)){
+                move.discard(this.hand[0]);
+           } else{
+                move.placeCard(this.bestcard, this.x, this.y);
+            }
         }
          this.netgame.sendMove(this, move);
         setTimeout(() => callback(move), 0);
@@ -227,11 +249,25 @@ class MostDistantBot extends SmartBot{
         this.Bfs();
 
         if (this.bestcard === undefined) {
-            move.discard(this.hand[0]);
+            let isPlayed = false;
+            for (let card of this.hand){
+                if (type(card) !== "path"){
+                    move = trySpecal(this, card);
+                    isPlayed = true;
+                }
+            }
+            if (!isPlayed){
+                move.discard(this.hand[0]);
+            }
+
         } else {
-            move.placeCard(this.bestcard, this.x, this.y);
+            if (!canPlayPath (this.impairments)){
+                move.discard(this.hand[0]);
+           } else{
+                move.placeCard(this.bestcard, this.x, this.y);
+            }
         }
-         this.netgame.sendMove(this, move);
+        this.netgame.sendMove(this, move);
         setTimeout(() => callback(move), 0);
     }
 
@@ -291,7 +327,10 @@ class DirectionBot extends Player{
         let placmentCoord;
         for (let card of this.hand){
             if (type(card) !== "path"){
-                continue;
+                move = trySpecal(this, card);
+                this.netgame.sendMove(this, move);
+                setTimeout(() => callback(move), 0);
+                return;
             }
             let spaces = this.table.field.availableSpaces(card);
             for (let i of spaces){
@@ -315,9 +354,13 @@ class DirectionBot extends Player{
         if (turnComparisionValue === this.comparisionValue) {
             move.discard(this.hand[0]);
         } else {
-            move.placeCard(this.bestcard, placmentCoord[0], placmentCoord[1]);
+            if (!canPlayPath (this.impairments)){
+                move.discard(this.hand[0]);
+           } else{
+                move.placeCard(this.bestcard, placmentCoord[0], placmentCoord[1]);
+            }
         }
-         this.netgame.sendMove(this, move);
+        this.netgame.sendMove(this, move);
         setTimeout(() => callback(move), 0);
     }
 
@@ -337,7 +380,16 @@ class SmartBadBot extends MostDistantBot{
         this.Bfs();
 
         if (this.bestcard === undefined && this.worstCard == undefined) {
-            move.discard(this.hand[0]);
+            let isPlayed = false;
+            for (let card of this.hand){
+                if (type(card) !== "path"){
+                    isPlayed = true;
+                    move = trySpecal(this, card);
+                }
+            }
+            if (!isPlayed){
+                move.discard(hand[0]);
+            }
             this.netgame.sendMove(this, move);
             setTimeout(() => callback(move), 0);
         } else {
@@ -345,7 +397,11 @@ class SmartBadBot extends MostDistantBot{
                 let finishPoints = [[8, 0], [8, -2], [8, 2]];
                 for (let [x, y] of finishPoints){
                     if (Math.sqrt(Math.pow(x - this.realX) + Math.pow(y - this.realY)) <= 3){
-                        move.placeCard(this.worstCard, this.badX, this.badY);
+                        if (!canPlayPath (this.impairments)){
+                             move.discard(this.hand[0]);
+                         } else{
+                            move.placeCard(this.worstCard, this.badX, this.badY);
+                        }
                         this.netgame.sendMove(this, move);
                         setTimeout(() => callback(move), 0);
                         return;
@@ -353,7 +409,11 @@ class SmartBadBot extends MostDistantBot{
                 }
             }
             if (this.bestcard !== undefined){
-                move.placeCard(this.bestcard, this.x, this.y);
+                if (!canPlayPath (this.impairments)){
+                move.discard(this.hand[0]);
+                } else{
+                    move.placeCard(this.bestcard, this.x, this.y);
+                }
                 this.netgame.sendMove(this, move);
                 setTimeout(() => callback(move), 0);
             }else{
@@ -383,4 +443,71 @@ class SmartBadBot extends MostDistantBot{
             }
         }
     }
+}
+
+function trySpecal (bot, card){
+
+    let move = new Move();
+    switch (type(card)){
+        case "destroy" :
+            let x = getRandomInt(19) - 5;
+            let y = getRandomInt(15) - 7;
+            if (bot.table.field.canBeRemoved (x, y)){
+                move.destroy(card, x, y);
+            }
+            else{
+                move.discard(card);
+            }
+            break;
+
+        case "map" :
+            let index = 0;
+            for (let finish of bot.seenFinishCards){
+                if (!finish){
+                    move.look(card, index);
+                    return move;
+                }
+                ++index;
+            }
+            move.discard(card);
+            break;
+
+        case "impair" :
+            for (let player of bot.table.players){
+                if (player.name !== bot.name){
+                    let imprType = impairmentType(card);
+                    if (player.impairments[imprType] === null){
+                        move.impair(card, player);
+                        return move;
+                    }
+                }
+            }
+            move.discard(card);
+            break;
+
+        case "repair" :
+
+            for (let player of bot.table.players){
+                    let imprType = impairmentType(card);
+                    if (player.impairments[imprType] !== null){
+                        move.repair(card, player);
+                        return move;
+                    }
+                }
+                move.discard(card);
+                break;
+        default :
+            move.discard(card);
+            break;
+    }
+    return move;
+}
+
+function canPlayPath(impairments){
+    for (let imp of impairments){
+        if (imp !== null){
+            return false;
+        }
+    }
+    return true;
 }

@@ -65,3 +65,7 @@ Node.prototype.a = function() {
         this.setAttribute(arguments[i], arguments[i + 1]);
     }
 }
+
+function getRandomInt(max) {
+  return Math.floor(Math.random() * Math.floor(max));
+}

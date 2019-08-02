@@ -1,6 +1,6 @@
 "use strict"
 /* global DefaultDict */
-/* exported roleOffsets dirs type impairmentType finishCards cardIndices rolesN finishCardAB finishCardIndex */
+/* exported roleOffsets dirs type impairmentType finishCards cardIndices rolesN finishCardAB finishCardIndex sprite cover */
 
 const DESTROY_CARDS = 3;
 const MAP_CARDS = 6;
@@ -13,44 +13,45 @@ let _dirs = [
     { up: "no",   down: "yes",  left: "yes",  right: "no"   },
     { up: "no",   down: "yes",  left: "no",   right: "yes"  },
     { up: "yes",  down: "yes",  left: "yes",  right: "yes"  },
+    { up: "no",   down: "dead", left: "no",   right: "dead" },
+    { up: "no",   down: "no",   left: "dead", right: "dead" },
+    { up: "dead", down: "no",   left: "dead", right: "dead" },
+    { up: "yes",  down: "yes",  left: "yes",  right: "yes"  },
+    { up: "no",   down: "yes",  left: "no",   right: "yes"  },
+    { up: "no",   down: "no",   left: "yes",  right: "yes"  },
+    { up: "dead", down: "dead", left: "dead", right: "dead" },
+    { up: "no",   down: "yes",  left: "yes",  right: "no"   },
+    { up: "yes",  down: "no",   left: "yes",  right: "yes"  },
+    { up: "no",   down: "no",   left: "dead", right: "no"   },
+    { up: "yes",  down: "no",   left: "yes",  right: "yes"  },
+    { up: "yes",  down: "yes",  left: "yes",  right: "yes"  },
+    { up: "no",   down: "yes",  left: "yes",  right: "yes"  },
+    { up: "yes",  down: "no",   left: "no",   right: "yes"  },
+    { up: "yes",  down: "yes",  left: "no",   right: "no"   },
+    { up: "yes",  down: "no",   left: "yes",  right: "yes"  },
+    { up: "yes",  down: "yes",  left: "no",   right: "no"   },
+    { up: "yes",  down: "yes",  left: "no",   right: "no"   },
+    { up: "yes",  down: "no",   left: "no",   right: "yes"  },
+    { up: "yes",  down: "yes",  left: "no",   right: "yes"  },
+    { up: "no",   down: "dead", left: "dead", right: "no"   },
+    { up: "yes",  down: "no",   left: "yes",  right: "no"   },
+    { up: "dead", down: "dead", left: "no",   right: "no"   },
+    { up: "yes",  down: "yes",  left: "no",   right: "yes"  },
+    { up: "no",   down: "no",   left: "yes",  right: "yes"  },
+    { up: "no",   down: "no",   left: "yes",  right: "yes"  },
+    { up: "yes",  down: "no",   left: "no",   right: "yes"  },
+    { up: "yes",  down: "yes",  left: "no",   right: "no"   },
+    { up: "no",   down: "yes",  left: "no",   right: "yes"  },
+    { up: "no",   down: "yes",  left: "yes",  right: "no"   },
+    { up: "yes",  down: "no",   left: "yes",  right: "yes"  },
     { up: "yes",  down: "yes",  left: "yes",  right: "yes"  },
     { up: "yes",  down: "yes",  left: "yes",  right: "yes"  },
-    { up: "yes",  down: "yes",  left: "yes",  right: "yes"  },
-    { up: "yes",  down: "no",   left: "yes",  right: "yes"  },
-    { up: "yes",  down: "no",   left: "yes",  right: "yes"  },
-    { up: "yes",  down: "no",   left: "yes",  right: "yes"  },
     { up: "yes",  down: "yes",  left: "yes",  right: "no"   },
     { up: "yes",  down: "yes",  left: "yes",  right: "no"   },
     { up: "no",   down: "dead", left: "no",   right: "no"   },
     { up: "yes",  down: "yes",  left: "no",   right: "yes"  },
-    { up: "yes",  down: "yes",  left: "no",   right: "yes"  },
-    { up: "yes",  down: "yes",  left: "no",   right: "yes"  },
-    { up: "yes",  down: "no",   left: "yes",  right: "no"   },
     { up: "yes",  down: "no",   left: "yes",  right: "no"   },
     { up: "dead", down: "dead", left: "dead", right: "no"   },
-    { up: "dead", down: "dead", left: "no",   right: "no"   },
-    { up: "no",   down: "no",   left: "yes",  right: "yes"  },
-    { up: "no",   down: "no",   left: "yes",  right: "yes"  },
-    { up: "no",   down: "no",   left: "yes",  right: "yes"  },
-    { up: "yes",  down: "no",   left: "no",   right: "yes"  },
-    { up: "yes",  down: "no",   left: "no",   right: "yes"  },
-    { up: "yes",  down: "no",   left: "no",   right: "yes"  },
-    { up: "yes",  down: "yes",  left: "no",   right: "no"   },
-    { up: "yes",  down: "yes",  left: "no",   right: "no"   },
-    { up: "yes",  down: "yes",  left: "no",   right: "no"   },
-    { up: "yes",  down: "yes",  left: "no",   right: "no"   },
-    { up: "no",   down: "yes",  left: "no",   right: "yes"  },
-    { up: "no",   down: "yes",  left: "no",   right: "yes"  },
-    { up: "no",   down: "yes",  left: "yes",  right: "no"   },
-    { up: "no",   down: "yes",  left: "yes",  right: "no"   },
-    { up: "no",   down: "yes",  left: "yes",  right: "no"   },
-    { up: "no",   down: "yes",  left: "yes",  right: "yes"  },
-    { up: "no",   down: "dead", left: "dead", right: "no"   },
-    { up: "dead", down: "no",   left: "dead", right: "dead" },
-    { up: "no",   down: "dead", left: "no",   right: "dead" },
-    { up: "no",   down: "no",   left: "dead", right: "dead" },
-    { up: "no",   down: "no",   left: "dead", right: "no"   },
-    { up: "dead", down: "dead", left: "dead", right: "dead" },
 ];
 
 let finishCards = [1, 2, 3];
@@ -93,7 +94,7 @@ function dirs(card) {
 }
 
 function impairmentType(card) {
-    return [(Math.abs(card) - DESTROY_CARDS - MAP_CARDS) % 3];
+    return (Math.abs(card) - DESTROY_CARDS - MAP_CARDS) % 3;
 }
 
 let rolesN = [
@@ -124,3 +125,37 @@ let roleOffsets = {
     "miner": 1000,
     "saboteur": 2000
 };
+
+function sprite(card) {
+    if (type(card) === "path") {
+        return 3 + card;
+    }
+    if (type(card) === "destroy") {
+        return 49;
+    }
+    if (type(card) === "map") {
+        return 50;
+    }
+    if (type(card) === "impair") {
+        return 51 + impairmentType(card);
+    }
+    if (type(card) === "repair") {
+        return 54 + impairmentType(card);
+    }
+    if (type(card) === "role") {
+        if (card >= 2000) {
+            return 48;
+        }
+        return 47;
+    }
+}
+
+function cover(card) {
+    if (card < 4) {
+        return 1;
+    }
+    if (type(card) === "role") {
+        return 2;
+    }
+    return 0;
+}
