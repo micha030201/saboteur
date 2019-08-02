@@ -1,8 +1,9 @@
 class CommonBot extends Player{
 
-    constructor (...args){
+    constructor (netgame, ...args){
 
         super(...args);
+        this.netgame = netgame;
         this.bot = undefined;
     }
 
@@ -17,13 +18,13 @@ class CommonBot extends Player{
                     this.bot = new DirectionBot (this.netgame, this.table, this.name, "right");
                 }
             } else{
-                this.determineBadass();
+                this.determineBadBot();
             }
         }
         this.bot.makeMove (callback, this.hand, this.impairments, this.seenFinishCards);
     }
 
-    determineBadass (){
+    determineBadBot (){
 
         let types = [MostDistantBot, SmartBadBot, BotPlayer, DirectionBot];
         let type = Math.floor(Math.random() * 4);
@@ -31,19 +32,20 @@ class CommonBot extends Player{
             this.bot = new types[type] (this.netgame, this.table, this.name);
         } else {
             let sides  = ["right", "left", "up", "down"];
-            let side = Math.floor(Math.random() * 4);
+            let side = getRandomInt(4);
             this.bot = new types[type] (this.netgame, this.table, this.name, sides[side]);
         }
     }
 }
 
 class BotPlayer extends Player {
-    constructor(...args) {
+    constructor(netgame, ...args) {
         super(...args);
+        this.netgame = netgame;
     }
 
     makeMove(callback, hand, impairments, seenFinish) {
-        console.log(this.name);
+        console.log(this.name + " RandomBot");
         this.impairments = impairments;
         this.seenFinishCards = seenFinish;
         this.hand = hand;
@@ -81,8 +83,9 @@ class BotPlayer extends Player {
 
 class SmartBot  extends Player{
 
-        constructor(...args) {
+    constructor(netgame, ...args) {
         super(...args);
+        this.netgame = netgame;
     }
     makeMove(callback, hand, impairments, seenFinish) {
 
@@ -90,7 +93,7 @@ class SmartBot  extends Player{
         this.seenFinishCards = seenFinish;
         this.hand = hand;
         this.bestcard = undefined;
-        console.log(this.name + " " + "smartbot");
+        console.log(this.name + " smartbot");
         let move = new Move();
         this.Bfs();
 
@@ -213,7 +216,7 @@ class SmartBot  extends Player{
 
         let botfield = new BotField(this.table.field.grid);
         botfield.grid[a][b] = card;
-        let visited = botfield.reachableSpaces();
+        let visited = botfield.determineDeadEnd();
         botfield.grid[a][b] = undefined;
         return (visited.has(cell.x + " " + cell.y));
     }
@@ -234,7 +237,7 @@ class BotField extends Field{
         this.grid = cloneObject(area);
     }
 
-    reachableSpaces() {
+    determineDeadEnd() {
     let result = [];
     let visited = new Set(["0 0"]);
     this._reachableSpaces(visited, result, 0, 0, "up");
@@ -250,7 +253,7 @@ class MostDistantBot extends SmartBot{
         this.seenFinishCards = seenFinish;
         this.hand = hand;
         this.bestcard = undefined;
-        console.log(this.name + " " + "mostDistantBot");
+        console.log(this.name + "  mostDistantBot");
         let move = new Move();
         this.Bfs();
 
@@ -312,7 +315,8 @@ class MostDistantBot extends SmartBot{
 class DirectionBot extends Player{
 
     constructor(netgame, table, name, direct) {
-        super(netgame, table, name);
+        super(table, name);
+        this.netgame = netgame;
         let tableDirect = [["right", -3, 0, ">"], ["left", 13, 0, "<"], ["up", 4, 1, "<"], ["down", -4, 1, ">"]];
         for (let [a, b, c, d] of tableDirect){
             if (a === direct){
@@ -385,7 +389,7 @@ class SmartBadBot extends MostDistantBot{
         this.IsBestFound = false;
         this.bestcard = undefined;
         this.worstCard = undefined;
-        console.log(this.name + " " + "MostDistantBot");
+        console.log(this.name + " MostDistantBot");
         let move = new Move();
         this.Bfs();
 

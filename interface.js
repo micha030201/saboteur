@@ -45,9 +45,9 @@ const FIELD_HEIGHT = 13;
 
 
 class OurPlayer extends Player {
-    constructor(...args) {
+    constructor(netgame, ...args) {
         super(...args);
-
+        this.netgame = netgame;
         this._moveDone = null;
     }
 

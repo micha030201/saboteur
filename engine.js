@@ -139,8 +139,7 @@ class Table {
 }
 
 class Player {  // base class
-    constructor(netgame, table, name) {
-        this.netgame = netgame;
+    constructor(table, name) {
         this.table = table;
         this.name = name;
         this.role = "[DATA EXPUNGED]";
@@ -224,9 +223,6 @@ class Field {
 
     _reachableSpaces(_visited, _result, a, b, direction) {
         let card = this.grid[a][b];
-         if (Math.abs(b) > 3 || a < -2 || a > 10){
-            return;
-         }
         if (typeof card === "undefined") {
             _result.push([a, b]);
             return;
