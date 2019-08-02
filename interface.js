@@ -632,8 +632,9 @@ class GUI {
             } else if (move.type === "repair") {
                 this.drawCard(move.card, ...this.impairCardAB(this.table.players[move.playerId], impairmentType(move.card)));
                 setTimeout(() => this.drawDiscardPile(false), ANIMATION_LENGTH * 2);
+                setTimeout(() => this.drawOtherHands(false), ANIMATION_LENGTH * 3);
 
-                moveAnimations += 4;
+                moveAnimations += 5;
             }
         } else {
             if (move.type === "noop") {
