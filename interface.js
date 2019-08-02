@@ -1,6 +1,6 @@
 
 "use strict"
-/* global finishCardIndex finishCardAB type impairmentType DefaultDict Player Move shuffle symmetrical NetGame roleOffsets sprite cover */
+/* global finishCardIndex finishCardAB type impairmentType DefaultDict Player Move shuffle symmetrical NetGame roleOffsets sprite cover CommonBot */
 
 const ANIMATION_LENGTH = 600;  // in milliseconds
 
@@ -830,7 +830,7 @@ window.addEventListener("load", function() {
                     window.location.hash = `#${netgame.roomCode}/${we.name}`;
 
                     document.getElementById("addBot").onclick = () => {
-                        let bot = new CommonBot(netgame, netgame.table, names.pop());
+                        let bot = new CommonBot(netgame, netgame.table, randomBotName());
                         window.location.hash += "+" + bot.name;
                         netgame.addPlayer(bot, () => {});
                     };
