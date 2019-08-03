@@ -831,6 +831,7 @@ class GUI {
             this.svg.ontouchstart = null;
             this.svg.ontouchend = null;
             this.svg.ontouchcancel = null;
+            this.svg.ontouchmove = null;
 
             elem.onmousedown = null;
             elem.ontouchstart = null;
