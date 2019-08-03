@@ -379,6 +379,7 @@ class GUI {
             if (card !== null) {
                 let [a, b] = this.impairCardAB(player, i);
                 this.drawCard(card, a, b, false, instant);
+                this.destroyPickHandler(card);
             }
         }
         this.drawCard(roleOffsets[player.role] + player.id, a, b, !this.table.gameOver, instant);
@@ -393,6 +394,7 @@ class GUI {
     drawDeck(instant) {
         for (let card of this.table.deck) {
             this.drawCard(card, this.c.DECK_A, this.c.DECK_B, true, instant);
+            this.destroyPickHandler(card);
         }
     }
 
@@ -407,6 +409,7 @@ class GUI {
 
         for (let card of this.table.discardPile) {
             this.drawCard(card, this.c.DISCARD_PILE_A, this.c.DISCARD_PILE_B, false, instant);
+            this.destroyPickHandler(card);
         }
     }
 
@@ -457,11 +460,13 @@ class GUI {
         for (let [index, [a, b]] of finishCardAB.entries()) {
             if (this.table.finishCards[index] !== null) {
                 this.drawCard(this.table.finishCards[index], a, b, !this.we.seenFinishCards[index], instant);
+                this.destroyPickHandler(this.table.finishCards[index]);
             }
         }
 
         for (let [a, b, card] of this.table.field.cards()) {
             this.drawCard(card, a, b, false, instant);
+            this.destroyPickHandler(card);
         }
     }
 
@@ -807,6 +812,13 @@ class GUI {
             return true;
         }
         return !this.touch;
+    }
+
+    destroyPickHandler(card) {
+        let elem = this.cardCacheEntry(card).outerGroup;
+
+        elem.onmousedown = null;
+        elem.ontouchstart = null;
     }
 
     createPickHandler(card) {
