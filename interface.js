@@ -1021,13 +1021,12 @@ window.addEventListener("load", function() {
             }
             switchScreens("loading");
             we = new OurPlayer(netgame, netgame.table, name);
+            window.location.hash = `#${netgame.roomCode}/${we.name}`;
             netgame.addPlayer(we, (success) => {
                 if (!success) {
                     switchScreens("joinFail");
                 } else {
                     switchScreens("gameJoinedControls");
-
-                    window.location.hash = `#${netgame.roomCode}/${we.name}`;
 
                     document.getElementById("addBot").onclick = () => {
                         let bot = new CommonBot(netgame, netgame.table, randomBotName());
